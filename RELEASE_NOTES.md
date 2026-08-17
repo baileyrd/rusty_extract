@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C026 — `Timeout` preference
+**2026-08-17**
+
+- **Added:** `prefs::resolve_timeout_ms` — ports `LoadPref($STATUS_TIMEOUT,
+  $Timeout)` plus the two lines immediately after it
+  (UniExtract.au3:744-746): a stored preference value in seconds converts
+  to milliseconds, and anything under 10 seconds after that conversion
+  resets fully to the 60-second default (not clamped up to 10s).
+- **Scope note — preserved quirk:** `LoadPref`'s error branch (missing or
+  unreadable `timeout` key) never assigns its `ByRef` output parameter, so
+  `$Timeout` keeps its pre-call value: the `Global $Timeout = 60000`
+  declaration (UniExtract.au3:151), which the comment there marks as
+  *milliseconds*. The unconditional `$Timeout *= 1000` that follows
+  `LoadPref` still runs, misinterpreting that leftover millisecond value
+  as seconds — so a genuinely first-run process with no `timeout` key ends
+  up with a 60,000,000ms (~16.7 hour) extraction timeout instead of the
+  intended 60 seconds. This is a real unit-mismatch bug in the source, not
+  something this port introduced, and it's preserved rather than fixed
+  under the migration's parity contract; `resolve_timeout_ms(None)`
+  reproduces it exactly and is asserted by its own test.
+- Parity tests: `prefs::tests::stored_seconds_convert_to_milliseconds`,
+  `prefs::tests::values_under_ten_seconds_reset_to_the_sixty_second_default`,
+  `prefs::tests::exactly_ten_seconds_is_not_reset`,
+  `prefs::tests::missing_preference_key_reproduces_the_sixty_million_millisecond_quirk`.
+
 ## C016 — Process exit code contract
 **2026-08-17**
 
