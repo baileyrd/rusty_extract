@@ -60,6 +60,22 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::extsis",
     },
     HardcodedCase {
+        type_key: "bcm",
+        module: "extract::bcm",
+    },
+    HardcodedCase {
+        type_key: "chd",
+        module: "extract::chdman",
+    },
+    HardcodedCase {
+        type_key: "freearc",
+        module: "extract::freearc",
+    },
+    HardcodedCase {
+        type_key: "kgb",
+        module: "extract::kgb",
+    },
+    HardcodedCase {
         type_key: "lz",
         module: "extract::lzip",
     },
