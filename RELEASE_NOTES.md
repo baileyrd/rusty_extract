@@ -23,6 +23,59 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C126, C127, C128, C129, C130, C131, C132, C133, C134, C135, C136, C137 — `def/*.ini`-only extractor integrations
+**2026-08-17**
+
+- **Added:** `extract::lbr` (C126, lbrate), `extract::lit` (C127, ConvertLIT),
+  `extract::mo` (C128, GNU gettext `msgunfmt`), `extract::pex` (C129,
+  Champollion), `extract::qm` (C130, Qt Linguist `lconvert`), `extract::rpgmvp`
+  (C131, rmvdec), `extract::sgb` (C132, sgbdec), `extract::sim` (C133,
+  simdec), `extract::sit` (C134, unar / TheUnarchiver), `extract::spoon`
+  (C135, spoondec), `extract::utage` (C136, utagedec), `extract::uu` (C137,
+  UUDeview) — twelve more extractor types with no hardcoded `Case
+  $TYPE_...` in the source, dispatched entirely through the `def/*.ini`
+  plugin path (extension routing → C047, file resolution → C050, schema
+  parsing → C052, placeholder substitution → C182 — all already ported).
+  Each module bundles its `def/*.ini` file verbatim (`include_str!`) and
+  has no new production logic of its own: the capability is proven by
+  composing those primitives against the bundled file and checking the
+  resulting command line matches what `pluginExtract`
+  (UniExtract.au3:3468-3520) would run.
+- **Scope note:** every parity test here verifies the *substituted
+  command-line string* (`$sBinary & " " & $sParameters`), not a tokenized
+  `Invocation.args` the way every hardcoded `extract::*` module builds —
+  same known gap as the C060/C122-125 batch (a quote-aware command-line
+  tokenizer for the plugin path hasn't been built yet).
+- **`extract::mo`/`extract::qm` scope note:** `def/mo.ini` and `def/qm.ini`
+  both set `parameters=%file% -o %outdir%\%filename%.<ext>`; the literal
+  backslash and extension after `%outdir%` are not part of the `%outdir%`
+  placeholder, so the substituted output is the quoted outdir immediately
+  followed by the literal `\<filename>.<ext>` with no space — preserved
+  exactly, not normalized into a separate quoted path segment.
+- **`extract::lit` scope note:** `def/lit.ini` reproduces the
+  `todo.txt:29` quirk of passing the output directory as a second raw
+  positional argument with no special quoting/escaping beyond the
+  placeholder substitution's own quoting — a known upstream rough edge,
+  preserved rather than fixed.
+- **`extract::uu` scope note:** `def/uu.ini` is the first bundled plugin in
+  this port with an explicit `workingdir=%filedir%` (most omit
+  `workingdir` entirely, falling back to `outdir`); its parity test
+  resolves that working directory with the same single
+  `replace_placeholders` call used for the command line, since `%filedir%`
+  is one of the five named substitutions.
+- Parity tests: `extract::lbr::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::lit::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::mo::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::pex::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::qm::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::rpgmvp::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::sgb::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::sim::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::sit::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::spoon::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::utage::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::uu::tests::bundled_ini_produces_source_matching_command_line_and_workingdir`.
+
 ## C059 — unalz (ALZip) probe + extractor integration
 **2026-08-17**
 
