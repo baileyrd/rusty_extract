@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C108 — WolfDec extractor integration
+**2026-08-17**
+
+- **Added:** `extract::wolf::invocation` — builds the WolfDec
+  (`WolfDec.exe`) Wolf RPG Editor game-archive extraction command, matching
+  UniExtract.au3:3377-3382's `Case $TYPE_WOLF`: `<program> "<file>"`, run in
+  `$outdir` with the window minimized.
+- **Scope note:** the source calls `_RunInTempOutdir`, passing `$tempoutdir`
+  as the staging argument but `$outdir` (not `$tempoutdir`) as the explicit
+  working-directory argument — unlike `extract::lzip`/`extract::isz`, whose
+  `_RunInTempOutdir` calls use `$tempoutdir` as both. The working directory
+  for this invocation is therefore `outdir`; the temp-dir-then-move
+  orchestration `_RunInTempOutdir` layers on top is a separate,
+  already-tracked runtime-behavior capability, not part of this row.
+- **Scope note:** `HasPlugin($wolf)`, the preceding
+  `_CreateTrayMessageBox(...)` UI notification (deferred GUI subsystem,
+  manifest row D001), the `_Sleep(1000, "CLEANING_UP")` pause, and the
+  trailing `MoveFiles(...)` call are all separate runtime behavior, out of
+  scope for this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"wolf"` →
+  `extract::wolf`).
+- Parity test: `matches_source_invocation`.
+
 ## C103 — umodel extractor integration
 **2026-08-17**
 
