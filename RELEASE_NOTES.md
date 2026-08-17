@@ -34,6 +34,49 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `extract::kgb`).
 - Parity test: `matches_source_invocation`.
 
+## C071 — FreeArc extractor integration
+**2026-08-17**
+
+- **Added:** `extract::freearc::invocation` — builds the FreeArc `.arc`
+  extraction command, matching UniExtract.au3:2556-2557's `Case
+  $TYPE_FREEARC`.
+- **Argument-construction note:** the source concatenates `-dp` directly
+  onto the quoted outdir with no space (`-dp"' & $outdir & '"'`), so the
+  resulting command-line token is a single argument `-dp"<outdir>"` — the
+  embedded quote characters are literally part of the argument value, not
+  two separate args (`-dp` and `"<outdir>"`) and not an unquoted
+  `-dp<outdir>`. Preserved exactly as-is.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"freearc"` →
+  `extract::freearc`).
+- Parity test: `matches_source_invocation`.
+
+## C065 — chdman extractor integration
+**2026-08-17**
+
+- **Added:** `extract::chdman::invocation` — builds the MAME CHD compressed
+  hard disk image extraction command, matching UniExtract.au3:2441-2442's
+  `Case $TYPE_CHD`: `<chdman.exe> extracthd -i "<file>" -o
+  "<outdir>\<filename_stem>.img"`.
+- **Scope note:** unlike most other extractor cases (including C095's
+  `sfark`), this one runs in `outdir`, not the input file's own directory
+  (`$filedir`) — that's a faithful match to the source's `_Run(..., $outdir)`
+  call, not an inconsistency introduced by this port. The source's `_Run`
+  call also omits the show-flag argument, so `_Run`'s own default of
+  `@SW_MINIMIZE` applies.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"chd"` →
+  `extract::chdman`).
+- Parity test: `matches_source_invocation`.
+
+## C062 — BCM extractor integration
+**2026-08-17**
+
+- **Added:** `extract::bcm::invocation` — builds the BCM-compressed-file
+  extraction command, matching UniExtract.au3:2418-2419's
+  `Case $TYPE_BCM`.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"bcm"` →
+  `extract::bcm`).
+- Parity test: `matches_source_invocation`.
+
 ## C051 — Detector-to-plugin mapping (`[Trid]`/`[File]`/`[Exeinfo]`)
 **2026-08-17**
 

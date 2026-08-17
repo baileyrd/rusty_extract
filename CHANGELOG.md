@@ -22,6 +22,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C096: extsis extractor integration (`extract::extsis`).
 - C051: detector-to-plugin mapping (`detection::detector_mapping`).
 - C079: KGB Archiver extractor integration (`extract::kgb`).
+- C071: FreeArc extractor integration (`extract::freearc`).
+- C062: BCM extractor integration (`extract::bcm`).
+- C065: chdman extractor integration (`extract::chdman`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

@@ -9,8 +9,11 @@
 //! tests here verify the constructed [`Invocation`] matches the source's
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
+pub mod bcm;
+pub mod chdman;
 pub mod dispatch;
 pub mod extsis;
+pub mod freearc;
 pub mod kgb;
 pub mod plugin;
 pub mod rgss;
