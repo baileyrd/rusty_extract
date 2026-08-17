@@ -75,6 +75,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "kgb",
         module: "extract::kgb",
     },
+    HardcodedCase {
+        type_key: "lz",
+        module: "extract::lzip",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.

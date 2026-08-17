@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C080 — lzip extractor integration
+**2026-08-17**
+
+- **Added:** `extract::lzip::invocation` — builds the `.lz` LZIP
+  decompression command, matching UniExtract.au3:2783-2784's `Case
+  $TYPE_LZ`.
+- **Scope note:** the source calls `_RunInTempOutdir` rather than plain
+  `_Run` — a variant that stages output in a temp directory before moving
+  it into place — but the resulting `Invocation` shape (program, args,
+  working directory, window) is identical to every other `_Run`-based
+  extractor here; the temp-dir-then-move orchestration is a separate,
+  already-tracked runtime-behavior capability, not part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"lz"` →
+  `extract::lzip`).
+- Parity test: `matches_source_invocation`.
+
 ## C079 — KGB Archiver extractor integration
 **2026-08-17**
 
