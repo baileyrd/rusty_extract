@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C102 — uif2iso extractor integration
+**2026-08-17**
+
+- **Added:** `extract::uif::invocation` — builds the uif2iso (`uif2iso.exe`)
+  MagicISO `.uif`-to-ISO stage-1 conversion command, matching
+  UniExtract.au3:3161-3163's `Case $TYPE_UIF`: `<program> "<file>"
+  "<outdir>\<filename>"`, run in `$filedir` with the window shown normally
+  (the source's explicit `True` third argument maps to `WindowMode::Show`,
+  same precedent as `extract::rpa`).
+- **Scope note:** the source's `_CreateTrayMessageBox(...)` call immediately
+  preceding `_Run` is a UI progress notification belonging to the deferred
+  GUI subsystem (manifest row D001) — out of scope for this row, not
+  represented here.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"uif"` →
+  `extract::uif`).
+- Parity test: `matches_source_invocation`.
+
 ## C081 — lzop extractor integration
 **2026-08-17**
 
