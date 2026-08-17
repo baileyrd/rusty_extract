@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C048 — Blind 7-Zip probe fallback
+**2026-08-17**
+
+- **Added:** `detection::sevenzip_probe`, porting `check7z`
+  (UniExtract.au3:1917-1942) — the final catch-all detector, tried after
+  every other detector fails: attempt a `7z l` listing and see if 7-Zip
+  itself recognizes the file. `probe_invocation` builds the listing command;
+  `route` reimplements the branch UniExtract2 takes on the result (disk
+  image / custom display / `.exe`-with-InstallShield / generic archive /
+  not an archive), purely from the captured output text — actually calling
+  `extract()`/`extractDiskImage()` on that outcome is the extractor
+  dispatcher's job (C049), not this probe's.
+- Parity tests cover each branch of `check7z`'s exact predicate (the
+  `Listing archive:`-present-but-`Errors:`+`Can not open the file as `
+  case in particular, since that's a real trap in the source's logic —
+  7-Zip prints a listing header even for some files it then says it
+  couldn't open).
+
 ## C093 — RGSS Decryptor extractor integration
 **2026-08-17**
 
