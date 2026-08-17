@@ -39,6 +39,55 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `extract::cic`).
 - Parity test: `matches_source_invocation`.
 
+## C070 — xor invocation (Ghost Installer overlay decode)
+**2026-08-17**
+
+- **Added:** `extract::xor::invocation` — builds the `xor.exe` byte-XOR
+  decode command, matching UniExtract.au3:2598's call from inside `Case
+  $TYPE_GHOST`: `<program> "<overlay_file>" "<outdir>\<filename>.cab"
+  0x8D`.
+- **Scope note:** unlike the other extractor-integration capabilities in
+  this repo, this isn't a top-level `$arctype` dispatch case — there is no
+  `$TYPE_XOR` constant in the source. It's an internal helper call the
+  Ghost Installer case makes itself after unpacking an overlay blob, so
+  it's intentionally absent from `extract::dispatch::HARDCODED_CASES`, the
+  same way `extract::plugin` is absent. The source's `_Run` call omits all
+  three optional arguments, so `_Run`'s own defaults apply: working
+  directory is `$outdir`, window is `@SW_MINIMIZE`.
+- Parity test: `matches_source_invocation`.
+
+## C057 — acefile extractor integration
+**2026-08-17**
+
+- **Added:** `extract::ace::invocation` — builds the ACE archive
+  extraction command, matching UniExtract.au3:2346-2349's `Case
+  $TYPE_ACE`.
+- **Scope note:** the source's `If $success == $RESULT_FAILED Then
+  check7z($arcdisp)` — falling back to 7-Zip when `acefile.exe` fails —
+  is separate runtime behavior, not part of this row; this capability
+  only builds the `acefile.exe` invocation itself.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"ace"` →
+  `extract::ace`).
+- Parity test: `matches_source_invocation`.
+
+## C068 — GARbro extractor integration
+**2026-08-17**
+
+- **Added:** `extract::garbro::invocation` — builds the GARbro
+  (`GARbro.Console.exe`) extraction command, matching UniExtract.au3:2565-
+  2566's `Case $TYPE_GARBRO`: `<program> x -ocu -if png -o "<outdir>"
+  "<file>"`, run in `outdir`, window minimized.
+- **Scope note:** the manifest row also cites UniExtract.au3:2049, which is
+  GARbro's own probe/detection step in the type-detection cascade — a
+  separate, already-tracked capability. This row covers only the extraction
+  invocation at line 2565.
+- **Behavior note:** `-if png` forces PNG as the output format for any
+  image-format conversion GARbro performs during extraction, preserved
+  verbatim from the source rather than simplified.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"garbro"` →
+  `extract::garbro`).
+- Parity test: `matches_source_invocation`.
+
 ## C081 — lzop extractor integration
 **2026-08-17**
 

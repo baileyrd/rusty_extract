@@ -9,12 +9,14 @@
 //! tests here verify the constructed [`Invocation`] matches the source's
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
+pub mod ace;
 pub mod bcm;
 pub mod chdman;
 pub mod cic;
 pub mod dispatch;
 pub mod extsis;
 pub mod freearc;
+pub mod garbro;
 pub mod kgb;
 pub mod lzip;
 pub mod lzop;
@@ -22,6 +24,7 @@ pub mod plugin;
 pub mod rgss;
 pub mod rpa;
 pub mod sfark;
+pub mod xor;
 
 /// A single external helper-binary invocation, corresponding to one
 /// UniExtract2 `_Run(...)`/`_RunInTempOutdir(...)` call: the command line
