@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C093 — RGSS Decryptor extractor integration
+**2026-08-17**
+
+- **Added:** `src/extract` module with a shared `Invocation`/`WindowMode`
+  representation of a UniExtract2 `_Run(...)` call (program, args, working
+  dir, window visibility), and `extract::rgss::invocation` — the concrete
+  invocation for RPG Maker RGSS(2/3)A archives, matching
+  UniExtract.au3:3009-3011's `Case $TYPE_RGSS`.
+- **Known limitation, stated plainly:** CI (`windows-latest`) doesn't have
+  `RgssDecrypter.exe` installed, so the parity test verifies the
+  constructed command line (program, args, cwd, window mode) matches the
+  source's `_Run` call — not an actual successful extraction. Same caveat
+  applies to every future extractor-integration capability (C056-C137);
+  noted once here rather than repeated per PR.
+- Parity test: `matches_source_invocation`.
+
 ## C047 — Extension-based fallback dispatch
 **2026-08-17**
 

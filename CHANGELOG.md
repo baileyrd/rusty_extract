@@ -12,6 +12,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   detection/extraction-engine surface (194 rows).
 - C047: extension-based fallback dispatch (`ExtensionRegistry`, ported
   `def/registry.ini`, a minimal `IniFile` parser).
+- C093: RGSS Decryptor extractor integration (`src/extract` module,
+  `Invocation`/`WindowMode`, `extract::rgss`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
