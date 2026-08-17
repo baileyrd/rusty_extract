@@ -4,4 +4,5 @@
 pub mod detection;
 pub mod extract;
 pub mod ini;
+pub mod prefs;
 pub mod status;
