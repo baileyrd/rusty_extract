@@ -164,7 +164,7 @@ prefix, in table order:
 | C091 | RAIU (`RAIU.exe`) — Reflexive Arcade Installer wrapper, chains into Inno Setup extraction (C074) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2994 |
 | C092 | UnRAR (`UnRAR.exe`) — RAR archives, RAR SFX | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3003 |
 | C093 | RGSS Decryptor (`RgssDecrypter.exe`) — RPG Maker RGSS(2/3)A archives | behavior | code | none found (directory check only) | DONE | | PR [#186](https://github.com/baileyrd/rusty_extract/pull/186), test `extract::rgss::tests::matches_source_invocation` |
-| C094 | unrpa (`unrpa.exe`) — Ren'Py `.rpa` archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3016 |
+| C094 | unrpa (`unrpa.exe`) — Ren'Py `.rpa` archives | behavior | code | none found (directory check only) | DONE | | PR [#190](https://github.com/baileyrd/rusty_extract/pull/190), test `extract::rpa::tests::matches_source_invocation` |
 | C095 | sfarkxtc (`sfarkxtc.exe`) — sfArk compressed SoundFont | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3019 |
 | C096 | extsis (`extsis.exe`) — Symbian OS `.sis`/`.sisx` installers | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3022-3030 |
 | C097 | SQLite (`sqlite3.exe`) — SQLite database dump | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3032 |

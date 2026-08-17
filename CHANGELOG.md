@@ -15,6 +15,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C093: RGSS Decryptor extractor integration (`src/extract` module,
   `Invocation`/`WindowMode`, `extract::rgss`).
 - C048: blind 7-Zip probe fallback (`detection::sevenzip_probe`).
+- C094: unrpa extractor integration (`extract::rpa`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
