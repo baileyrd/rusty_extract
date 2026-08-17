@@ -33,9 +33,65 @@ pub fn resolve_timeout_ms(stored_seconds: Option<i64>) -> i64 {
     }
 }
 
+/// Mirrors UniExtract2's `$OPTION_*` enum (UniExtract.au3:97:
+/// `Enum $OPTION_KEEP, $OPTION_DELETE, $OPTION_ASK, $OPTION_MOVE`).
+/// Shared by two preferences — `deletesourcefile` (C024) and `cleanup`
+/// (C033) — though only Keep/Ask/Delete are ever offered for
+/// `deletesourcefile` through the GUI (UniExtract.au3:6393-6395); `Move`
+/// is representable here because `LoadPref` stores whatever integer was
+/// in the ini without validating it against the option's own UI, and
+/// [`should_delete_source_file`] (C158) treats it exactly like `Keep`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DeleteSourceFileOption {
+    #[default]
+    Keep,
+    Delete,
+    Ask,
+    Move,
+}
+
+/// C024: parses the `deletesourcefile` preference's raw ini integer the
+/// way `LoadPref`'s `_Max(Int($return), -1)` clamp plus AutoIt's `Enum`
+/// numbering does — 1=Delete, 2=Ask, 3=Move, anything else (including a
+/// missing/unreadable key, `LoadPref`'s error path) falls back to the
+/// `Global $eOptDeleteSourceFile = $OPTION_KEEP` default
+/// (UniExtract.au3:150).
+pub fn parse_delete_source_file_option(raw: Option<i64>) -> DeleteSourceFileOption {
+    match raw {
+        Some(1) => DeleteSourceFileOption::Delete,
+        Some(2) => DeleteSourceFileOption::Ask,
+        Some(3) => DeleteSourceFileOption::Move,
+        _ => DeleteSourceFileOption::Keep,
+    }
+}
+
+/// C158: ports the deletion condition inside `terminate()`'s
+/// `$STATUS_SUCCESS` case (UniExtract.au3:4204):
+/// `$eOptDeleteSourceFile = $OPTION_DELETE Or ($eOptDeleteSourceFile =
+/// $OPTION_ASK And Not $silentmode And Prompt(32 + 4, 'FILE_DELETE',
+/// $file))`. `user_confirmed_delete` stands in for the `Prompt(...)` call
+/// (the GUI confirmation dialog itself is out of scope, deferred GUI
+/// subsystem, manifest row D001) — AutoIt's `And` short-circuits, so the
+/// source never actually shows that prompt in silent mode, matching this
+/// function's `!silent_mode &&` guard before it's consulted.
+pub fn should_delete_source_file(
+    option: DeleteSourceFileOption,
+    silent_mode: bool,
+    user_confirmed_delete: bool,
+) -> bool {
+    match option {
+        DeleteSourceFileOption::Delete => true,
+        DeleteSourceFileOption::Ask => !silent_mode && user_confirmed_delete,
+        DeleteSourceFileOption::Keep | DeleteSourceFileOption::Move => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::resolve_timeout_ms;
+    use super::{
+        parse_delete_source_file_option, resolve_timeout_ms, should_delete_source_file,
+        DeleteSourceFileOption,
+    };
 
     /// Parity test for capability C026: a normally-stored preference value
     /// (in seconds, already through LoadPref's `_Max(Int(x), -1)` clamp)
@@ -77,5 +133,86 @@ mod tests {
     #[test]
     fn missing_preference_key_reproduces_the_sixty_million_millisecond_quirk() {
         assert_eq!(resolve_timeout_ms(None), 60_000_000);
+    }
+
+    /// Parity test for capability C024: the `$OPTION_*` enum's AutoIt
+    /// numbering (`Keep`=0, `Delete`=1, `Ask`=2, `Move`=3), and a
+    /// missing/unreadable/out-of-range value falling back to the
+    /// `$OPTION_KEEP` default, exactly as `LoadPref`'s error path (never
+    /// assigning its `ByRef` output) leaves `$eOptDeleteSourceFile` at its
+    /// `Global` declaration's value.
+    #[test]
+    fn delete_source_file_option_parses_autoit_enum_numbering() {
+        assert_eq!(
+            parse_delete_source_file_option(Some(1)),
+            DeleteSourceFileOption::Delete
+        );
+        assert_eq!(
+            parse_delete_source_file_option(Some(2)),
+            DeleteSourceFileOption::Ask
+        );
+        assert_eq!(
+            parse_delete_source_file_option(Some(3)),
+            DeleteSourceFileOption::Move
+        );
+        assert_eq!(
+            parse_delete_source_file_option(Some(0)),
+            DeleteSourceFileOption::Keep
+        );
+        assert_eq!(
+            parse_delete_source_file_option(Some(99)),
+            DeleteSourceFileOption::Keep
+        );
+        assert_eq!(
+            parse_delete_source_file_option(None),
+            DeleteSourceFileOption::Keep
+        );
+    }
+
+    /// Parity test for capability C158: `$OPTION_DELETE` always deletes;
+    /// `$OPTION_ASK` deletes only outside silent mode and only if the
+    /// (out-of-scope) confirmation prompt returned true; `$OPTION_KEEP`
+    /// and `$OPTION_MOVE` never delete (UniExtract.au3:4204).
+    #[test]
+    fn should_delete_source_file_matches_source_condition() {
+        assert!(should_delete_source_file(
+            DeleteSourceFileOption::Delete,
+            false,
+            false
+        ));
+        assert!(should_delete_source_file(
+            DeleteSourceFileOption::Delete,
+            true,
+            false
+        ));
+
+        assert!(should_delete_source_file(
+            DeleteSourceFileOption::Ask,
+            false,
+            true
+        ));
+        assert!(!should_delete_source_file(
+            DeleteSourceFileOption::Ask,
+            false,
+            false
+        ));
+        // Silent mode short-circuits before the (out-of-scope) prompt is
+        // ever consulted, matching AutoIt's `And` short-circuit.
+        assert!(!should_delete_source_file(
+            DeleteSourceFileOption::Ask,
+            true,
+            true
+        ));
+
+        assert!(!should_delete_source_file(
+            DeleteSourceFileOption::Keep,
+            false,
+            true
+        ));
+        assert!(!should_delete_source_file(
+            DeleteSourceFileOption::Move,
+            false,
+            true
+        ));
     }
 }
