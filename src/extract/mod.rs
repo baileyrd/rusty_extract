@@ -28,6 +28,7 @@ pub mod lzx;
 pub mod mole;
 pub mod pdf;
 pub mod plugin;
+pub mod plugin_config;
 pub mod rgss;
 pub mod rpa;
 pub mod sfark;

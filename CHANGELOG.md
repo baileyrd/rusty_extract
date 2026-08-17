@@ -46,6 +46,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C107: dark / WiX Toolset extractor integration (`extract::wix`).
 - C146: DAA→ISO conversion invocation, no-existing-file-check quirk preserved (`extract::daa`).
 - C058: AspackDie invocation for packed-executable unpack (`extract::aspack`).
+- C052: `def/*.ini` plugin definition schema (`extract::plugin_config::PluginConfig`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

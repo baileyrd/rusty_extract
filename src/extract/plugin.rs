@@ -4,10 +4,10 @@
 //!
 //! Ports the file-resolution half of `pluginExtract`
 //! (UniExtract.au3:3468-3476) — checking a user-override directory first,
-//! then the bundled directory. Consuming the resolved file's `[Plugin]`
-//! section into an invocation (C052) and substituting its `%placeholder%`
-//! values (C182) are separate capabilities; this module only answers "which
-//! file, if any."
+//! then the bundled directory. Parsing the resolved file's `[Plugin]`
+//! section (C052, `extract::plugin_config`) and substituting its
+//! `%placeholder%` values (C182) are separate capabilities; this module
+//! only answers "which file, if any."
 
 use std::path::{Path, PathBuf};
 
