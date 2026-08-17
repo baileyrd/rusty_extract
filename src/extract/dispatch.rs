@@ -107,6 +107,26 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "uif",
         module: "extract::uif",
     },
+    HardcodedCase {
+        type_key: "unreal",
+        module: "extract::unreal",
+    },
+    HardcodedCase {
+        type_key: "wix",
+        module: "extract::wix",
+    },
+    HardcodedCase {
+        type_key: "wolf",
+        module: "extract::wolf",
+    },
+    HardcodedCase {
+        type_key: "zoo",
+        module: "extract::zoo",
+    },
+    HardcodedCase {
+        type_key: "zpaq",
+        module: "extract::zpaq",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.
