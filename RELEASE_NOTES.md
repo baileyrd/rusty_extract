@@ -23,6 +23,21 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C107 — dark / WiX Toolset extractor integration
+**2026-08-17**
+
+- **Added:** `extract::wix::invocation` — builds the dark (`dark.exe`)
+  WiX Toolset MSI-based installer extraction command, matching
+  UniExtract.au3:3373-3375's `Case $TYPE_WIX`: `<program> -x "<outdir>"
+  "<file>"`, run in `outdir` with the window minimized.
+- **Scope note:** the source's `HasNetFramework(4)` call immediately
+  preceding `_Run` is a precondition check for the .NET Framework version
+  `dark.exe` requires — separate runtime behavior, not part of building
+  this invocation, and tracked as its own capability, not this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"wix"` →
+  `extract::wix`).
+- Parity test: `matches_source_invocation`.
+
 ## C102 — uif2iso extractor integration
 **2026-08-17**
 
