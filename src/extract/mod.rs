@@ -10,8 +10,12 @@
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
 pub mod ace;
+pub mod adf;
+pub mod arc;
 pub mod aspack;
 pub mod bcm;
+pub mod bitrock;
+pub mod bsa;
 pub mod chdman;
 pub mod cic;
 pub mod daa;
@@ -20,6 +24,7 @@ pub mod extsis;
 pub mod freearc;
 pub mod fsb;
 pub mod garbro;
+pub mod godot;
 pub mod isz;
 pub mod kgb;
 pub mod lzip;

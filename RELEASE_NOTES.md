@@ -23,6 +23,41 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C060, C122, C123, C124, C125 — `def/*.ini`-only extractor integrations
+**2026-08-17**
+
+- **Added:** `extract::arc` (C060, ARC), `extract::adf` (C122, unadf),
+  `extract::bitrock` (C123, bitrock-unpacker), `extract::bsa` (C124, BSA
+  Browser), `extract::godot` (C125, godotdec) — five extractor types with
+  no hardcoded `Case $TYPE_...` in the source at all; each is dispatched
+  entirely through the `def/*.ini` plugin path (extension routing → C047,
+  file resolution → C050, schema parsing → C052, placeholder substitution →
+  C182 — all already ported). Each module bundles its `def/*.ini` file
+  verbatim (`include_str!`, matching `detection::registry`'s precedent) and
+  has no new production logic of its own: the capability is proven by
+  composing those primitives against the bundled file and checking the
+  resulting command line matches what `pluginExtract` (UniExtract.au3:3468-3520)
+  would run.
+- **Scope note:** every parity test here verifies the *substituted
+  command-line string* (`$sBinary & " " & $sParameters`), not a tokenized
+  `Invocation.args` the way every hardcoded `extract::*` module builds.
+  Turning that string into pre-split argument tokens needs a quote-aware
+  command-line tokenizer this port hasn't built for the plugin path yet —
+  a real gap, not something any of these five rows' own one-line manifest
+  descriptions ask them to solve.
+- **`extract::adf` scope note:** `def/adf.ini` sets
+  `workingdir=%tempoutdir%`. `%tempoutdir%` isn't one of
+  `extract::placeholder::replace_placeholders`'s five named substitutions —
+  the source resolves it via a separate, direct `StringReplace` in
+  `pluginExtract` (UniExtract.au3:3506) before running the result through
+  `ReplacePlaceholders` (line 3507); this capability's test does the same
+  two-step substitution to match.
+- Parity tests: `extract::arc::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::adf::tests::bundled_ini_produces_source_matching_command_line_and_workingdir`,
+  `extract::bitrock::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::bsa::tests::bundled_ini_produces_source_matching_command_line`,
+  `extract::godot::tests::bundled_ini_produces_source_matching_command_line`.
+
 ## C182 — Plugin extension point placeholder substitution
 **2026-08-17**
 
