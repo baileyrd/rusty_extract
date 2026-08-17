@@ -3,3 +3,4 @@
 //! produces evidence/candidates, not a single asserted "true type".
 
 pub mod registry;
+pub mod sevenzip_probe;
