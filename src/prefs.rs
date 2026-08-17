@@ -65,6 +65,26 @@ pub fn parse_delete_source_file_option(raw: Option<i64>) -> DeleteSourceFileOpti
     }
 }
 
+/// C033: parses the `cleanup` preference's raw ini integer using the same
+/// `$OPTION_*` numbering as [`parse_delete_source_file_option`], but with
+/// a different fallback for a missing/unreadable/out-of-range value:
+/// `Global $iCleanup = $OPTION_MOVE` (UniExtract.au3:162), not
+/// `$OPTION_KEEP`. In practice `cleanup` only ever gets *written* as
+/// `Delete` or `Move` through the GUI (a single checkbox, `$iCleanup =
+/// _IsChecked(...) ? $OPTION_DELETE : $OPTION_MOVE`,
+/// UniExtract.au3:6525) — `Keep`/`Ask` are representable here purely
+/// because `LoadPref` parses whatever integer is in the ini without
+/// validating it against that.
+pub fn parse_cleanup_option(raw: Option<i64>) -> DeleteSourceFileOption {
+    match raw {
+        Some(0) => DeleteSourceFileOption::Keep,
+        Some(1) => DeleteSourceFileOption::Delete,
+        Some(2) => DeleteSourceFileOption::Ask,
+        Some(3) => DeleteSourceFileOption::Move,
+        _ => DeleteSourceFileOption::Move,
+    }
+}
+
 /// C158: ports the deletion condition inside `terminate()`'s
 /// `$STATUS_SUCCESS` case (UniExtract.au3:4204):
 /// `$eOptDeleteSourceFile = $OPTION_DELETE Or ($eOptDeleteSourceFile =
@@ -89,8 +109,8 @@ pub fn should_delete_source_file(
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_delete_source_file_option, resolve_timeout_ms, should_delete_source_file,
-        DeleteSourceFileOption,
+        parse_cleanup_option, parse_delete_source_file_option, resolve_timeout_ms,
+        should_delete_source_file, DeleteSourceFileOption,
     };
 
     /// Parity test for capability C026: a normally-stored preference value
@@ -167,6 +187,23 @@ mod tests {
             parse_delete_source_file_option(None),
             DeleteSourceFileOption::Keep
         );
+    }
+
+    /// Parity test for capability C033: same `$OPTION_*` numbering as
+    /// `deletesourcefile` (C024), but a missing/unreadable/out-of-range
+    /// value falls back to `Move`, matching `Global $iCleanup =
+    /// $OPTION_MOVE` (UniExtract.au3:162) rather than `$OPTION_KEEP`.
+    #[test]
+    fn cleanup_option_parses_autoit_enum_numbering_with_move_fallback() {
+        assert_eq!(parse_cleanup_option(Some(0)), DeleteSourceFileOption::Keep);
+        assert_eq!(
+            parse_cleanup_option(Some(1)),
+            DeleteSourceFileOption::Delete
+        );
+        assert_eq!(parse_cleanup_option(Some(2)), DeleteSourceFileOption::Ask);
+        assert_eq!(parse_cleanup_option(Some(3)), DeleteSourceFileOption::Move);
+        assert_eq!(parse_cleanup_option(Some(99)), DeleteSourceFileOption::Move);
+        assert_eq!(parse_cleanup_option(None), DeleteSourceFileOption::Move);
     }
 
     /// Parity test for capability C158: `$OPTION_DELETE` always deletes;

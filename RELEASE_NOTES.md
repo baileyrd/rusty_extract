@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C033 — `cleanup` preference
+**2026-08-17**
+
+- **Added:** `prefs::parse_cleanup_option` — parses the `cleanup`
+  preference's raw ini integer using the same `$OPTION_*` numbering as
+  `deletesourcefile` (C024), reusing `prefs::DeleteSourceFileOption`, but
+  with a different missing/unreadable/out-of-range fallback: `Move`
+  (`Global $iCleanup = $OPTION_MOVE`, UniExtract.au3:162), not `Keep`.
+- **Scope note:** in practice `cleanup` only ever gets *written* as
+  `Delete` or `Move` — its one GUI control is a checkbox
+  (`$iCleanup = _IsChecked(...) ? $OPTION_DELETE : $OPTION_MOVE`,
+  UniExtract.au3:6525) — but `Keep`/`Ask` are still representable in the
+  parsed result because `LoadPref` never validates the stored integer
+  against that. What `Cleanup()` (UniExtract.au3:3645ff, not yet ported)
+  actually does with each value is its own capability, out of scope here.
+- Parity test: `prefs::tests::cleanup_option_parses_autoit_enum_numbering_with_move_fallback`.
+
 ## C024, C158 — `deletesourcefile` preference and its deletion policy
 **2026-08-17**
 

@@ -54,6 +54,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C016: process exit code contract (`status::exit_code`).
 - C026: `Timeout` preference resolution, including the preserved missing-key unit-mismatch quirk (`prefs::resolve_timeout_ms`).
 - C024, C158: `deletesourcefile` preference and its deletion-on-success policy (`prefs::DeleteSourceFileOption`, `prefs::parse_delete_source_file_option`, `prefs::should_delete_source_file`).
+- C033: `cleanup` preference (`prefs::parse_cleanup_option`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
