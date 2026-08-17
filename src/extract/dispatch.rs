@@ -59,6 +59,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "sis",
         module: "extract::extsis",
     },
+    HardcodedCase {
+        type_key: "chd",
+        module: "extract::chdman",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.
