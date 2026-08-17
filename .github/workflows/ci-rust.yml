@@ -6,7 +6,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [claude/uniextract2-rust-migration-h8nbgt]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -14,7 +14,12 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # rusty_extract is a Windows-only parity port (see ARCHITECTURE.md) that
+    # shells out to Windows helper binaries and, from C036 onward, calls
+    # Win32 APIs (registry access) directly — ubuntu-latest can't build or
+    # run any of that, so this targets windows-latest instead of
+    # repo-config's generic default.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 

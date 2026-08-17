@@ -12,6 +12,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   detection/extraction-engine surface (194 rows).
 ### Changed
 ### Fixed
+- CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
+  to this repo's actual default branch — this is a Windows-only parity port
+  that needs a Windows runner to build/test at all.
 ### Security
 
 <!-- ## [0.1.0] - YYYY-MM-DD
