@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C049 — Central extractor dispatcher
+**2026-08-17**
+
+- **Added:** `extract::dispatch`, porting the routing decision from
+  `extract($arctype, ...)` (UniExtract.au3:2269-3441, `Switch $arctype`):
+  given an extractor-type key, route to its hardcoded Rust module or fall
+  through to the `def/*.ini` plugin path (`Case Else`, C050).
+- **Scope note, stated plainly:** this ports the *dispatch mechanism*, not
+  every one of the source's ~70 `Case`s — each extractor case takes
+  different explicit inputs (compare `rgss::invocation`'s
+  `(program, file, outdir)` against `rpa::invocation`'s extra `script_dir`
+  parameter), so there's no single uniform call signature to wire up yet.
+  `HARDCODED_CASES` lists only the two extractors already ported (C093,
+  C094); a type key the source hardcodes but this port hasn't reached
+  correctly falls through to `Plugin` today — that's this capability's
+  honest current coverage, not a claim every source `Case` exists. Every
+  future extractor-integration PR adds its one line to `HARDCODED_CASES`.
+- Parity tests: `routes_ported_extractors_to_their_module`,
+  `falls_through_to_plugin_for_unrecognized_or_not_yet_ported_types`,
+  `dispatch_is_case_sensitive_matching_the_source`.
+
 ## CI: push trigger follows the default branch rename to `main`
 **2026-08-17**
 

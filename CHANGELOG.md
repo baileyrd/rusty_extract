@@ -16,6 +16,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `Invocation`/`WindowMode`, `extract::rgss`).
 - C048: blind 7-Zip probe fallback (`detection::sevenzip_probe`).
 - C094: unrpa extractor integration (`extract::rpa`).
+- C049: central extractor dispatcher (`extract::dispatch`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

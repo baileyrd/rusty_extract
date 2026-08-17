@@ -9,6 +9,7 @@
 //! tests here verify the constructed [`Invocation`] matches the source's
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
+pub mod dispatch;
 pub mod rgss;
 pub mod rpa;
 
