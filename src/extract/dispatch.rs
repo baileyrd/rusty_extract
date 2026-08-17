@@ -120,6 +120,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::wolf",
     },
     HardcodedCase {
+        type_key: "zoo",
+        module: "extract::zoo",
+    },
+    HardcodedCase {
         type_key: "zpaq",
         module: "extract::zpaq",
     },

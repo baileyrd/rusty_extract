@@ -31,6 +31,7 @@ pub mod unreal;
 pub mod wix;
 pub mod wolf;
 pub mod xor;
+pub mod zoo;
 pub mod zpaq;
 
 /// A single external helper-binary invocation, corresponding to one

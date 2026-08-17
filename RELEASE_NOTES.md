@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C110 — unzoo extractor integration
+**2026-08-17**
+
+- **Added:** `extract::zoo::invocation` — builds the unzoo (`unzoo.exe`)
+  `.zoo` Zoo-archive extraction command, matching UniExtract.au3:3390-3394's
+  `Case $TYPE_ZOO`: `<program> -x <filename_full>`, run in `tempoutdir`
+  with the window hidden.
+- **Scope note:** unlike most other extractor invocations in this repo, the
+  source does not wrap `$filenamefull` in quotes here (`' -x ' &
+  $filenamefull` is a bare, unquoted concatenation) — preserved as a
+  deliberate source quirk, not normalized to the quoted style used
+  elsewhere (e.g. `extract::kgb`).
+- **Scope note:** the surrounding `_FileMove($file, $tempoutdir, 8)` /
+  `_FileMove($tempoutdir & $filenamefull, $file)` / `MoveFiles($tempoutdir,
+  $outdir, False, "", True)` calls — staging the file into a temp directory
+  before running and relocating results to `outdir` afterward — are
+  separate runtime behavior, already tracked as their own capabilities, not
+  part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"zoo"` →
+  `extract::zoo`).
+- Parity test: `matches_source_invocation`.
+
 ## C111 — zpaq extractor integration
 **2026-08-17**
 
