@@ -48,6 +48,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `extract::mole`).
 - Parity test: `matches_source_invocation`.
 
+## C058 — AspackDie invocation (packed-executable unpack)
+**2026-08-17**
+
+- **Added:** `extract::aspack::invocation` — builds the `AspackDie.exe`
+  unpack command, matching UniExtract.au3:3624-3625's call from inside
+  `Case $PACKER_ASPACK`: `<program> "<file>" "<dest_path>" /NO_PROMPT`,
+  run in `$filedir` with the window minimized (`_Run`'s own default for
+  the omitted `$show_flag` argument).
+- **Scope note:** `Case $PACKER_ASPACK` belongs to a separate `Switch
+  $packer` (a post-extraction "unpack a packed executable" routine keyed
+  on `$PACKER_UPX`/`$PACKER_ASPACK`), not the main `extract($arctype,
+  ...)` dispatch this repo's `extract::dispatch::HARDCODED_CASES`
+  represents, so it's intentionally absent from that table — the same
+  reason `extract::upx` (the sibling `$PACKER_UPX` case) is absent from
+  it.
+- Parity test: `matches_source_invocation`.
+
 ## C112 — upx invocation (packed-executable unpack)
 **2026-08-17**
 

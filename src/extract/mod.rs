@@ -10,6 +10,7 @@
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
 pub mod ace;
+pub mod aspack;
 pub mod bcm;
 pub mod chdman;
 pub mod cic;
