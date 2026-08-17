@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C109 — Info-ZIP UnZip fallback invocation
+**2026-08-17**
+
+- **Added:** `extract::unzip::invocation` — builds the Info-ZIP UnZip
+  (`unzip.exe`) fallback command, matching UniExtract.au3:3384-3388's
+  innermost `_Run` call from inside `Case $TYPE_ZIP`: `<program> -x
+  "<file>"`, run in `$outdir` with the window minimized.
+- **Scope note:** the source's `Case $TYPE_ZIP` first recursively calls
+  `extract($TYPE_7Z, ...)` and only reaches this Info-ZIP UnZip fallback
+  `_Run` if that 7-Zip attempt fails (`If Not extract($TYPE_7Z, ...) Then
+  ... EndIf`). That conditional-recursive-dispatch mechanism — try 7-Zip
+  first, fall back to Info-ZIP UnZip on failure — is separate,
+  already-tracked composite/recursive-dispatch capability territory, not
+  part of this row. `_CreateTrayMessageBox(...)` inside the same block is
+  also out of scope, belonging to the deferred GUI subsystem (manifest row
+  D001).
+- **No `extract::dispatch::HARDCODED_CASES` entry:** because the real
+  `$TYPE_ZIP` dispatch behavior is composite (try 7z, conditionally fall
+  back to unzip), a flat `"zip" -> extract::unzip` entry would misrepresent
+  the source's actual dispatch logic — the same reasoning `extract::xor`
+  uses for the same kind of exclusion (see its module doc comment).
+  Registering `zip` accurately requires the composite/recursive dispatch
+  capability to exist first.
+- Parity test: `matches_source_invocation`.
+
 ## C102 — uif2iso extractor integration
 **2026-08-17**
 
