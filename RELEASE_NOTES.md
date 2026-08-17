@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C081 — lzop extractor integration
+**2026-08-17**
+
+- **Added:** `extract::lzop::invocation` — builds the LZO compressed-file
+  extraction command, matching UniExtract.au3:2786-2787's `Case $TYPE_LZO`.
+- **Behavior note:** the source's `_Run` call omits the third positional
+  `$show_flag` argument, so `_Run`'s own default (`@SW_MINIMIZE`) applies —
+  no window flag appears literally in this `Case`, but the omission itself
+  is what selects `Minimized`, not a guess.
+- **Behavior note:** the `-p"<outdir>"` argument is preserved as the
+  source's single quoted-and-concatenated token (`-p` directly abutting the
+  quoted outdir, no space), matching how several other extractors build
+  this same argument shape.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"lzo"` →
+  `extract::lzop`).
+- Parity test: `matches_source_invocation`.
+
 ## C051 — Detector-to-plugin mapping (`[Trid]`/`[File]`/`[Exeinfo]`)
 **2026-08-17**
 
