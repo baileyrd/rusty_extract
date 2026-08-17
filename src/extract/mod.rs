@@ -17,6 +17,7 @@ pub mod dispatch;
 pub mod extsis;
 pub mod freearc;
 pub mod garbro;
+pub mod isz;
 pub mod kgb;
 pub mod lzip;
 pub mod lzop;

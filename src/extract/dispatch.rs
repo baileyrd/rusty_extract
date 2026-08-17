@@ -84,6 +84,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::garbro",
     },
     HardcodedCase {
+        type_key: "isz",
+        module: "extract::isz",
+    },
+    HardcodedCase {
         type_key: "kgb",
         module: "extract::kgb",
     },
