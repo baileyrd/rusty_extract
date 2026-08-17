@@ -111,6 +111,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "unreal",
         module: "extract::unreal",
     },
+    HardcodedCase {
+        type_key: "wix",
+        module: "extract::wix",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.

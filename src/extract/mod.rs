@@ -28,6 +28,7 @@ pub mod rpa;
 pub mod sfark;
 pub mod uif;
 pub mod unreal;
+pub mod wix;
 pub mod xor;
 
 /// A single external helper-binary invocation, corresponding to one
