@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C089 — Xpdf tools extractor integration
+**2026-08-17**
+
+- **Added:** `extract::pdf::detach_invocation`, `extract::pdf::to_html_invocation`,
+  `extract::pdf::to_png_invocation`, `extract::pdf::to_text_invocation` — build
+  the 4 Xpdf tool commands (`pdfdetach.exe`, `pdftohtml.exe`, `pdftopng.exe`,
+  `pdftotext.exe`) matching UniExtract.au3:2967-2970's `Case $TYPE_PDF`: 4
+  independent, sequential `_Run` calls, all run in `outdir` with the window
+  hidden.
+- **Scope note:** the third call's `t('TERM_PAGE')` (UniExtract.au3:2969)
+  resolves a localized UI string ("Page") via the deferred translation-catalog
+  subsystem, out of scope for this migration (see `capability-manifest.md`'s
+  OUT-OF-SCOPE rows). `to_png_invocation` takes the resolved value as an
+  explicit `term_page: &str` parameter instead, the same way it already takes
+  `filename`/`outdir` as parameters rather than resolving them internally —
+  keeping the invocation-builder translation-agnostic.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** that table maps one
+  `$arctype` key to one Rust module/invocation shape, and `$TYPE_PDF`'s
+  4-invocation case doesn't fit that model without `HARDCODED_CASES` itself
+  gaining multi-invocation support — the same reasoning `extract::xor` and
+  `extract::unzip` use for the same kind of exclusion (see their module doc
+  comments).
+- Parity tests: `detach_matches_source_invocation`,
+  `to_html_matches_source_invocation`, `to_png_matches_source_invocation`,
+  `to_text_matches_source_invocation`.
+
 ## C112 — upx invocation (packed-executable unpack)
 **2026-08-17**
 

@@ -38,6 +38,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C109: Info-ZIP UnZip fallback invocation (`extract::unzip`).
 - C110: unzoo extractor integration (`extract::zoo`).
 - C111: zpaq extractor integration (`extract::zpaq`).
+- C089: Xpdf tools extractor integration (`extract::pdf`).
 - C108: WolfDec extractor integration (`extract::wolf`).
 - C103: umodel extractor integration (`extract::unreal`).
 - C107: dark / WiX Toolset extractor integration (`extract::wix`).
