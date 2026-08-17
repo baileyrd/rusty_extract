@@ -23,6 +23,42 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C020, C022, C023, C025, C027, C028, C029, C030, C031, C032 — Simple boolean preferences
+**2026-08-17**
+
+- **Added:** `prefs::resolve_bool_pref` — ports `LoadPref`'s int-preference
+  path (UniExtract.au3:825-841) as applied to a 0/1-valued preference read
+  as a boolean. AutoIt treats any nonzero integer as truthy, so
+  `LoadPref`'s `_Max(Int($return), $iMin)` clamp never changes the boolean
+  outcome for any of these ten preferences — the function only needs to
+  model the missing-key fallback (`LoadPref`'s error path never assigns
+  its `ByRef` output, so the preference keeps its `Global` declaration's
+  default).
+- **Added:** one `pub const ..._DEFAULT: bool` per preference, each
+  documented against its own `Global` declaration line: `BATCHENABLED_DEFAULT`
+  (C020, false), `APPENDEXT_DEFAULT` (C022, false), `WARNEXECUTE_DEFAULT`
+  (C023, true), `FREESPACECHECK_DEFAULT` (C025, true),
+  `KEEPOUTPUTDIR_DEFAULT` (C027, false), `LOG_DEFAULT` (C028, false),
+  `EXTRACT_DEFAULT` (C029, true), `UNICODECHECK_DEFAULT` (C030, true),
+  `EXTRACTVIDEOTRACK_DEFAULT` (C031, true), `SILENTMODE_DEFAULT` (C032,
+  false).
+- **Scope note:** these ten preferences are functionally identical once
+  `LoadPref`'s generic mechanics are captured — none has derivation logic
+  beyond "persisted flag, defaults to X" — so they're closed together in
+  one batch, the same reasoning as the earlier `def/*.ini`-only extractor
+  batches.
+- Parity tests: `prefs::tests::resolve_bool_pref_prefers_raw_value_over_default`,
+  `prefs::tests::batchenabled_preference_default_matches_source`,
+  `prefs::tests::appendext_preference_default_matches_source`,
+  `prefs::tests::warnexecute_preference_default_matches_source`,
+  `prefs::tests::freespacecheck_preference_default_matches_source`,
+  `prefs::tests::keepoutputdir_preference_default_matches_source`,
+  `prefs::tests::log_preference_default_matches_source`,
+  `prefs::tests::extract_preference_default_matches_source`,
+  `prefs::tests::unicodecheck_preference_default_matches_source`,
+  `prefs::tests::extractvideotrack_preference_default_matches_source`,
+  `prefs::tests::silentmode_preference_default_matches_source`.
+
 ## C035 — Password list file path resolution
 **2026-08-17**
 

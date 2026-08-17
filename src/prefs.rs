@@ -125,11 +125,79 @@ pub fn password_list_path(
     }
 }
 
+/// Ports `LoadPref`'s int-preference path (`$bInt = True`, the default,
+/// UniExtract.au3:825-841) as applied to a simple 0/1-valued preference
+/// read as a boolean. UniExtract2 treats any nonzero integer as truthy in
+/// AutoIt's `If $var Then` checks, so `LoadPref`'s `_Max(Int($return),
+/// $iMin)` clamp — which can only ever push a stray negative ini value up
+/// to -1, itself still nonzero/truthy — never changes the boolean outcome
+/// for any of the ten preferences below, so this function only needs to
+/// model the missing-key fallback. `raw` is `LoadPref`'s normal-path
+/// result (the ini value, as a bool); `None` represents its error path
+/// (key missing/unreadable), where `$value` keeps whatever it already
+/// held — each preference's own `Global` declaration's default, passed as
+/// `default_when_missing`.
+pub fn resolve_bool_pref(raw: Option<bool>, default_when_missing: bool) -> bool {
+    raw.unwrap_or(default_when_missing)
+}
+
+/// C020: `batchenabled` preference default (`Global $batchEnabled = 0`,
+/// UniExtract.au3:140) — persisted flag driving batch-queue continuation
+/// logic on process exit.
+pub const BATCHENABLED_DEFAULT: bool = false;
+
+/// C022: `appendext` preference default (`Global $appendext = 0`,
+/// UniExtract.au3:143) — controls whether an extension is appended to
+/// extracted output.
+pub const APPENDEXT_DEFAULT: bool = false;
+
+/// C023: `warnexecute` preference default (`Global $bOptWarnExecute = 1`,
+/// UniExtract.au3:144) — warn before running/executing self-extracting
+/// content.
+pub const WARNEXECUTE_DEFAULT: bool = true;
+
+/// C025: `freespacecheck` preference default
+/// (`Global $bOptCheckFreeSpace = 1`, UniExtract.au3:145) — enable/disable
+/// a disk-space check before extraction.
+pub const FREESPACECHECK_DEFAULT: bool = true;
+
+/// C027: `keepoutputdir` preference default
+/// (`Global $bOptLockOutputDirectory = 0`, UniExtract.au3:163).
+pub const KEEPOUTPUTDIR_DEFAULT: bool = false;
+
+/// C028: `log` preference default (`Global $bOptCreateLog = 0`,
+/// UniExtract.au3:159) — enable/disable a per-extraction debug log file;
+/// overridable per-run by `/nolog` (C008).
+pub const LOG_DEFAULT: bool = false;
+
+/// C029: `extract` preference default (`Global $extract = 1`,
+/// UniExtract.au3:166) — persisted default for extract-vs-scan-only;
+/// overridden per-run by `/scan` (C003).
+pub const EXTRACT_DEFAULT: bool = true;
+
+/// C030: `unicodecheck` preference default (`Global $checkUnicode = 1`,
+/// UniExtract.au3:167) — enables detection/handling of non-ASCII
+/// filenames requiring temp rename.
+pub const UNICODECHECK_DEFAULT: bool = true;
+
+/// C031: `extractvideotrack` preference default
+/// (`Global $bOptExtractVideo = 1`, UniExtract.au3:168) — controls
+/// whether video-track extraction is attempted for media files.
+pub const EXTRACTVIDEOTRACK_DEFAULT: bool = true;
+
+/// C032: `silentmode` preference default (`Global $silentmode = 0`,
+/// UniExtract.au3:165) — persisted default for silent mode, independent
+/// of the per-run `/silent` flag (C007).
+pub const SILENTMODE_DEFAULT: bool = false;
+
 #[cfg(test)]
 mod tests {
     use super::{
         parse_cleanup_option, parse_delete_source_file_option, password_list_path,
-        resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption,
+        resolve_bool_pref, resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption,
+        APPENDEXT_DEFAULT, BATCHENABLED_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT,
+        FREESPACECHECK_DEFAULT, KEEPOUTPUTDIR_DEFAULT, LOG_DEFAULT, SILENTMODE_DEFAULT,
+        UNICODECHECK_DEFAULT, WARNEXECUTE_DEFAULT,
     };
 
     /// Parity test for capability C026: a normally-stored preference value
@@ -247,6 +315,89 @@ mod tests {
             ),
             r"C:\Program Files\UniExtract\passwords.txt"
         );
+    }
+
+    /// Shared behavior test for `resolve_bool_pref`: a present ini value
+    /// always wins; a missing/unreadable key falls back to whatever
+    /// default is passed in, matching `LoadPref`'s error path leaving
+    /// `$value` untouched.
+    #[test]
+    fn resolve_bool_pref_prefers_raw_value_over_default() {
+        assert!(resolve_bool_pref(Some(true), false));
+        assert!(!resolve_bool_pref(Some(false), true));
+        assert!(resolve_bool_pref(None, true));
+        assert!(!resolve_bool_pref(None, false));
+    }
+
+    /// Parity test for capability C020: `batchenabled` defaults to `false`
+    /// (`Global $batchEnabled = 0`, UniExtract.au3:140).
+    #[test]
+    fn batchenabled_preference_default_matches_source() {
+        assert!(!resolve_bool_pref(None, BATCHENABLED_DEFAULT));
+    }
+
+    /// Parity test for capability C022: `appendext` defaults to `false`
+    /// (`Global $appendext = 0`, UniExtract.au3:143).
+    #[test]
+    fn appendext_preference_default_matches_source() {
+        assert!(!resolve_bool_pref(None, APPENDEXT_DEFAULT));
+    }
+
+    /// Parity test for capability C023: `warnexecute` defaults to `true`
+    /// (`Global $bOptWarnExecute = 1`, UniExtract.au3:144).
+    #[test]
+    fn warnexecute_preference_default_matches_source() {
+        assert!(resolve_bool_pref(None, WARNEXECUTE_DEFAULT));
+    }
+
+    /// Parity test for capability C025: `freespacecheck` defaults to
+    /// `true` (`Global $bOptCheckFreeSpace = 1`, UniExtract.au3:145).
+    #[test]
+    fn freespacecheck_preference_default_matches_source() {
+        assert!(resolve_bool_pref(None, FREESPACECHECK_DEFAULT));
+    }
+
+    /// Parity test for capability C027: `keepoutputdir` defaults to
+    /// `false` (`Global $bOptLockOutputDirectory = 0`,
+    /// UniExtract.au3:163).
+    #[test]
+    fn keepoutputdir_preference_default_matches_source() {
+        assert!(!resolve_bool_pref(None, KEEPOUTPUTDIR_DEFAULT));
+    }
+
+    /// Parity test for capability C028: `log` defaults to `false`
+    /// (`Global $bOptCreateLog = 0`, UniExtract.au3:159).
+    #[test]
+    fn log_preference_default_matches_source() {
+        assert!(!resolve_bool_pref(None, LOG_DEFAULT));
+    }
+
+    /// Parity test for capability C029: `extract` defaults to `true`
+    /// (`Global $extract = 1`, UniExtract.au3:166).
+    #[test]
+    fn extract_preference_default_matches_source() {
+        assert!(resolve_bool_pref(None, EXTRACT_DEFAULT));
+    }
+
+    /// Parity test for capability C030: `unicodecheck` defaults to `true`
+    /// (`Global $checkUnicode = 1`, UniExtract.au3:167).
+    #[test]
+    fn unicodecheck_preference_default_matches_source() {
+        assert!(resolve_bool_pref(None, UNICODECHECK_DEFAULT));
+    }
+
+    /// Parity test for capability C031: `extractvideotrack` defaults to
+    /// `true` (`Global $bOptExtractVideo = 1`, UniExtract.au3:168).
+    #[test]
+    fn extractvideotrack_preference_default_matches_source() {
+        assert!(resolve_bool_pref(None, EXTRACTVIDEOTRACK_DEFAULT));
+    }
+
+    /// Parity test for capability C032: `silentmode` defaults to `false`
+    /// (`Global $silentmode = 0`, UniExtract.au3:165).
+    #[test]
+    fn silentmode_preference_default_matches_source() {
+        assert!(!resolve_bool_pref(None, SILENTMODE_DEFAULT));
     }
 
     /// Parity test for capability C158: `$OPTION_DELETE` always deletes;
