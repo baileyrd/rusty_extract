@@ -64,6 +64,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::bcm",
     },
     HardcodedCase {
+        type_key: "cic",
+        module: "extract::cic",
+    },
+    HardcodedCase {
         type_key: "chd",
         module: "extract::chdman",
     },

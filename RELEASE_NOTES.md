@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C067 — cicdec extractor integration
+**2026-08-17**
+
+- **Added:** `extract::cic::invocation` — builds the cicdec (`cicdec.exe`)
+  Clickteam Install Creator extraction command, matching
+  UniExtract.au3:2472-2475's `Case $TYPE_CIC`: `<program> -db "<file>"
+  "<outdir>"`, run in the input file's own directory (`$filedir`) with the
+  window hidden.
+- **Scope note:** the source surrounds this `_Run` call with
+  `HasNetFramework(4.5)` (a precondition check) and `Cleanup("Block
+  0x*.bin")` (a post-extraction glob delete) — both are separate,
+  already-tracked runtime-behavior capabilities, not part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"cic"` →
+  `extract::cic`).
+- Parity test: `matches_source_invocation`.
+
 ## C081 — lzop extractor integration
 **2026-08-17**
 
