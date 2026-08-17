@@ -10,6 +10,7 @@
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
 pub mod ace;
+pub mod aspack;
 pub mod bcm;
 pub mod chdman;
 pub mod cic;
@@ -23,6 +24,9 @@ pub mod isz;
 pub mod kgb;
 pub mod lzip;
 pub mod lzop;
+pub mod lzx;
+pub mod mole;
+pub mod pdf;
 pub mod plugin;
 pub mod rgss;
 pub mod rpa;

@@ -38,10 +38,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C109: Info-ZIP UnZip fallback invocation (`extract::unzip`).
 - C110: unzoo extractor integration (`extract::zoo`).
 - C111: zpaq extractor integration (`extract::zpaq`).
+- C089: Xpdf tools extractor integration (`extract::pdf`).
+- C082: unlzx extractor integration (`extract::lzx`).
+- C083: demoleition / MoleBox extractor integration (`extract::mole`).
 - C108: WolfDec extractor integration (`extract::wolf`).
 - C103: umodel extractor integration (`extract::unreal`).
 - C107: dark / WiX Toolset extractor integration (`extract::wix`).
 - C146: DAA→ISO conversion invocation, no-existing-file-check quirk preserved (`extract::daa`).
+- C058: AspackDie invocation for packed-executable unpack (`extract::aspack`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

@@ -47,6 +47,85 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `extract::daa`).
 - Parity test: `matches_source_invocation`.
 
+## C089 — Xpdf tools extractor integration
+**2026-08-17**
+
+- **Added:** `extract::pdf::detach_invocation`, `extract::pdf::to_html_invocation`,
+  `extract::pdf::to_png_invocation`, `extract::pdf::to_text_invocation` — build
+  the 4 Xpdf tool commands (`pdfdetach.exe`, `pdftohtml.exe`, `pdftopng.exe`,
+  `pdftotext.exe`) matching UniExtract.au3:2967-2970's `Case $TYPE_PDF`: 4
+  independent, sequential `_Run` calls, all run in `outdir` with the window
+  hidden.
+- **Scope note:** the third call's `t('TERM_PAGE')` (UniExtract.au3:2969)
+  resolves a localized UI string ("Page") via the deferred translation-catalog
+  subsystem, out of scope for this migration (see `capability-manifest.md`'s
+  OUT-OF-SCOPE rows). `to_png_invocation` takes the resolved value as an
+  explicit `term_page: &str` parameter instead, the same way it already takes
+  `filename`/`outdir` as parameters rather than resolving them internally —
+  keeping the invocation-builder translation-agnostic.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** that table maps one
+  `$arctype` key to one Rust module/invocation shape, and `$TYPE_PDF`'s
+  4-invocation case doesn't fit that model without `HARDCODED_CASES` itself
+  gaining multi-invocation support — the same reasoning `extract::xor` and
+  `extract::unzip` use for the same kind of exclusion (see their module doc
+  comments).
+- Parity tests: `detach_matches_source_invocation`,
+  `to_html_matches_source_invocation`, `to_png_matches_source_invocation`,
+  `to_text_matches_source_invocation`.
+
+## C082 — unlzx extractor integration
+**2026-08-17**
+
+- **Added:** `extract::lzx::invocation` — builds the unlzx (`unlzx.exe`)
+  `.lzx` extraction command, matching UniExtract.au3:2789-2790's `Case
+  $TYPE_LZX`: `<program> -x "<file>"`, run in `outdir` with the window
+  minimized (`_Run`'s own default for the omitted `$show_flag` argument).
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"lzx"` →
+  `extract::lzx`).
+- Parity test: `matches_source_invocation`.
+
+## C083 — demoleition / MoleBox extractor integration
+**2026-08-17**
+
+- **Added:** `extract::mole::invocation` — builds the demoleition
+  (`demoleition.exe`) MoleBox-packaged-executable extraction command,
+  matching UniExtract.au3:2792-2811's `Case $TYPE_MOLE`: `<program> /nogui
+  "<file>"`, run in `$outdir` with the window hidden.
+- **Scope note:** the source calls `_RunInTempOutdir`, passing `$tempoutdir`
+  as the staging argument but `$outdir` (not `$tempoutdir`) as the explicit
+  working-directory argument — unlike `extract::lzip`/`extract::isz`, whose
+  `_RunInTempOutdir` calls use `$tempoutdir` as both. The working directory
+  for this invocation is therefore `outdir`; the temp-dir-then-move
+  orchestration `_RunInTempOutdir` layers on top is a separate,
+  already-tracked runtime-behavior capability, not part of this row. Same
+  quirk, same reasoning as `extract::wolf`'s precedent (see its module doc
+  comment).
+- **Scope note:** the file-move logic that follows `_RunInTempOutdir`
+  (renaming `<filename>_unpacked.exe` and relocating the `_extracted`
+  directory into place), reading and deleting the `!unpacker.log` file, and
+  evaluating that log's contents to determine `$success` are all separate
+  runtime behavior, out of scope for this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"mole"` →
+  `extract::mole`).
+- Parity test: `matches_source_invocation`.
+
+## C058 — AspackDie invocation (packed-executable unpack)
+**2026-08-17**
+
+- **Added:** `extract::aspack::invocation` — builds the `AspackDie.exe`
+  unpack command, matching UniExtract.au3:3624-3625's call from inside
+  `Case $PACKER_ASPACK`: `<program> "<file>" "<dest_path>" /NO_PROMPT`,
+  run in `$filedir` with the window minimized (`_Run`'s own default for
+  the omitted `$show_flag` argument).
+- **Scope note:** `Case $PACKER_ASPACK` belongs to a separate `Switch
+  $packer` (a post-extraction "unpack a packed executable" routine keyed
+  on `$PACKER_UPX`/`$PACKER_ASPACK`), not the main `extract($arctype,
+  ...)` dispatch this repo's `extract::dispatch::HARDCODED_CASES`
+  represents, so it's intentionally absent from that table — the same
+  reason `extract::upx` (the sibling `$PACKER_UPX` case) is absent from
+  it.
+- Parity test: `matches_source_invocation`.
+
 ## C112 — upx invocation (packed-executable unpack)
 **2026-08-17**
 

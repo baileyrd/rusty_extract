@@ -108,6 +108,14 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::lzop",
     },
     HardcodedCase {
+        type_key: "lzx",
+        module: "extract::lzx",
+    },
+    HardcodedCase {
+        type_key: "mole",
+        module: "extract::mole",
+    },
+    HardcodedCase {
         type_key: "uif",
         module: "extract::uif",
     },
