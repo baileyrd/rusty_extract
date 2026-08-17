@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## CI: target windows-latest instead of ubuntu-latest
+**2026-08-17**
+
+- **Fixed:** `.github/workflows/ci-rust.yml` now runs on `windows-latest` and
+  triggers on pushes to this repo's actual default branch
+  (`claude/uniextract2-rust-migration-h8nbgt`, not `main`). repo-config's
+  generic Rust CI template defaults to `ubuntu-latest`/`main`, which is wrong
+  here: `rusty_extract` is a Windows-only parity port (ARCHITECTURE.md) that
+  shells out to Windows helper binaries and, starting with capability C036,
+  calls Win32 APIs (registry) directly — none of that builds or runs on Linux.
+- **Known limitation, stated plainly:** even on `windows-latest`, CI cannot
+  exercise the real external helper binaries (7-Zip, innoextract, etc.) —
+  they aren't installed on the runner and downloading 50+ proprietary/GPL
+  tools into CI is out of scope for this fix. Parity tests for extractor-
+  integration capabilities (C056-C137) verify the constructed command line
+  (binary path, arguments, placeholder substitution) against the source's
+  behavior, not an actual successful extraction — flagged per-capability as
+  it comes up, not asserted as full parity.
+
 ## Capability manifest — full step-1 inventory of UniExtract2's core-engine surface
 **2026-08-17**
 
