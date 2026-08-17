@@ -106,11 +106,30 @@ pub fn should_delete_source_file(
     }
 }
 
+/// C035: resolves which password-list file path `_FindArchivePassword`
+/// reads from (UniExtract.au3:726,4855-4860). The default is
+/// `$settingsdir\passwords.txt`; if reading it fails (`FileReadToArray`
+/// setting `@error`), the source falls back to `@ScriptDir\passwords.txt`
+/// instead. `settingsdir_password_file_readable` stands in for that read
+/// attempt's success — the actual file I/O is out of scope for this pure
+/// path-selection function.
+pub fn password_list_path(
+    settingsdir: &str,
+    script_dir: &str,
+    settingsdir_password_file_readable: bool,
+) -> String {
+    if settingsdir_password_file_readable {
+        format!("{settingsdir}\\passwords.txt")
+    } else {
+        format!("{script_dir}\\passwords.txt")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_cleanup_option, parse_delete_source_file_option, resolve_timeout_ms,
-        should_delete_source_file, DeleteSourceFileOption,
+        parse_cleanup_option, parse_delete_source_file_option, password_list_path,
+        resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption,
     };
 
     /// Parity test for capability C026: a normally-stored preference value
@@ -204,6 +223,30 @@ mod tests {
         assert_eq!(parse_cleanup_option(Some(3)), DeleteSourceFileOption::Move);
         assert_eq!(parse_cleanup_option(Some(99)), DeleteSourceFileOption::Move);
         assert_eq!(parse_cleanup_option(None), DeleteSourceFileOption::Move);
+    }
+
+    /// Parity test for capability C035: the default `$settingsdir` path is
+    /// used when it's readable; `_FindArchivePassword` falls back to
+    /// `@ScriptDir\passwords.txt` only if reading the default fails
+    /// (UniExtract.au3:4855-4860).
+    #[test]
+    fn password_list_path_matches_source_fallback() {
+        assert_eq!(
+            password_list_path(
+                r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract",
+                r"C:\Program Files\UniExtract",
+                true
+            ),
+            r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract\passwords.txt"
+        );
+        assert_eq!(
+            password_list_path(
+                r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract",
+                r"C:\Program Files\UniExtract",
+                false
+            ),
+            r"C:\Program Files\UniExtract\passwords.txt"
+        );
     }
 
     /// Parity test for capability C158: `$OPTION_DELETE` always deletes;
