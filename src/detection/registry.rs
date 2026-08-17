@@ -32,8 +32,16 @@ pub struct ExtensionRegistry {
 
 impl ExtensionRegistry {
     /// Parses `ini_text` and indexes its `[Extensions]` section.
+    ///
+    /// [`IniFile::parse`] also reports lines it couldn't parse as
+    /// `[Section]`/`key=value`; this constructor discards that list since
+    /// its only caller so far ([`Self::default_registry`]) parses the
+    /// bundled, ported-verbatim `def/registry.ini`, which has none. A future
+    /// caller loading user-editable `def/*.ini` plugin files should call
+    /// [`IniFile::parse`] directly and inspect the skipped lines itself
+    /// rather than going through this discarding wrapper.
     pub fn parse(ini_text: &str) -> Result<Self, MissingSectionError> {
-        let ini = IniFile::parse(ini_text);
+        let (ini, _skipped) = IniFile::parse(ini_text);
         let section = ini
             .section("Extensions")
             .ok_or_else(|| MissingSectionError("Extensions".to_string()))?;

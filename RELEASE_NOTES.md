@@ -23,6 +23,41 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## CI: push trigger follows the default branch rename to `main`
+**2026-08-17**
+
+- **Fixed:** `.github/workflows/ci-rust.yml`'s `push.branches` still named
+  `claude/uniextract2-rust-migration-h8nbgt`, which no longer exists on the
+  remote after the default branch was renamed to `main`. PR-triggered CI was
+  unaffected; a direct push to `main` would not have triggered CI without
+  this.
+
+## Unix-philosophy audit follow-up: F1 (ini skipped-line reporting), F2 (WindowMode coverage verified)
+**2026-08-17**
+
+- **Fixed (F1):** `IniFile::parse` no longer silently drops a line matching
+  neither `[Section]` nor `key=value` — it now returns
+  `(IniFile, Vec<SkippedLine>)`, with each skipped line's 1-indexed line
+  number and raw content. `ExtensionRegistry::parse` discards the list today
+  (its only input, the bundled `def/registry.ini`, has nothing to skip), but
+  the primitive now exists for the user-editable `def/*.ini` plugin-loading
+  capabilities (C050-C052) that will need it — a malformed line in a
+  hand-edited plugin file will be reportable instead of silently vanishing.
+- **Verified (F2):** grepped every `@SW_*` occurrence in the source
+  (`UniExtract.au3`) to check `WindowMode`'s 3 variants (`Hidden`,
+  `Minimized`, `Show`) against the full value set. Confirmed exhaustive for
+  every extractor invocation — the two `@SW_*` constants not covered
+  (`@SW_SHOWNORMAL`, `@SW_SHOWNOACTIVATE`) appear only in `GUISetState(...)`
+  calls governing the main window, out of scope per the deferred GUI
+  subsystem (manifest row D001). No code change; the finding is closed with
+  the verification recorded in `WindowMode`'s doc comment so it isn't
+  re-investigated later.
+- Both from the `/unix-philosophy` audit run earlier this session against
+  the 4 capabilities merged so far (C047, C093, C048, C094) — no High
+  findings; these were the audit's Medium and Low items.
+- New tests: `ini::tests::reports_malformed_line_inside_a_section`,
+  `ini::tests::key_value_line_before_any_section_header_is_reported_not_silently_dropped`.
+
 ## C094 — unrpa extractor integration
 **2026-08-17**
 
