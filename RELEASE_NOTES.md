@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C051 — Detector-to-plugin mapping (`[Trid]`/`[File]`/`[Exeinfo]`)
+**2026-08-17**
+
+- **Added:** `detection::detector_mapping::DetectorMapping`, porting
+  `UserDefCompare` (UniExtract.au3:1804-1819): resolves a detector's raw
+  output text (TrID, Unix `file`, or Exeinfo PE) to a plugin `.ini` stem via
+  substring search against `def/registry.ini`'s `[Trid]`/`[File]`/
+  `[Exeinfo]` sections, first match in file order.
+- **Behavior note:** the source's loop has no early exit after a match — it
+  keeps scanning every remaining row even after dispatching — but
+  `extract()` always ends by exiting the process, so no later iteration is
+  ever externally observable. This returns only the first match, which is
+  the faithful port of that behavior, not a simplification of it.
+- Parity tests exercise real bundled-registry rows for all three sections,
+  a missing-section case (empty, not an error — matches the source
+  tolerating a load failure), and a synthetic-data case proving file order
+  (not just presence) determines the winner when two different keys could
+  both match.
+
 ## C096 — extsis extractor integration
 **2026-08-17**
 
