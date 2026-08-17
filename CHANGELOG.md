@@ -27,6 +27,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C071: FreeArc extractor integration (`extract::freearc`).
 - C062: BCM extractor integration (`extract::bcm`).
 - C065: chdman extractor integration (`extract::chdman`).
+- C057: acefile extractor integration (`extract::ace`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
