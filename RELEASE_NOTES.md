@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C059 — unalz (ALZip) probe + extractor integration
+**2026-08-17**
+
+- **Added:** `detection::alz_probe::probe_invocation`/`is_alz_archive` —
+  ports `CheckAlz` (UniExtract.au3:1945-1956) exactly, the same shape as
+  `detection::sevenzip_probe`'s `check7z` (C048): builds the `unalz -l
+  "<file>"` listing probe, then reimplements the source's exact recognition
+  predicate (`Listing archive:` present, `corrupted file`/`file open error`
+  both absent) as a pure function of the captured output. The recursive
+  `extract($TYPE_ALZ, -1)` dispatch call the source makes when this returns
+  `true` is the extractor dispatcher's job (C049, already done — `$TYPE_ALZ`
+  has no hardcoded case, so it falls through to the plugin path), not this
+  probe's.
+- **Added:** `extract::alz` — the `def/*.ini`-plugin half, following the
+  exact `extract::arc`/`extract::bitrock` pattern (bundled `def/alz.ini`,
+  parity test verifying the substituted command-line string).
+- Parity tests: `detection::alz_probe::tests::probe_invocation_matches_source`,
+  `recognizes_a_valid_alz_listing`, `rejects_output_missing_the_listing_header`,
+  `rejects_a_listing_reporting_a_corrupted_file`,
+  `rejects_a_listing_reporting_a_file_open_error`,
+  `extract::alz::tests::bundled_ini_produces_source_matching_command_line`.
+
 ## C060, C122, C123, C124, C125 — `def/*.ini`-only extractor integrations
 **2026-08-17**
 

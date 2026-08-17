@@ -11,6 +11,7 @@
 
 pub mod ace;
 pub mod adf;
+pub mod alz;
 pub mod arc;
 pub mod aspack;
 pub mod bcm;
