@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C047 — Extension-based fallback dispatch
+**2026-08-17**
+
+- **Added:** `ExtensionRegistry` (`src/detection/registry.rs`), parsing
+  `def/registry.ini`'s `[Extensions]` section and resolving a file extension
+  to the extractor-type stem UniExtract2's `CheckExt` (UniExtract.au3:2174-2190)
+  would select — the last-resort fallback when every signature-based
+  detector fails to identify a file.
+- **Added:** `def/registry.ini`, ported verbatim from the source repo (also
+  carries the `[Trid]`/`[File]`/`[Exeinfo]` sections later detection-cascade
+  capabilities will need — same file, one port).
+- **Added:** a small hand-rolled `IniFile` parser (`src/ini.rs`) for the
+  `def/*.ini` format family, rather than a new crate dependency.
+- Parity test: `resolves_every_extension_in_the_bundled_registry` — every
+  mapping in the bundled `[Extensions]` section resolves to the same stem
+  the source's `CheckExt` would produce.
+
 ## CI: target windows-latest instead of ubuntu-latest
 **2026-08-17**
 
