@@ -28,6 +28,7 @@ pub mod rpa;
 pub mod sfark;
 pub mod uif;
 pub mod xor;
+pub mod zoo;
 
 /// A single external helper-binary invocation, corresponding to one
 /// UniExtract2 `_Run(...)`/`_RunInTempOutdir(...)` call: the command line
