@@ -166,7 +166,7 @@ prefix, in table order:
 | C093 | RGSS Decryptor (`RgssDecrypter.exe`) — RPG Maker RGSS(2/3)A archives | behavior | code | none found (directory check only) | DONE | | PR [#186](https://github.com/baileyrd/rusty_extract/pull/186), test `extract::rgss::tests::matches_source_invocation` |
 | C094 | unrpa (`unrpa.exe`) — Ren'Py `.rpa` archives | behavior | code | none found (directory check only) | DONE | | PR [#190](https://github.com/baileyrd/rusty_extract/pull/190), test `extract::rpa::tests::matches_source_invocation` |
 | C095 | sfarkxtc (`sfarkxtc.exe`) — sfArk compressed SoundFont | behavior | code | none found (directory check only) | DONE | | PR [#193](https://github.com/baileyrd/rusty_extract/pull/193), test `extract::sfark::tests::matches_source_invocation` |
-| C096 | extsis (`extsis.exe`) — Symbian OS `.sis`/`.sisx` installers | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3022-3030 |
+| C096 | extsis (`extsis.exe`) — Symbian OS `.sis`/`.sisx` installers | behavior | code | none found (directory check only) | DONE | | PR [#195](https://github.com/baileyrd/rusty_extract/pull/195), test `extract::extsis::tests::matches_source_invocation` |
 | C097 | SQLite (`sqlite3.exe`) — SQLite database dump | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3032 |
 | C098 | swfextract (`swfextract.exe`) — Shockwave Flash (`.swf`) content extraction (sounds, images, streams) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3045-3098 |
 | C099 | Thinstall/ThinApp extractor (`Extractor.exe`) — virtualized executables, GUI-automated | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3107-3128 |

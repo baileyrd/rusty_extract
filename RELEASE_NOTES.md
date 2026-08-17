@@ -23,6 +23,21 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C096 — extsis extractor integration
+**2026-08-17**
+
+- **Added:** `extract::extsis::invocation` — builds the Symbian OS
+  `.sis`/`.sisx` extraction command, matching UniExtract.au3:3026's
+  `Case $TYPE_SIS`.
+- **Scope note:** the source precedes this with a QuickBMS test-extract
+  (`PDunSIS.wcx`, C077) and follows it with a move-from-tempoutdir step
+  plus `bindir`/`MyDocuments` cleanup — those are separate capabilities
+  (the QuickBMS probe; generic post-extraction cleanup, C155), not part of
+  this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"sis"` →
+  `extract::extsis`).
+- Parity test: `matches_source_invocation`.
+
 ## C050 — Case-Else plugin-ini resolution
 **2026-08-17**
 
