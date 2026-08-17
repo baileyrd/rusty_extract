@@ -12,6 +12,7 @@
 pub mod ace;
 pub mod bcm;
 pub mod chdman;
+pub mod cic;
 pub mod dispatch;
 pub mod extsis;
 pub mod freearc;
