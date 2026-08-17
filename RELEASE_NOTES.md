@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C070 — xor invocation (Ghost Installer overlay decode)
+**2026-08-17**
+
+- **Added:** `extract::xor::invocation` — builds the `xor.exe` byte-XOR
+  decode command, matching UniExtract.au3:2598's call from inside `Case
+  $TYPE_GHOST`: `<program> "<overlay_file>" "<outdir>\<filename>.cab"
+  0x8D`.
+- **Scope note:** unlike the other extractor-integration capabilities in
+  this repo, this isn't a top-level `$arctype` dispatch case — there is no
+  `$TYPE_XOR` constant in the source. It's an internal helper call the
+  Ghost Installer case makes itself after unpacking an overlay blob, so
+  it's intentionally absent from `extract::dispatch::HARDCODED_CASES`, the
+  same way `extract::plugin` is absent. The source's `_Run` call omits all
+  three optional arguments, so `_Run`'s own defaults apply: working
+  directory is `$outdir`, window is `@SW_MINIMIZE`.
+- Parity test: `matches_source_invocation`.
+
 ## C057 — acefile extractor integration
 **2026-08-17**
 
