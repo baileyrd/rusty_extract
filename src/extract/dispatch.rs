@@ -51,6 +51,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "rpa",
         module: "extract::rpa",
     },
+    HardcodedCase {
+        type_key: "sfark",
+        module: "extract::sfark",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.
@@ -100,17 +104,23 @@ mod tests {
                 module: "extract::rpa"
             })
         );
+        assert_eq!(
+            dispatch("sfark"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "sfark",
+                module: "extract::sfark"
+            })
+        );
     }
 
     #[test]
     fn falls_through_to_plugin_for_unrecognized_or_not_yet_ported_types() {
-        // "ace", "7z", and "sfark" all have hardcoded Cases in the source
+        // "ace" and "7z" both have hardcoded Cases in the source
         // (UniExtract.au3) but not yet in this port — Plugin here reflects
         // this port's real current coverage, not a parity gap in C049
         // itself (see the module doc comment).
         assert_eq!(dispatch("ace"), DispatchTarget::Plugin);
         assert_eq!(dispatch("7z"), DispatchTarget::Plugin);
-        assert_eq!(dispatch("sfark"), DispatchTarget::Plugin);
         assert_eq!(dispatch("nonsense-not-a-real-type"), DispatchTarget::Plugin);
     }
 

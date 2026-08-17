@@ -12,6 +12,7 @@
 pub mod dispatch;
 pub mod rgss;
 pub mod rpa;
+pub mod sfark;
 
 /// A single external helper-binary invocation, corresponding to one
 /// UniExtract2 `_Run(...)`/`_RunInTempOutdir(...)` call: the command line
