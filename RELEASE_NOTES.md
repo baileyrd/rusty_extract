@@ -23,6 +23,16 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C094 — unrpa extractor integration
+**2026-08-17**
+
+- **Added:** `extract::rpa::invocation` — builds the Ren'Py `.rpa` archive
+  extraction command, matching UniExtract.au3:3016-3017's `Case $TYPE_RPA`.
+  Notable: unlike most extractor cases, the source runs this with a working
+  directory of `@ScriptDir` (the program's own install directory), not
+  `outdir`, and with the window shown normally rather than hidden.
+- Parity test: `matches_source_invocation`.
+
 ## C048 — Blind 7-Zip probe fallback
 **2026-08-17**
 

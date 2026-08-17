@@ -10,6 +10,7 @@
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
 pub mod rgss;
+pub mod rpa;
 
 /// A single external helper-binary invocation, corresponding to one
 /// UniExtract2 `_Run(...)`/`_RunInTempOutdir(...)` call: the command line
