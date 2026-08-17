@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C016 — Process exit code contract
+**2026-08-17**
+
+- **Added:** `status::exit_code` — ports the `Switch $status` block inside
+  `terminate()` (UniExtract.au3:4132-4213) that decides the process's
+  numeric exit code: a pure function from `status::Status` (mirroring the
+  source's `$STATUS_*` constants) to the same `$exitcode` values the
+  source assigns. `Status::FileInfo` carries the two booleans
+  (`$silentmode`, whether `$aFiletype` came back non-empty) its exit code
+  actually depends on; every other variant's code is fixed.
+- **Scope note:** `terminate()` itself does much more than compute an exit
+  code — GUI prompts, per-run logging, local statistics, update checks,
+  batch-queue continuation, unicode-filename cleanup. Those are each their
+  own capability (or, for the GUI prompts, out of scope under the deferred
+  GUI subsystem, manifest row D001); this capability is scoped to the exit
+  code mapping alone, matching the manifest row's own description.
+- Parity tests: `status::tests::fixed_exit_codes_match_source`,
+  `status::tests::fileinfo_exit_code_depends_on_silent_mode_and_filetype_identification`.
+
 ## C126, C127, C128, C129, C130, C131, C132, C133, C134, C135, C136, C137 — `def/*.ini`-only extractor integrations
 **2026-08-17**
 
