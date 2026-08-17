@@ -25,6 +25,7 @@ pub mod lzip;
 pub mod lzop;
 pub mod lzx;
 pub mod mole;
+pub mod pdf;
 pub mod plugin;
 pub mod rgss;
 pub mod rpa;
