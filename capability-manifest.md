@@ -132,16 +132,16 @@ prefix, in table order:
 | C059 | unalz (`unalz.exe`) — ALZip `.alz` archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1945; def/alz.ini |
 | C060 | ARC (`arc.exe`) — `.arc` ARC-format archives | behavior | code | none found (directory check only) | REQUIRED | | def/arc.ini |
 | C061 | ARJ SFX verification (`arj.exe`) — verify/list only, actual extraction delegates to 7-Zip (C056) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1959 (checkArj) |
-| C062 | BCM (`bcm.exe`) — `.bcm` BCM-compressed files | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2418 |
+| C062 | BCM (`bcm.exe`) — `.bcm` BCM-compressed files | behavior | code | none found (directory check only) | DONE | | PR [#198](https://github.com/baileyrd/rusty_extract/pull/198), test `extract::bcm::tests::matches_source_invocation` |
 | C063 | bootimg (`bootimg.exe`) — Android boot images (`.img`) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2421 |
 | C064 | Windows `expand.exe` — Microsoft CAB archives (`.cab`), MSU updates, including the self-extracting Type-1 CAB path | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2431-2439,2911-2950 |
-| C065 | chdman (`chdman.exe`) — MAME CHD compressed hard disk images | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2441 |
+| C065 | chdman (`chdman.exe`) — MAME CHD compressed hard disk images | behavior | code | none found (directory check only) | DONE | | PR [#199](https://github.com/baileyrd/rusty_extract/pull/199), test `extract::chdman::tests::matches_source_invocation` |
 | C066 | ci-extractor (`ci-extractor.exe`) — CreateInstall installers, GUI-automated | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2459 |
 | C067 | cicdec (`cicdec.exe`) — Clickteam Install Creator installers | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2472 |
 | C068 | GARbro (`GARbro.Console.exe`) — 500+ visual-novel/game-engine archive formats | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2049,2565 |
 | C069 | Exeinfo PE resource-extraction automation (`exeinfope.exe`) — GUI-automated resource ripping for Ghost Installer, MSCF, SWF-in-EXE, and some Wise/InstallShield MSI cache extraction (distinct from its detection use, C042) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1861,1822,1897; used at 2568,2814,3100,2719,3357 |
 | C070 | xor (`xor.exe`) — byte-XOR decode of Ghost Installer's overlay-extracted CAB blob | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2598 |
-| C071 | FreeArc (`unarc.exe`) — FreeArc `.arc` archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2556 |
+| C071 | FreeArc (`unarc.exe`) — FreeArc `.arc` archives | behavior | code | none found (directory check only) | DONE | | PR [#200](https://github.com/baileyrd/rusty_extract/pull/200), test `extract::freearc::tests::matches_source_invocation` |
 | C072 | FSB extractor (`fsbext.exe`) — FMOD Sample Bank (`.fsb`) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2559 |
 | C073 | helpdeco (`helpdeco.exe`) — Windows `.hlp` help files, with RTF reconstruction pass | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2605 |
 | C074 | innounp + innoextract (`innounp.exe`, `innoextract.exe`) — Inno Setup installers, GOG installers; primary/fallback pair | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2085,2614 |
@@ -149,9 +149,9 @@ prefix, in table order:
 | C076 | IsXunpack (`IsXunpack.exe`) — legacy InstallShield installers | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2709 |
 | C077 | QuickBMS (`quickbms.exe`) + WCX plugin fan-out (`gaup_pro.wcx`, `InstExpl.wcx`, `Iso.wcx`, `msi.wcx`, `TotalObserver.wcx`, `PDunSIS.wcx`) + `BMS.db`-selected `.bms` scripts (150+ game-specific) | behavior+config | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2984,2007,2071,2120,2161,3544 |
 | C078 | unisz (`unisz.exe`) — ISZ compressed ISO (stage 1 of disk-image conversion) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2775 |
-| C079 | KGB Archiver (`kgb2_console.exe`) — `.kgb`/`.kge` archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2780 |
-| C080 | lzip (`lzip.exe`) — `.lz` LZIP compressed files | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2783 |
-| C081 | lzop (`lzop.exe`) — `.lzo` LZO compressed files | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2786 |
+| C079 | KGB Archiver (`kgb2_console.exe`) — `.kgb`/`.kge` archives | behavior | code | none found (directory check only) | DONE | | PR [#201](https://github.com/baileyrd/rusty_extract/pull/201), test `extract::kgb::tests::matches_source_invocation` |
+| C080 | lzip (`lzip.exe`) — `.lz` LZIP compressed files | behavior | code | none found (directory check only) | DONE | | PR [#202](https://github.com/baileyrd/rusty_extract/pull/202), test `extract::lzip::tests::matches_source_invocation` |
+| C081 | lzop (`lzop.exe`) — `.lzo` LZO compressed files | behavior | code | none found (directory check only) | DONE | | PR [#203](https://github.com/baileyrd/rusty_extract/pull/203), test `extract::lzop::tests::matches_source_invocation` |
 | C082 | unlzx (`unlzx.exe`) — `.lzx` LZX (Amiga) archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2789 |
 | C083 | demoleition / MoleBox (`demoleition.exe`) — MoleBox-packaged executables | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2792 |
 | C084 | lessmsi (`lessmsi.exe`) — Windows Installer `.msi`, primary extractor | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2132,2841-2848 |
