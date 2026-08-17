@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C103 — umodel extractor integration
+**2026-08-17**
+
+- **Added:** `extract::unreal::invocation` — builds the umodel
+  (`umodel.exe`/`unreal.exe`) Unreal Engine package extraction command,
+  matching UniExtract.au3:3211-3214's `Case $TYPE_UNREAL`: `<program>
+  -export -all -sounds -3rdparty -path="<file_dir>" -out="<outdir>" *`, run
+  in `outdir` with the window minimized. `-path="..."` and `-out="..."` are
+  each a single concatenated-flag argument token (flag directly joined to a
+  quoted value, no space) — the same pattern already established in
+  `extract::bcm`/`extract::lzop`.
+- **Scope note:** the source's `HasPlugin($unreal)` call immediately
+  preceding `_Run` is a precondition check — separate runtime behavior, not
+  part of building this invocation, and out of scope for this row.
+- **Scope note:** matching the source's own comment on this `Case`, umodel
+  extracts files from all packages in the folder rather than only the
+  selected one — a documented quirk of the source's behavior, preserved
+  here verbatim rather than "fixed".
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"unreal"` →
+  `extract::unreal`).
+- Parity test: `matches_source_invocation`.
+
 ## C107 — dark / WiX Toolset extractor integration
 **2026-08-17**
 

@@ -27,6 +27,7 @@ pub mod rgss;
 pub mod rpa;
 pub mod sfark;
 pub mod uif;
+pub mod unreal;
 pub mod wix;
 pub mod xor;
 
