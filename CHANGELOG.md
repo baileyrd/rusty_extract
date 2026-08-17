@@ -21,6 +21,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
   to this repo's actual default branch — this is a Windows-only parity port
   that needs a Windows runner to build/test at all.
+- `IniFile::parse` reports skipped/malformed lines instead of silently
+  dropping them (unix-philosophy audit finding F1).
 ### Security
 
 <!-- ## [0.1.0] - YYYY-MM-DD

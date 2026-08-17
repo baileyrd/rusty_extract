@@ -26,7 +26,19 @@ pub struct Invocation {
 }
 
 /// Mirrors the subset of AutoIt's `@SW_*` window-show flags UniExtract2
-/// actually passes to `_Run`/`Run`.
+/// actually passes to `_Run`/`RunWait`/`Run` when launching an extractor
+/// helper binary.
+///
+/// Verified exhaustive by grepping every `@SW_*` occurrence in
+/// UniExtract.au3 (audit finding F2): `@SW_HIDE`, `@SW_MINIMIZE`, and
+/// `@SW_SHOW` are the only ones reaching an extractor invocation (the
+/// numeric literal `True`/`1` some `_Run` calls pass — e.g.
+/// `extract::rpa` — is AutoIt's `@SW_SHOWNORMAL`, mapped to `Show` here).
+/// The two other `@SW_*` constants in the source, `@SW_SHOWNORMAL` and
+/// `@SW_SHOWNOACTIVATE`, appear only in `GUISetState(...)` calls governing
+/// the main window — out of scope per this migration's deferred GUI
+/// subsystem (manifest row D001) — so this enum has no missing variant to
+/// add for any capability still to be ported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WindowMode {
     Hidden,
