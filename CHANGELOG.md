@@ -21,6 +21,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C050: Case-Else plugin-ini resolution (`extract::plugin`).
 - C096: extsis extractor integration (`extract::extsis`).
 - C051: detector-to-plugin mapping (`detection::detector_mapping`).
+- C079: KGB Archiver extractor integration (`extract::kgb`).
 - C071: FreeArc extractor integration (`extract::freearc`).
 - C062: BCM extractor integration (`extract::bcm`).
 - C065: chdman extractor integration (`extract::chdman`).

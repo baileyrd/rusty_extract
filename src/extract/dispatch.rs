@@ -71,6 +71,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "freearc",
         module: "extract::freearc",
     },
+    HardcodedCase {
+        type_key: "kgb",
+        module: "extract::kgb",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.

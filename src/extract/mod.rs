@@ -14,6 +14,7 @@ pub mod chdman;
 pub mod dispatch;
 pub mod extsis;
 pub mod freearc;
+pub mod kgb;
 pub mod plugin;
 pub mod rgss;
 pub mod rpa;
