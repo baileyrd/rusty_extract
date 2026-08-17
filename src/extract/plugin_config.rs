@@ -16,11 +16,11 @@
 //! This module answers "what does this plugin definition say", not "what
 //! `Invocation` does it produce": turning a [`PluginConfig`] into a real
 //! `Invocation` needs its `parameters`/`workingdir` strings run through
-//! `%placeholder%` substitution first (`ReplacePlaceholders`,
-//! UniExtract.au3:3523-3541 — capability C182, not yet ported), plus the
-//! resolved executable path from `extract::plugin::resolve_plugin_ini`
+//! `%placeholder%` substitution first (`extract::placeholder`, C182), plus
+//! the resolved executable path from `extract::plugin::resolve_plugin_ini`
 //! (C050). Wiring parsed config + substituted placeholders into an
-//! `Invocation` is integration work for once both exist, not this row.
+//! `Invocation` is integration work for once a dispatch-level caller needs
+//! it, not this row.
 
 use super::WindowMode;
 use crate::ini::IniFile;
@@ -37,7 +37,8 @@ pub struct PluginConfig {
     /// absent — `_ArrayGet(..., "executable", $sPlugin)` at line 3480.
     pub executable: String,
     /// Raw, unsubstituted command-line parameters (may contain
-    /// `%file%`/`%outdir%`/etc. placeholders — see C182). Defaults to an
+    /// `%file%`/`%outdir%`/etc. placeholders — see
+    /// `extract::placeholder::replace_placeholders`, C182). Defaults to an
     /// empty string when absent.
     pub parameters: String,
     /// Raw, unsubstituted working directory. `None` when the key is absent

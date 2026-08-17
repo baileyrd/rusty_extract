@@ -27,6 +27,7 @@ pub mod lzop;
 pub mod lzx;
 pub mod mole;
 pub mod pdf;
+pub mod placeholder;
 pub mod plugin;
 pub mod plugin_config;
 pub mod rgss;
