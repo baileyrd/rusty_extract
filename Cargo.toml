@@ -1,0 +1,19 @@
+[package]
+name = "rusty_extract"
+version = "0.1.0"
+edition = "2021"
+description = "Rust port of UniExtract2's file-type detection and extraction-orchestration engine"
+publish = false
+repository = "https://github.com/baileyrd/rusty_extract"
+
+[[bin]]
+name = "rusty_extract"
+path = "src/main.rs"
+
+[lib]
+name = "rusty_extract"
+path = "src/lib.rs"
+
+[dependencies]
+
+[dev-dependencies]
