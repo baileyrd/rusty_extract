@@ -23,6 +23,17 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C082 — unlzx extractor integration
+**2026-08-17**
+
+- **Added:** `extract::lzx::invocation` — builds the unlzx (`unlzx.exe`)
+  `.lzx` extraction command, matching UniExtract.au3:2789-2790's `Case
+  $TYPE_LZX`: `<program> -x "<file>"`, run in `outdir` with the window
+  minimized (`_Run`'s own default for the omitted `$show_flag` argument).
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"lzx"` →
+  `extract::lzx`).
+- Parity test: `matches_source_invocation`.
+
 ## C083 — demoleition / MoleBox extractor integration
 **2026-08-17**
 

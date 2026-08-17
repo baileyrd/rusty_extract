@@ -23,6 +23,7 @@ pub mod isz;
 pub mod kgb;
 pub mod lzip;
 pub mod lzop;
+pub mod lzx;
 pub mod mole;
 pub mod plugin;
 pub mod rgss;
