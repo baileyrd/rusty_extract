@@ -40,6 +40,76 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `extract::lzop`).
 - Parity test: `matches_source_invocation`.
 
+## C080 — lzip extractor integration
+**2026-08-17**
+
+- **Added:** `extract::lzip::invocation` — builds the `.lz` LZIP
+  decompression command, matching UniExtract.au3:2783-2784's `Case
+  $TYPE_LZ`.
+- **Scope note:** the source calls `_RunInTempOutdir` rather than plain
+  `_Run` — a variant that stages output in a temp directory before moving
+  it into place — but the resulting `Invocation` shape (program, args,
+  working directory, window) is identical to every other `_Run`-based
+  extractor here; the temp-dir-then-move orchestration is a separate,
+  already-tracked runtime-behavior capability, not part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"lz"` →
+  `extract::lzip`).
+- Parity test: `matches_source_invocation`.
+
+## C079 — KGB Archiver extractor integration
+**2026-08-17**
+
+- **Added:** `extract::kgb::invocation` — builds the KGB Archiver
+  (`kgb2_console.exe`) `.kgb`/`.kge` extraction command, matching
+  UniExtract.au3:2780-2781's `Case $TYPE_KGB`: `<program> "<file>"`, run in
+  `outdir` with the window minimized.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"kgb"` →
+  `extract::kgb`).
+- Parity test: `matches_source_invocation`.
+
+## C071 — FreeArc extractor integration
+**2026-08-17**
+
+- **Added:** `extract::freearc::invocation` — builds the FreeArc `.arc`
+  extraction command, matching UniExtract.au3:2556-2557's `Case
+  $TYPE_FREEARC`.
+- **Argument-construction note:** the source concatenates `-dp` directly
+  onto the quoted outdir with no space (`-dp"' & $outdir & '"'`), so the
+  resulting command-line token is a single argument `-dp"<outdir>"` — the
+  embedded quote characters are literally part of the argument value, not
+  two separate args (`-dp` and `"<outdir>"`) and not an unquoted
+  `-dp<outdir>`. Preserved exactly as-is.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"freearc"` →
+  `extract::freearc`).
+- Parity test: `matches_source_invocation`.
+
+## C065 — chdman extractor integration
+**2026-08-17**
+
+- **Added:** `extract::chdman::invocation` — builds the MAME CHD compressed
+  hard disk image extraction command, matching UniExtract.au3:2441-2442's
+  `Case $TYPE_CHD`: `<chdman.exe> extracthd -i "<file>" -o
+  "<outdir>\<filename_stem>.img"`.
+- **Scope note:** unlike most other extractor cases (including C095's
+  `sfark`), this one runs in `outdir`, not the input file's own directory
+  (`$filedir`) — that's a faithful match to the source's `_Run(..., $outdir)`
+  call, not an inconsistency introduced by this port. The source's `_Run`
+  call also omits the show-flag argument, so `_Run`'s own default of
+  `@SW_MINIMIZE` applies.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"chd"` →
+  `extract::chdman`).
+- Parity test: `matches_source_invocation`.
+
+## C062 — BCM extractor integration
+**2026-08-17**
+
+- **Added:** `extract::bcm::invocation` — builds the BCM-compressed-file
+  extraction command, matching UniExtract.au3:2418-2419's
+  `Case $TYPE_BCM`.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"bcm"` →
+  `extract::bcm`).
+- Parity test: `matches_source_invocation`.
+
 ## C051 — Detector-to-plugin mapping (`[Trid]`/`[File]`/`[Exeinfo]`)
 **2026-08-17**
 
