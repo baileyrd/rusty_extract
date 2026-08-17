@@ -49,6 +49,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C052: `def/*.ini` plugin definition schema (`extract::plugin_config::PluginConfig`).
 - C182: plugin extension point placeholder substitution (`extract::placeholder::replace_placeholders`).
 - C060, C122, C123, C124, C125: `def/*.ini`-only extractor integrations (`extract::arc`, `extract::adf`, `extract::bitrock`, `extract::bsa`, `extract::godot`).
+- C059: unalz (ALZip) probe + extractor integration (`detection::alz_probe`, `extract::alz`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
