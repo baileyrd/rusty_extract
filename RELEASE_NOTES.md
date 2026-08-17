@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C083 — demoleition / MoleBox extractor integration
+**2026-08-17**
+
+- **Added:** `extract::mole::invocation` — builds the demoleition
+  (`demoleition.exe`) MoleBox-packaged-executable extraction command,
+  matching UniExtract.au3:2792-2811's `Case $TYPE_MOLE`: `<program> /nogui
+  "<file>"`, run in `$outdir` with the window hidden.
+- **Scope note:** the source calls `_RunInTempOutdir`, passing `$tempoutdir`
+  as the staging argument but `$outdir` (not `$tempoutdir`) as the explicit
+  working-directory argument — unlike `extract::lzip`/`extract::isz`, whose
+  `_RunInTempOutdir` calls use `$tempoutdir` as both. The working directory
+  for this invocation is therefore `outdir`; the temp-dir-then-move
+  orchestration `_RunInTempOutdir` layers on top is a separate,
+  already-tracked runtime-behavior capability, not part of this row. Same
+  quirk, same reasoning as `extract::wolf`'s precedent (see its module doc
+  comment).
+- **Scope note:** the file-move logic that follows `_RunInTempOutdir`
+  (renaming `<filename>_unpacked.exe` and relocating the `_extracted`
+  directory into place), reading and deleting the `!unpacker.log` file, and
+  evaluating that log's contents to determine `$success` are all separate
+  runtime behavior, out of scope for this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"mole"` →
+  `extract::mole`).
+- Parity test: `matches_source_invocation`.
+
 ## C058 — AspackDie invocation (packed-executable unpack)
 **2026-08-17**
 
