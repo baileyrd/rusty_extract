@@ -23,6 +23,15 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## CI: push trigger follows the default branch rename to `main`
+**2026-08-17**
+
+- **Fixed:** `.github/workflows/ci-rust.yml`'s `push.branches` still named
+  `claude/uniextract2-rust-migration-h8nbgt`, which no longer exists on the
+  remote after the default branch was renamed to `main`. PR-triggered CI was
+  unaffected; a direct push to `main` would not have triggered CI without
+  this.
+
 ## Unix-philosophy audit follow-up: F1 (ini skipped-line reporting), F2 (WindowMode coverage verified)
 **2026-08-17**
 
