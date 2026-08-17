@@ -34,6 +34,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C070: xor invocation for Ghost Installer overlay decode (`extract::xor`).
 - C057: acefile extractor integration (`extract::ace`).
 - C068: GARbro extractor integration (`extract::garbro`).
+- C112: upx invocation for packed-executable unpack (`extract::upx`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

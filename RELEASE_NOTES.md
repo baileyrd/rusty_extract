@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C112 — upx invocation (packed-executable unpack)
+**2026-08-17**
+
+- **Added:** `extract::upx::invocation` — builds the `upx.exe` unpack
+  command, matching UniExtract.au3:3617-3623's call from inside `Case
+  $PACKER_UPX`: `<program> -d -k "<file>"`, run in `$filedir` with the
+  window minimized (`_Run`'s own default for the omitted `$show_flag`
+  argument).
+- **Scope note:** `Case $PACKER_UPX` belongs to a separate `Switch
+  $packer` (a post-extraction "unpack a packed executable" routine keyed
+  on `$PACKER_UPX`/`$PACKER_ASPACK`), not the main `extract($arctype,
+  ...)` dispatch this repo's `extract::dispatch::HARDCODED_CASES`
+  represents, so it's intentionally absent from that table — the same
+  reason `extract::xor` is absent from it.
+- **Scope note:** the source's `StringTrimRight`/`FileExists`/
+  `_FileMove` logic that follows `_Run`, renaming UPX's decompressed
+  output file into place over the original, is separate runtime
+  behavior, not part of this row.
+- Parity test: `matches_source_invocation`.
+
 ## C102 — uif2iso extractor integration
 **2026-08-17**
 
