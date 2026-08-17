@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C071 — FreeArc extractor integration
+**2026-08-17**
+
+- **Added:** `extract::freearc::invocation` — builds the FreeArc `.arc`
+  extraction command, matching UniExtract.au3:2556-2557's `Case
+  $TYPE_FREEARC`.
+- **Argument-construction note:** the source concatenates `-dp` directly
+  onto the quoted outdir with no space (`-dp"' & $outdir & '"'`), so the
+  resulting command-line token is a single argument `-dp"<outdir>"` — the
+  embedded quote characters are literally part of the argument value, not
+  two separate args (`-dp` and `"<outdir>"`) and not an unquoted
+  `-dp<outdir>`. Preserved exactly as-is.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"freearc"` →
+  `extract::freearc`).
+- Parity test: `matches_source_invocation`.
+
 ## C051 — Detector-to-plugin mapping (`[Trid]`/`[File]`/`[Exeinfo]`)
 **2026-08-17**
 

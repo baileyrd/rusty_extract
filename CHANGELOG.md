@@ -21,6 +21,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C050: Case-Else plugin-ini resolution (`extract::plugin`).
 - C096: extsis extractor integration (`extract::extsis`).
 - C051: detector-to-plugin mapping (`detection::detector_mapping`).
+- C071: FreeArc extractor integration (`extract::freearc`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
