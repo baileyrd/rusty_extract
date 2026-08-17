@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C182 — Plugin extension point placeholder substitution
+**2026-08-17**
+
+- **Added:** `extract::placeholder::replace_placeholders` — ports
+  `ReplacePlaceholders` (UniExtract.au3:3523-3541) exactly: substitutes
+  `%filename%`/`%fileext%`/`%filedir%` verbatim and `%file%`/`%outdir%`
+  optionally quoted, then resolves every remaining `%...%` pair via a
+  caller-supplied `translate` closure, skipping any pair whose contents
+  contain a space (matching the source's own literal-percent-sign
+  tolerance).
+- **Scope note:** the source's fallback path resolves unknown placeholders
+  via `t($sPlaceholder)`, reading language-catalog `.ini` files — that
+  translation-catalog subsystem is a separate, deferred capability (out of
+  scope for this migration). `translate` is a closure instead of a built-in
+  lookup for exactly that reason, the same "caller supplies the resolved
+  value" approach `extract::pdf::to_png_invocation`'s `term_page` parameter
+  already uses. `t`'s own missing-translation fallback returns the
+  placeholder key unchanged (UniExtract.au3:559-586), so an identity
+  `translate` closure is the source-matching default when no catalog is
+  wired up.
+- Parity tests: `no_percent_sign_returns_unchanged`,
+  `substitutes_filename_fileext_filedir_verbatim`,
+  `quotes_file_and_outdir_when_quote_values_is_true`,
+  `leaves_file_and_outdir_unquoted_when_quote_values_is_false`,
+  `resolves_remaining_placeholders_via_translate_closure`,
+  `leaves_percent_pairs_containing_a_space_untouched`,
+  `identity_translate_matches_source_fallback_for_missing_translations`.
+
 ## C052 — `def/*.ini` plugin definition schema
 **2026-08-17**
 
