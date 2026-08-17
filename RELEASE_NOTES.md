@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C035 — Password list file path resolution
+**2026-08-17**
+
+- **Added:** `prefs::password_list_path` — ports the path fallback
+  `_FindArchivePassword` performs (UniExtract.au3:726,4855-4860): the
+  default `$settingsdir\passwords.txt` is used unless reading it fails
+  (`FileReadToArray` setting `@error`), in which case it falls back to
+  `@ScriptDir\passwords.txt`.
+- **Scope note:** `settingsdir_password_file_readable` stands in for the
+  outcome of that read attempt — the actual file I/O, and everything
+  `_FindArchivePassword` does with the passwords it reads (probing archive
+  encryption, trying each password in turn), is capability C160
+  (Automated password-list trial), not yet ported. This capability is
+  scoped to path selection alone, matching C035's own manifest
+  description.
+- Parity test: `prefs::tests::password_list_path_matches_source_fallback`.
+
 ## C033 — `cleanup` preference
 **2026-08-17**
 
