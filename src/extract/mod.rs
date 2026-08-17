@@ -11,6 +11,7 @@
 
 pub mod dispatch;
 pub mod extsis;
+pub mod lzip;
 pub mod plugin;
 pub mod rgss;
 pub mod rpa;
