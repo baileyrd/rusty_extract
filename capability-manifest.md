@@ -130,7 +130,7 @@ prefix, in table order:
 | C057 | acefile (`acefile.exe`) — ACE archives, ACE SFX | behavior | code | none found (directory check only) | DONE | | PR [#206](https://github.com/baileyrd/rusty_extract/pull/206), test `extract::ace::tests::matches_source_invocation` |
 | C058 | AspackDie (`AspackDie.exe`) — ASPack-packed executables | behavior | code | none found (directory check only) | DONE | | PR [#221](https://github.com/baileyrd/rusty_extract/pull/221), test `extract::aspack::tests::matches_source_invocation` |
 | C059 | unalz (`unalz.exe`) — ALZip `.alz` archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1945; def/alz.ini |
-| C060 | ARC (`arc.exe`) — `.arc` ARC-format archives | behavior | code | none found (directory check only) | REQUIRED | | def/arc.ini |
+| C060 | ARC (`arc.exe`) — `.arc` ARC-format archives | behavior | code | none found (directory check only) | DONE | | PR [#231](https://github.com/baileyrd/rusty_extract/pull/231), test `extract::arc::tests::bundled_ini_produces_source_matching_command_line` |
 | C061 | ARJ SFX verification (`arj.exe`) — verify/list only, actual extraction delegates to 7-Zip (C056) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1959 (checkArj) |
 | C062 | BCM (`bcm.exe`) — `.bcm` BCM-compressed files | behavior | code | none found (directory check only) | DONE | | PR [#198](https://github.com/baileyrd/rusty_extract/pull/198), test `extract::bcm::tests::matches_source_invocation` |
 | C063 | bootimg (`bootimg.exe`) — Android boot images (`.img`) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2421 |
@@ -192,10 +192,10 @@ prefix, in table order:
 | C119 | InstallForge (wraps `7z.exe` + base64 path-rename logic) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2538-2554 |
 | C120 | MSCF Cab installer (wraps `7z.exe` + Exeinfo-PE GUI rip) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2814-2839 |
 | C121 | Unity `.unitypackage` decoder (wraps `7z.exe` + custom path-remapping logic) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3168-3209 |
-| C122 | unadf (`unadf.exe`) — Amiga Disk Format (`.adf`) images | behavior | code | none found (directory check only) | REQUIRED | | def/adf.ini |
-| C123 | bitrock-unpacker (`bitrock-unpacker.exe`) — BitRock InstallBuilder installers | behavior | code | none found (directory check only) | REQUIRED | | def/bitrock.ini |
-| C124 | BSA Browser (`bsab.exe`) — Bethesda Archive (`.bsa`/`.ba2`/`.pex`) | behavior | code | none found (directory check only) | REQUIRED | | def/bsa.ini |
-| C125 | godotdec (`godotdec.exe`) — Godot Engine packages (`.pck`, embedded in `.exe`) | behavior | code | none found (directory check only) | REQUIRED | | def/godot.ini |
+| C122 | unadf (`unadf.exe`) — Amiga Disk Format (`.adf`) images | behavior | code | none found (directory check only) | DONE | | PR [#231](https://github.com/baileyrd/rusty_extract/pull/231), test `extract::adf::tests::bundled_ini_produces_source_matching_command_line_and_workingdir` |
+| C123 | bitrock-unpacker (`bitrock-unpacker.exe`) — BitRock InstallBuilder installers | behavior | code | none found (directory check only) | DONE | | PR [#231](https://github.com/baileyrd/rusty_extract/pull/231), test `extract::bitrock::tests::bundled_ini_produces_source_matching_command_line` |
+| C124 | BSA Browser (`bsab.exe`) — Bethesda Archive (`.bsa`/`.ba2`/`.pex`) | behavior | code | none found (directory check only) | DONE | | PR [#231](https://github.com/baileyrd/rusty_extract/pull/231), test `extract::bsa::tests::bundled_ini_produces_source_matching_command_line` |
+| C125 | godotdec (`godotdec.exe`) — Godot Engine packages (`.pck`, embedded in `.exe`) | behavior | code | none found (directory check only) | DONE | | PR [#231](https://github.com/baileyrd/rusty_extract/pull/231), test `extract::godot::tests::bundled_ini_produces_source_matching_command_line` |
 | C126 | lbrate (`lbrate.exe`) — `.lbr`/`.lzr`/`.lqr` LBR archives | behavior | code | none found (directory check only) | REQUIRED | | def/lbr.ini |
 | C127 | ConvertLIT (`clit.exe`) — Microsoft Reader `.lit` eBooks. **Known quirk, verify still present**: `todo.txt` documents an output-path-with-spaces bug for this extractor. | behavior | code | none found (directory check only) | REQUIRED | | def/lit.ini; todo.txt:29 |
 | C128 | GNU gettext (`msgunfmt.exe`) — compiled GNU Gettext `.mo` message catalogs | behavior | code | none found (directory check only) | REQUIRED | | def/mo.ini |
