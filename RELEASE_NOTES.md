@@ -23,6 +23,19 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C095 — sfarkxtc extractor integration
+**2026-08-17**
+
+- **Added:** `extract::sfark::invocation` — builds the sfArk-compressed
+  SoundFont extraction command, matching UniExtract.au3:3019-3020's
+  `Case $TYPE_SFARK`. Notable divergence from the pattern so far: the
+  source names the output file explicitly (`<outdir>\<filename>.sf2`)
+  rather than letting the tool pick, and runs in `$filedir` (the input
+  file's own directory) rather than `outdir`.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"sfark"` →
+  `extract::sfark`), the third extractor this port has wired up.
+- Parity test: `matches_source_invocation`.
+
 ## C049 — Central extractor dispatcher
 **2026-08-17**
 
