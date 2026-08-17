@@ -35,6 +35,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C057: acefile extractor integration (`extract::ace`).
 - C068: GARbro extractor integration (`extract::garbro`).
 - C108: WolfDec extractor integration (`extract::wolf`).
+- C103: umodel extractor integration (`extract::unreal`).
+- C107: dark / WiX Toolset extractor integration (`extract::wix`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
