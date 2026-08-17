@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C024, C158 — `deletesourcefile` preference and its deletion policy
+**2026-08-17**
+
+- **Added:** `prefs::DeleteSourceFileOption`/`prefs::parse_delete_source_file_option`
+  (C024) — mirrors UniExtract2's shared `$OPTION_*` enum
+  (UniExtract.au3:97) and parses the `deletesourcefile` preference's raw
+  ini integer using its AutoIt numbering, falling back to `Keep` for a
+  missing/unreadable/out-of-range value, matching `LoadPref`'s error path
+  leaving `$eOptDeleteSourceFile` at its `Global` declaration's value.
+- **Added:** `prefs::should_delete_source_file` (C158) — ports the
+  deletion condition inside `terminate()`'s `$STATUS_SUCCESS` case
+  (UniExtract.au3:4204) exactly: `Delete` always deletes; `Ask` deletes
+  only outside silent mode and only if confirmed; `Keep`/`Move` never
+  delete.
+- **Scope note:** `Move` is representable in `DeleteSourceFileOption`
+  because `LoadPref` stores whatever integer was in the ini without
+  validating it against `deletesourcefile`'s own GUI (which only offers
+  Keep/Ask/Delete, UniExtract.au3:6393-6395) — the source's own decision
+  condition treats a stray `Move` value exactly like `Keep`, and this port
+  does too. The GUI confirmation prompt itself (`Prompt(...)`) is out of
+  scope under the deferred GUI subsystem (manifest row D001);
+  `should_delete_source_file` takes its result as a plain `bool`.
+- Parity tests: `prefs::tests::delete_source_file_option_parses_autoit_enum_numbering`,
+  `prefs::tests::should_delete_source_file_matches_source_condition`.
+
 ## C026 — `Timeout` preference
 **2026-08-17**
 
