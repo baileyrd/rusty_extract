@@ -20,6 +20,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C095: sfarkxtc extractor integration (`extract::sfark`).
 - C050: Case-Else plugin-ini resolution (`extract::plugin`).
 - C096: extsis extractor integration (`extract::extsis`).
+- C051: detector-to-plugin mapping (`detection::detector_mapping`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
