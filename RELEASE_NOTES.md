@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C146 — DAA→ISO conversion (no pre-existing-output-file check, preserved)
+**2026-08-17**
+
+- **Added:** `extract::daa::invocation` — builds the DAA→ISO conversion
+  (`daa2iso.exe`) command, matching UniExtract.au3:2505-2508's `Case
+  $TYPE_DAA`: `<program> "<file>" "<outdir>\<filename>.iso"`, run in
+  `outdir` with the window minimized (`_Run`'s own default for the omitted
+  `$show_flag` argument).
+- **Quirk preserved, deliberately:** the source builds the target `.iso`
+  path and passes it straight to `_Run` with no check for whether that
+  file already exists — a pre-existing `<filename>.iso` in `outdir` is
+  silently overwritten (or `daa2iso.exe` does whatever it does when its
+  target already exists). This matches the source's own documented bug
+  (`todo.txt:52`, "Converting to iso failes when iso file already
+  exists"). This capability exists specifically to preserve that quirk,
+  not to fix it — no existence check was added.
+- **Scope note:** `_CreateTrayMessageBox(...)` (UniExtract.au3:2506), the
+  "Extracting... DAA disk image (stage 1)" progress notification, is
+  separate, out-of-scope GUI-subsystem behavior (manifest row D001), not
+  part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"daa"` →
+  `extract::daa`).
+- Parity test: `matches_source_invocation`.
+
 ## C112 — upx invocation (packed-executable unpack)
 **2026-08-17**
 
