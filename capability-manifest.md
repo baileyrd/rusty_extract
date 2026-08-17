@@ -116,7 +116,7 @@ prefix, in table order:
 | C044 | PEiD fallback packer-signature detection for executables Exeinfo PE couldn't classify (run twice: extension mode then hard mode) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1284-1398,478-479 |
 | C045 | MediaInfo scan — informational only, used in scan-only mode display, never drives extraction dispatch | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1054-1093 |
 | C046 | Extension-based pre-check (split files `.001`, compound tar variants, unreliable-signature disk images) run before any signature scan | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2193-2215 (InitialCheckExt) |
-| C047 | Extension-based fallback dispatch — last resort via `def/registry.ini`'s `[Extensions]` section when no detector matched | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2174-2190 (CheckExt) |
+| C047 | Extension-based fallback dispatch — last resort via `def/registry.ini`'s `[Extensions]` section when no detector matched | behavior | code | none found (directory check only) | DONE | | PR [#185](https://github.com/baileyrd/rusty_extract/pull/185), test `detection::registry::tests::resolves_every_extension_in_the_bundled_registry` |
 | C048 | Blind 7-Zip probe fallback — attempt a 7z listing regardless of detected type, as a final catch-all | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:1917-1942 (check7z) |
 | C049 | Central extractor dispatcher — single function, ~70-case switch keyed on extractor-type constant | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2269-3441 |
 | C050 | Case-Else → `def/*.ini` plugin-engine fallback dispatch — any extractor-type string not hardcoded is treated as a plugin-ini filename stem | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3400-3402,3468-3520 |
@@ -163,7 +163,7 @@ prefix, in table order:
 | C090 | PeaZip (`pea.exe`) — `.pea` PEA archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2973 |
 | C091 | RAIU (`RAIU.exe`) — Reflexive Arcade Installer wrapper, chains into Inno Setup extraction (C074) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2994 |
 | C092 | UnRAR (`UnRAR.exe`) — RAR archives, RAR SFX | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3003 |
-| C093 | RGSS Decryptor (`RgssDecrypter.exe`) — RPG Maker RGSS(2/3)A archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3009 |
+| C093 | RGSS Decryptor (`RgssDecrypter.exe`) — RPG Maker RGSS(2/3)A archives | behavior | code | none found (directory check only) | DONE | | PR [#186](https://github.com/baileyrd/rusty_extract/pull/186), test `extract::rgss::tests::matches_source_invocation` |
 | C094 | unrpa (`unrpa.exe`) — Ren'Py `.rpa` archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3016 |
 | C095 | sfarkxtc (`sfarkxtc.exe`) — sfArk compressed SoundFont | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3019 |
 | C096 | extsis (`extsis.exe`) — Symbian OS `.sis`/`.sisx` installers | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3022-3030 |
