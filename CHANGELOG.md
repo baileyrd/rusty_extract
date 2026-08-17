@@ -18,6 +18,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C094: unrpa extractor integration (`extract::rpa`).
 - C049: central extractor dispatcher (`extract::dispatch`).
 - C095: sfarkxtc extractor integration (`extract::sfark`).
+- C050: Case-Else plugin-ini resolution (`extract::plugin`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

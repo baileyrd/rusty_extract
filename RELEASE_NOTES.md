@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C050 — Case-Else plugin-ini resolution
+**2026-08-17**
+
+- **Added:** `extract::plugin::resolve_plugin_ini`, porting the
+  file-resolution half of `pluginExtract` (UniExtract.au3:3471-3475): for
+  an extractor-type key with no hardcoded case, check a user-override
+  directory first, then the bundled directory; report which file (if
+  either) matched.
+- **Scope note:** this answers "which `.ini` file, if any" only — consuming
+  the resolved file's `[Plugin]` section into an invocation (C052) and its
+  `%placeholder%` substitution (C182) are separate, not-yet-ported
+  capabilities.
+- `resolve_plugin_ini_with` takes the existence check as a parameter so the
+  resolution order is unit-testable without real file I/O;
+  `resolve_plugin_ini` wraps it with `Path::exists`. Matches the source's
+  own asymmetric error reporting: a fully-missing file's error names only
+  the bundled-directory path, since that's the path the source's own
+  `$sPluginFile` variable holds by the time `terminate($STATUS_MISSINGDEF)`
+  fires.
+- Parity tests: `prefers_user_override_over_bundled`,
+  `falls_back_to_bundled_when_user_override_absent`,
+  `missing_reports_only_the_bundled_path_matching_source_error`.
+
 ## C095 — sfarkxtc extractor integration
 **2026-08-17**
 
