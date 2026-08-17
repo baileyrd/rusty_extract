@@ -40,6 +40,106 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `extract::uif`).
 - Parity test: `matches_source_invocation`.
 
+## C072 — FSB extractor integration
+**2026-08-17**
+
+- **Added:** `extract::fsb::invocation` — builds the FSB extractor
+  (`fsbext.exe`) `.fsb` (FMOD Sample Bank) extraction command, matching
+  UniExtract.au3:2559-2562's `Case $TYPE_FSB`: `<program> -o -1 -A -d
+  "<outdir>" "<file>"`, run in `$filedir` with the window minimized.
+- **Scope note:** the source's `Case $TYPE_FSB` also calls
+  `Cleanup("*.ogg")` after the `_Run`, deleting the raw `.ogg` dumps that
+  cannot be played — that post-extraction glob-delete is separate runtime
+  behavior, not part of building this invocation, and is tracked as its own
+  capability, not this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"fsb"` →
+  `extract::fsb`).
+- Parity test: `matches_source_invocation`.
+
+## C078 — unisz extractor integration
+**2026-08-17**
+
+- **Added:** `extract::isz::invocation` — builds the ISZ compressed-ISO
+  extraction command, matching UniExtract.au3:2775-2778's `Case
+  $TYPE_ISZ`.
+- **Scope note:** the source calls `_RunInTempOutdir` rather than plain
+  `_Run` — a variant that stages output in a temp directory before moving
+  it into place — but the resulting `Invocation` shape (program, args,
+  working directory, window) is identical to every other `_Run`-based
+  extractor here; the temp-dir-then-move orchestration is a separate,
+  already-tracked runtime-behavior capability, not part of this row.
+- **Scope note:** the preceding `_CreateTrayMessageBox(...)` call is a UI
+  notification — out of scope, deferred GUI subsystem work tracked under
+  manifest row D001, not part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"isz"` →
+  `extract::isz`).
+- Parity test: `matches_source_invocation`.
+
+## C067 — cicdec extractor integration
+**2026-08-17**
+
+- **Added:** `extract::cic::invocation` — builds the cicdec (`cicdec.exe`)
+  Clickteam Install Creator extraction command, matching
+  UniExtract.au3:2472-2475's `Case $TYPE_CIC`: `<program> -db "<file>"
+  "<outdir>"`, run in the input file's own directory (`$filedir`) with the
+  window hidden.
+- **Scope note:** the source surrounds this `_Run` call with
+  `HasNetFramework(4.5)` (a precondition check) and `Cleanup("Block
+  0x*.bin")` (a post-extraction glob delete) — both are separate,
+  already-tracked runtime-behavior capabilities, not part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"cic"` →
+  `extract::cic`).
+- Parity test: `matches_source_invocation`.
+
+## C070 — xor invocation (Ghost Installer overlay decode)
+**2026-08-17**
+
+- **Added:** `extract::xor::invocation` — builds the `xor.exe` byte-XOR
+  decode command, matching UniExtract.au3:2598's call from inside `Case
+  $TYPE_GHOST`: `<program> "<overlay_file>" "<outdir>\<filename>.cab"
+  0x8D`.
+- **Scope note:** unlike the other extractor-integration capabilities in
+  this repo, this isn't a top-level `$arctype` dispatch case — there is no
+  `$TYPE_XOR` constant in the source. It's an internal helper call the
+  Ghost Installer case makes itself after unpacking an overlay blob, so
+  it's intentionally absent from `extract::dispatch::HARDCODED_CASES`, the
+  same way `extract::plugin` is absent. The source's `_Run` call omits all
+  three optional arguments, so `_Run`'s own defaults apply: working
+  directory is `$outdir`, window is `@SW_MINIMIZE`.
+- Parity test: `matches_source_invocation`.
+
+## C057 — acefile extractor integration
+**2026-08-17**
+
+- **Added:** `extract::ace::invocation` — builds the ACE archive
+  extraction command, matching UniExtract.au3:2346-2349's `Case
+  $TYPE_ACE`.
+- **Scope note:** the source's `If $success == $RESULT_FAILED Then
+  check7z($arcdisp)` — falling back to 7-Zip when `acefile.exe` fails —
+  is separate runtime behavior, not part of this row; this capability
+  only builds the `acefile.exe` invocation itself.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"ace"` →
+  `extract::ace`).
+- Parity test: `matches_source_invocation`.
+
+## C068 — GARbro extractor integration
+**2026-08-17**
+
+- **Added:** `extract::garbro::invocation` — builds the GARbro
+  (`GARbro.Console.exe`) extraction command, matching UniExtract.au3:2565-
+  2566's `Case $TYPE_GARBRO`: `<program> x -ocu -if png -o "<outdir>"
+  "<file>"`, run in `outdir`, window minimized.
+- **Scope note:** the manifest row also cites UniExtract.au3:2049, which is
+  GARbro's own probe/detection step in the type-detection cascade — a
+  separate, already-tracked capability. This row covers only the extraction
+  invocation at line 2565.
+- **Behavior note:** `-if png` forces PNG as the output format for any
+  image-format conversion GARbro performs during extraction, preserved
+  verbatim from the source rather than simplified.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"garbro"` →
+  `extract::garbro`).
+- Parity test: `matches_source_invocation`.
+
 ## C081 — lzop extractor integration
 **2026-08-17**
 
