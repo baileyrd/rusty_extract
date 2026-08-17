@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C068 — GARbro extractor integration
+**2026-08-17**
+
+- **Added:** `extract::garbro::invocation` — builds the GARbro
+  (`GARbro.Console.exe`) extraction command, matching UniExtract.au3:2565-
+  2566's `Case $TYPE_GARBRO`: `<program> x -ocu -if png -o "<outdir>"
+  "<file>"`, run in `outdir`, window minimized.
+- **Scope note:** the manifest row also cites UniExtract.au3:2049, which is
+  GARbro's own probe/detection step in the type-detection cascade — a
+  separate, already-tracked capability. This row covers only the extraction
+  invocation at line 2565.
+- **Behavior note:** `-if png` forces PNG as the output format for any
+  image-format conversion GARbro performs during extraction, preserved
+  verbatim from the source rather than simplified.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"garbro"` →
+  `extract::garbro`).
+- Parity test: `matches_source_invocation`.
+
 ## C081 — lzop extractor integration
 **2026-08-17**
 
