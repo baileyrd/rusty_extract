@@ -48,6 +48,104 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   capability to exist first.
 - Parity test: `matches_source_invocation`.
 
+## C110 — unzoo extractor integration
+**2026-08-17**
+
+- **Added:** `extract::zoo::invocation` — builds the unzoo (`unzoo.exe`)
+  `.zoo` Zoo-archive extraction command, matching UniExtract.au3:3390-3394's
+  `Case $TYPE_ZOO`: `<program> -x <filename_full>`, run in `tempoutdir`
+  with the window hidden.
+- **Scope note:** unlike most other extractor invocations in this repo, the
+  source does not wrap `$filenamefull` in quotes here (`' -x ' &
+  $filenamefull` is a bare, unquoted concatenation) — preserved as a
+  deliberate source quirk, not normalized to the quoted style used
+  elsewhere (e.g. `extract::kgb`).
+- **Scope note:** the surrounding `_FileMove($file, $tempoutdir, 8)` /
+  `_FileMove($tempoutdir & $filenamefull, $file)` / `MoveFiles($tempoutdir,
+  $outdir, False, "", True)` calls — staging the file into a temp directory
+  before running and relocating results to `outdir` afterward — are
+  separate runtime behavior, already tracked as their own capabilities, not
+  part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"zoo"` →
+  `extract::zoo`).
+- Parity test: `matches_source_invocation`.
+
+## C111 — zpaq extractor integration
+**2026-08-17**
+
+- **Added:** `extract::zpaq::invocation` — builds the zpaq (`zpaq.exe`)
+  `.zpaq` archive extraction command, matching UniExtract.au3:3396-3399's
+  `Case $TYPE_ZPAQ`: `<program> x "<file>" -to "<outdir>"`, run in
+  `outdir` with the window shown.
+- **Scope note:** the source's comment on this case explains it's
+  hardcoded rather than `.ini`-driven because zpaq needs a different
+  executable on Windows XP — that's context for why this is a Rust
+  module rather than a `def/*.ini` plugin row, not behavior this port
+  needs to replicate.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"zpaq"` →
+  `extract::zpaq`).
+- Parity test: `matches_source_invocation`.
+
+## C108 — WolfDec extractor integration
+**2026-08-17**
+
+- **Added:** `extract::wolf::invocation` — builds the WolfDec
+  (`WolfDec.exe`) Wolf RPG Editor game-archive extraction command, matching
+  UniExtract.au3:3377-3382's `Case $TYPE_WOLF`: `<program> "<file>"`, run in
+  `$outdir` with the window minimized.
+- **Scope note:** the source calls `_RunInTempOutdir`, passing `$tempoutdir`
+  as the staging argument but `$outdir` (not `$tempoutdir`) as the explicit
+  working-directory argument — unlike `extract::lzip`/`extract::isz`, whose
+  `_RunInTempOutdir` calls use `$tempoutdir` as both. The working directory
+  for this invocation is therefore `outdir`; the temp-dir-then-move
+  orchestration `_RunInTempOutdir` layers on top is a separate,
+  already-tracked runtime-behavior capability, not part of this row.
+- **Scope note:** `HasPlugin($wolf)`, the preceding
+  `_CreateTrayMessageBox(...)` UI notification (deferred GUI subsystem,
+  manifest row D001), the `_Sleep(1000, "CLEANING_UP")` pause, and the
+  trailing `MoveFiles(...)` call are all separate runtime behavior, out of
+  scope for this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"wolf"` →
+  `extract::wolf`).
+- Parity test: `matches_source_invocation`.
+
+## C103 — umodel extractor integration
+**2026-08-17**
+
+- **Added:** `extract::unreal::invocation` — builds the umodel
+  (`umodel.exe`/`unreal.exe`) Unreal Engine package extraction command,
+  matching UniExtract.au3:3211-3214's `Case $TYPE_UNREAL`: `<program>
+  -export -all -sounds -3rdparty -path="<file_dir>" -out="<outdir>" *`, run
+  in `outdir` with the window minimized. `-path="..."` and `-out="..."` are
+  each a single concatenated-flag argument token (flag directly joined to a
+  quoted value, no space) — the same pattern already established in
+  `extract::bcm`/`extract::lzop`.
+- **Scope note:** the source's `HasPlugin($unreal)` call immediately
+  preceding `_Run` is a precondition check — separate runtime behavior, not
+  part of building this invocation, and out of scope for this row.
+- **Scope note:** matching the source's own comment on this `Case`, umodel
+  extracts files from all packages in the folder rather than only the
+  selected one — a documented quirk of the source's behavior, preserved
+  here verbatim rather than "fixed".
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"unreal"` →
+  `extract::unreal`).
+- Parity test: `matches_source_invocation`.
+
+## C107 — dark / WiX Toolset extractor integration
+**2026-08-17**
+
+- **Added:** `extract::wix::invocation` — builds the dark (`dark.exe`)
+  WiX Toolset MSI-based installer extraction command, matching
+  UniExtract.au3:3373-3375's `Case $TYPE_WIX`: `<program> -x "<outdir>"
+  "<file>"`, run in `outdir` with the window minimized.
+- **Scope note:** the source's `HasNetFramework(4)` call immediately
+  preceding `_Run` is a precondition check for the .NET Framework version
+  `dark.exe` requires — separate runtime behavior, not part of building
+  this invocation, and tracked as its own capability, not this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"wix"` →
+  `extract::wix`).
+- Parity test: `matches_source_invocation`.
+
 ## C102 — uif2iso extractor integration
 **2026-08-17**
 
