@@ -23,6 +23,17 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C079 — KGB Archiver extractor integration
+**2026-08-17**
+
+- **Added:** `extract::kgb::invocation` — builds the KGB Archiver
+  (`kgb2_console.exe`) `.kgb`/`.kge` extraction command, matching
+  UniExtract.au3:2780-2781's `Case $TYPE_KGB`: `<program> "<file>"`, run in
+  `outdir` with the window minimized.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"kgb"` →
+  `extract::kgb`).
+- Parity test: `matches_source_invocation`.
+
 ## C051 — Detector-to-plugin mapping (`[Trid]`/`[File]`/`[Exeinfo]`)
 **2026-08-17**
 
