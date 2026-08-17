@@ -60,8 +60,16 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::extsis",
     },
     HardcodedCase {
+        type_key: "ace",
+        module: "extract::ace",
+    },
+    HardcodedCase {
         type_key: "bcm",
         module: "extract::bcm",
+    },
+    HardcodedCase {
+        type_key: "cic",
+        module: "extract::cic",
     },
     HardcodedCase {
         type_key: "chd",
@@ -70,6 +78,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
     HardcodedCase {
         type_key: "freearc",
         module: "extract::freearc",
+    },
+    HardcodedCase {
+        type_key: "garbro",
+        module: "extract::garbro",
     },
     HardcodedCase {
         type_key: "isz",
@@ -143,15 +155,21 @@ mod tests {
                 module: "extract::sfark"
             })
         );
+        assert_eq!(
+            dispatch("ace"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "ace",
+                module: "extract::ace"
+            })
+        );
     }
 
     #[test]
     fn falls_through_to_plugin_for_unrecognized_or_not_yet_ported_types() {
-        // "ace" and "7z" both have hardcoded Cases in the source
-        // (UniExtract.au3) but not yet in this port — Plugin here reflects
-        // this port's real current coverage, not a parity gap in C049
-        // itself (see the module doc comment).
-        assert_eq!(dispatch("ace"), DispatchTarget::Plugin);
+        // "7z" has a hardcoded Case in the source (UniExtract.au3) but not
+        // yet in this port — Plugin here reflects this port's real current
+        // coverage, not a parity gap in C049 itself (see the module doc
+        // comment).
         assert_eq!(dispatch("7z"), DispatchTarget::Plugin);
         assert_eq!(dispatch("nonsense-not-a-real-type"), DispatchTarget::Plugin);
     }
