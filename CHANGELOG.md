@@ -50,6 +50,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C182: plugin extension point placeholder substitution (`extract::placeholder::replace_placeholders`).
 - C060, C122, C123, C124, C125: `def/*.ini`-only extractor integrations (`extract::arc`, `extract::adf`, `extract::bitrock`, `extract::bsa`, `extract::godot`).
 - C059: unalz (ALZip) probe + extractor integration (`detection::alz_probe`, `extract::alz`).
+- C126, C127, C128, C129, C130, C131, C132, C133, C134, C135, C136, C137: `def/*.ini`-only extractor integrations (`extract::lbr`, `extract::lit`, `extract::mo`, `extract::pex`, `extract::qm`, `extract::rpgmvp`, `extract::sgb`, `extract::sim`, `extract::sit`, `extract::spoon`, `extract::utage`, `extract::uu`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
