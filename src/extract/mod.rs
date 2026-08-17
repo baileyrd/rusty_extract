@@ -26,6 +26,7 @@ pub mod plugin;
 pub mod rgss;
 pub mod rpa;
 pub mod sfark;
+pub mod uif;
 pub mod xor;
 
 /// A single external helper-binary invocation, corresponding to one

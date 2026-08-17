@@ -27,6 +27,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C071: FreeArc extractor integration (`extract::freearc`).
 - C062: BCM extractor integration (`extract::bcm`).
 - C065: chdman extractor integration (`extract::chdman`).
+- C102: uif2iso extractor integration (`extract::uif`).
 - C072: FSB extractor integration (`extract::fsb`).
 - C078: unisz extractor integration (`extract::isz`).
 - C067: cicdec extractor integration (`extract::cic`).
