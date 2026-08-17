@@ -76,6 +76,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::chdman",
     },
     HardcodedCase {
+        type_key: "daa",
+        module: "extract::daa",
+    },
+    HardcodedCase {
         type_key: "freearc",
         module: "extract::freearc",
     },

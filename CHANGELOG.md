@@ -44,6 +44,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C108: WolfDec extractor integration (`extract::wolf`).
 - C103: umodel extractor integration (`extract::unreal`).
 - C107: dark / WiX Toolset extractor integration (`extract::wix`).
+- C146: DAA→ISO conversion invocation, no-existing-file-check quirk preserved (`extract::daa`).
 - C058: AspackDie invocation for packed-executable unpack (`extract::aspack`).
 ### Changed
 ### Fixed
