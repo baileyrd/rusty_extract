@@ -10,6 +10,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - Minimal Cargo skeleton (single crate: `src/lib.rs` + `src/main.rs`).
 - `capability-manifest.md`: full step-1 inventory of UniExtract2's core
   detection/extraction-engine surface (194 rows).
+- C047: extension-based fallback dispatch (`ExtensionRegistry`, ported
+  `def/registry.ini`, a minimal `IniFile` parser).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
