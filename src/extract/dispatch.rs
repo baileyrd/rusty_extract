@@ -72,6 +72,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::freearc",
     },
     HardcodedCase {
+        type_key: "fsb",
+        module: "extract::fsb",
+    },
+    HardcodedCase {
         type_key: "kgb",
         module: "extract::kgb",
     },
