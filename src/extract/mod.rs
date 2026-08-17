@@ -16,6 +16,7 @@ pub mod cic;
 pub mod dispatch;
 pub mod extsis;
 pub mod freearc;
+pub mod fsb;
 pub mod garbro;
 pub mod isz;
 pub mod kgb;

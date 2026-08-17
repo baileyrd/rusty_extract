@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C072 — FSB extractor integration
+**2026-08-17**
+
+- **Added:** `extract::fsb::invocation` — builds the FSB extractor
+  (`fsbext.exe`) `.fsb` (FMOD Sample Bank) extraction command, matching
+  UniExtract.au3:2559-2562's `Case $TYPE_FSB`: `<program> -o -1 -A -d
+  "<outdir>" "<file>"`, run in `$filedir` with the window minimized.
+- **Scope note:** the source's `Case $TYPE_FSB` also calls
+  `Cleanup("*.ogg")` after the `_Run`, deleting the raw `.ogg` dumps that
+  cannot be played — that post-extraction glob-delete is separate runtime
+  behavior, not part of building this invocation, and is tracked as its own
+  capability, not this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"fsb"` →
+  `extract::fsb`).
+- Parity test: `matches_source_invocation`.
+
 ## C078 — unisz extractor integration
 **2026-08-17**
 
