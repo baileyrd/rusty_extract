@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C052 — `def/*.ini` plugin definition schema
+**2026-08-17**
+
+- **Added:** `extract::plugin_config::PluginConfig` — parses a `def/*.ini`
+  file's `[Plugin]` section, porting `pluginExtract`'s field reads
+  (UniExtract.au3:3480-3501,3515): `display`, `executable`, `parameters`,
+  `workingdir`, `runInTempOutdir`, `hide`, `useCmd`, `log`, `patternSearch`,
+  `initialShow`, `requireNetFramework`, `cleanup`, each with the exact
+  default/type coercion its `_ArrayGet(...)` call uses. `window_mode()`
+  derives the `hide` → `WindowMode::Hidden`/`Minimized` mapping
+  (`@SW_HIDE`/`@SW_MINIMIZE` — plugin-driven extraction never reaches
+  `@SW_SHOW`).
+- **Verified against every bundled file:** grepped all 18 non-`registry.ini`
+  files under `def/` for their actual `[Plugin]` keys — confirmed the set
+  above is exhaustive; none set `cleanup` today, but the schema still
+  supports it since the source still reads it.
+- **Scope note:** this parses the schema only — building a real
+  `Invocation` from a `PluginConfig` needs its `parameters`/`workingdir`
+  strings substituted first (`%file%`/`%outdir%`/etc., `ReplacePlaceholders`
+  at UniExtract.au3:3523-3541 — capability C182, not yet ported) plus the
+  resolved executable path (`extract::plugin::resolve_plugin_ini`, C050).
+  That wiring is left for once both exist, not part of this row.
+- Parity tests: `parses_every_key_from_a_bundled_plugin_file`,
+  `missing_keys_use_array_get_defaults`,
+  `missing_plugin_section_parses_as_all_defaults`,
+  `empty_workingdir_value_is_treated_as_absent`,
+  `nonempty_workingdir_is_preserved_unsubstituted`,
+  `require_net_framework_zero_is_none`, `cleanup_splits_on_pipe`.
+
 ## C146 — DAA→ISO conversion (no pre-existing-output-file check, preserved)
 **2026-08-17**
 
