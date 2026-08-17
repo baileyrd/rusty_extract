@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C111 — zpaq extractor integration
+**2026-08-17**
+
+- **Added:** `extract::zpaq::invocation` — builds the zpaq (`zpaq.exe`)
+  `.zpaq` archive extraction command, matching UniExtract.au3:3396-3399's
+  `Case $TYPE_ZPAQ`: `<program> x "<file>" -to "<outdir>"`, run in
+  `outdir` with the window shown.
+- **Scope note:** the source's comment on this case explains it's
+  hardcoded rather than `.ini`-driven because zpaq needs a different
+  executable on Windows XP — that's context for why this is a Rust
+  module rather than a `def/*.ini` plugin row, not behavior this port
+  needs to replicate.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"zpaq"` →
+  `extract::zpaq`).
+- Parity test: `matches_source_invocation`.
+
 ## C108 — WolfDec extractor integration
 **2026-08-17**
 

@@ -34,6 +34,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C070: xor invocation for Ghost Installer overlay decode (`extract::xor`).
 - C057: acefile extractor integration (`extract::ace`).
 - C068: GARbro extractor integration (`extract::garbro`).
+- C111: zpaq extractor integration (`extract::zpaq`).
 - C108: WolfDec extractor integration (`extract::wolf`).
 - C103: umodel extractor integration (`extract::unreal`).
 - C107: dark / WiX Toolset extractor integration (`extract::wix`).

@@ -31,6 +31,7 @@ pub mod unreal;
 pub mod wix;
 pub mod wolf;
 pub mod xor;
+pub mod zpaq;
 
 /// A single external helper-binary invocation, corresponding to one
 /// UniExtract2 `_Run(...)`/`_RunInTempOutdir(...)` call: the command line

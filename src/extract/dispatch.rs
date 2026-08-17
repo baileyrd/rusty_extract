@@ -119,6 +119,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         type_key: "wolf",
         module: "extract::wolf",
     },
+    HardcodedCase {
+        type_key: "zpaq",
+        module: "extract::zpaq",
+    },
 ];
 
 /// Where `dispatch` routes an extractor-type key.
