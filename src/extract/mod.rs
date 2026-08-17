@@ -29,6 +29,7 @@ pub mod sfark;
 pub mod uif;
 pub mod unreal;
 pub mod unzip;
+pub mod upx;
 pub mod wix;
 pub mod wolf;
 pub mod xor;
