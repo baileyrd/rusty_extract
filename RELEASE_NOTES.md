@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## Capability manifest — full step-1 inventory of UniExtract2's core-engine surface
+**2026-08-17**
+
+- **Added:** `capability-manifest.md` — 194 rows: 182 REQUIRED capabilities
+  (CLI interface, core-engine preferences, the detection cascade/dispatcher,
+  78 distinct external-extractor integrations, and runtime extraction
+  behavior including several documented-and-verified-still-present quirks
+  from the source's own `todo.txt`) plus 12 OUT-OF-SCOPE rows for the
+  subsystems the user deferred to a later migration phase (GUI,
+  context-menu/registry, auto-updater, feedback/telemetry, uninstall,
+  translation catalogs), each with a user-attributed reason per the
+  migration's boundary contract.
+- **Known limitation, stated plainly:** the RustyMill sibling check (does an
+  existing `Rusty-Mill/*`/`baileyrd/rusty_*` repo already implement a given
+  capability) is directory-description-level judgment only for every row —
+  this session could not attach `Rusty-Mill`-owned repos alongside its
+  existing `baileyrd`-owned sources to run a real grep-level scan. Flagged
+  in the manifest's own header; worth a follow-up scan in a session that can
+  attach those repos before treating "none found" as final.
+
 ## Repo bootstrap — governance scaffold, Cargo skeleton, migration architecture
 **2026-08-17**
 
