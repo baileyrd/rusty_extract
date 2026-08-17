@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C078 — unisz extractor integration
+**2026-08-17**
+
+- **Added:** `extract::isz::invocation` — builds the ISZ compressed-ISO
+  extraction command, matching UniExtract.au3:2775-2778's `Case
+  $TYPE_ISZ`.
+- **Scope note:** the source calls `_RunInTempOutdir` rather than plain
+  `_Run` — a variant that stages output in a temp directory before moving
+  it into place — but the resulting `Invocation` shape (program, args,
+  working directory, window) is identical to every other `_Run`-based
+  extractor here; the temp-dir-then-move orchestration is a separate,
+  already-tracked runtime-behavior capability, not part of this row.
+- **Scope note:** the preceding `_CreateTrayMessageBox(...)` call is a UI
+  notification — out of scope, deferred GUI subsystem work tracked under
+  manifest row D001, not part of this row.
+- Registered in `extract::dispatch::HARDCODED_CASES` (`"isz"` →
+  `extract::isz`).
+- Parity test: `matches_source_invocation`.
+
 ## C081 — lzop extractor integration
 **2026-08-17**
 
