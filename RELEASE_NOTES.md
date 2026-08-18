@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C162 — Generic password-failure detection via output-text matching
+**2026-08-18**
+
+- **Added:** `log_eval::is_password_failure` — ports the invalid-password
+  branch of `EvaluateLog()` (UniExtract.au3:4782-4787), the first and
+  highest-priority arm of its classification chain: five substrings
+  matched anywhere in the log, plus a sixth ("Enter password") matched
+  only against the log's own custom-defined "last line" helper.
+- **Behavioral finding — `_StringGetLine($sLog, -1)`'s off-by-one
+  fallback:** that helper (a project-local function, not an AutoIt
+  built-in) searches for the *second*-to-last `@CRLF`, not the last one.
+  When a log has two or more line breaks, this correctly isolates the
+  true last line; but when it has zero or exactly one line break,
+  `StringInStr` can't find a second occurrence, returns 0, and the
+  fallback (`StringTrimLeft($sString, 0)`) returns the **entire,
+  unmodified log** — not just its one existing line. A two-line log
+  therefore has "Enter password" searched across *both* lines, not just
+  the second one. Reproduced exactly via `tail_for_password_prompt_search`.
+- Parity tests: `log_eval::tests::recognizes_all_five_whole_log_password_substrings`,
+  `recognizes_enter_password_on_true_last_line`,
+  `does_not_recognize_enter_password_on_earlier_line_of_long_log`,
+  `two_line_log_searches_whole_text_not_just_last_line`,
+  `single_line_log_searches_whole_text`,
+  `password_failure_matches_case_insensitively`,
+  `does_not_match_unrelated_password_log_text`.
+
+---
+
 ## C165 — Per-run log file naming/location/encoding
 **2026-08-18**
 
