@@ -78,9 +78,37 @@ pub fn resolve_output_directory(
     resolved
 }
 
+/// C140 (continued): ports the trailing-backslash strip at the start of
+/// `extract()` (UniExtract.au3:2278: `If StringRight($outdir, 1) = "\"
+/// Then $outdir = StringTrimRight($outdir, 1)`).
+/// [`resolve_output_directory`] always leaves a trailing backslash, but
+/// `extract()` strips it again immediately — so every extraction routine
+/// that runs in between operates on an outdir with *no* trailing slash.
+/// This inconsistency is documented in the source's own `todo.txt` (line
+/// 35) as a known rough edge, preserved here rather than "fixed" into a
+/// single normalized representation used throughout.
+pub fn strip_trailing_backslash_for_extraction(outdir: &str) -> String {
+    outdir.strip_suffix('\\').unwrap_or(outdir).to_string()
+}
+
+/// C140 (continued): ports the trailing-backslash re-append at the end
+/// of `extract()` (UniExtract.au3:3413: `$outdir &= "\"`) — restores the
+/// trailing slash [`strip_trailing_backslash_for_extraction`] removed,
+/// unconditionally (the source's `&=` doesn't check whether one is
+/// already present, so calling this on an outdir that already ends in
+/// `\` produces a doubled backslash — not reachable in the source's own
+/// control flow, since every caller reaches this point via the stripped
+/// value, but reproduced here rather than silently guarded against).
+pub fn reappend_trailing_backslash_after_extraction(outdir: &str) -> String {
+    format!("{outdir}\\")
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{get_last_outdir, resolve_output_directory};
+    use super::{
+        get_last_outdir, reappend_trailing_backslash_after_extraction, resolve_output_directory,
+        strip_trailing_backslash_for_extraction,
+    };
 
     /// Parity test for capability C005: a present history slot 0 is
     /// returned as the resolved directory; a missing one maps to `None`,
@@ -174,6 +202,33 @@ mod tests {
         assert_eq!(
             resolve_output_directory(r"D:\custom", "", r"C:\downloads", None),
             r"D:\custom\"
+        );
+    }
+
+    /// Parity test for capability C140 (continued): `extract()` strips
+    /// `ValidateOutputDirectory`'s trailing backslash immediately
+    /// (UniExtract.au3:2278) — an outdir with no trailing backslash is
+    /// left unchanged.
+    #[test]
+    fn strip_trailing_backslash_matches_extract_start() {
+        assert_eq!(
+            strip_trailing_backslash_for_extraction(r"C:\downloads\unpacked\"),
+            r"C:\downloads\unpacked"
+        );
+        assert_eq!(
+            strip_trailing_backslash_for_extraction(r"C:\downloads\unpacked"),
+            r"C:\downloads\unpacked"
+        );
+    }
+
+    /// Parity test for capability C140 (continued): `extract()`
+    /// re-appends the trailing backslash only at the very end
+    /// (UniExtract.au3:3413), unconditionally.
+    #[test]
+    fn reappend_trailing_backslash_matches_extract_end() {
+        assert_eq!(
+            reappend_trailing_backslash_after_extraction(r"C:\downloads\unpacked"),
+            r"C:\downloads\unpacked\"
         );
     }
 }

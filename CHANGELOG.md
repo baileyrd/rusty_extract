@@ -62,6 +62,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C021: `history` preference move-to-front/dedupe/cap-at-10 semantics (`prefs::push_history`).
 - C007, C008, C009, C010, C012, C013: command-line flag detection, case-insensitive as AutoIt's `_ArraySearch`/`=` default to (`cli::has_silent_flag`, `cli::has_nolog_flag`, `cli::has_nostats_flag`, `cli::is_help_flag`, `cli::is_batchclear_flag`, `cli::has_close_flag`).
 - C004, C005, C139, C140: output-directory `/sub`/`/last` token and relative/trailing-slash path resolution (`outdir::resolve_output_directory`, `outdir::get_last_outdir`).
+- C140 (continued): `extract()`'s trailing-backslash strip/reappend cycle (`outdir::strip_trailing_backslash_for_extraction`, `outdir::reappend_trailing_backslash_after_extraction`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
