@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C145 — Overwrite/password/no-space/new-filename prompt live-detection
+**2026-08-18**
+
+- **Added:** `log_eval::needs_manual_input` — ports the live
+  user-input-needed detection inside the subprocess-output-streaming
+  loop (UniExtract.au3:4930-4933): each new chunk of a helper binary's
+  live output is scanned for any of eight substrings signaling a blocked
+  modal prompt (overwrite confirmation, password request, low disk
+  space, a request for a new filename, a request to insert removable
+  media, or a bare `[R]etry` option).
+- **Scope note:** a match doesn't answer the prompt — the source has no
+  auto-answer logic at all — it only force-shows the extractor's window
+  so a human can respond manually. That windowing (and the surrounding
+  tray-status/GUI side effects) is out of scope, deferred GUI subsystem;
+  this function reproduces only the substring predicate driving it.
+- **Behavioral finding:** matches case-insensitively, same as `EvaluateLog`'s
+  other checks and `cli`'s flag detection (C007-C013) — AutoIt's
+  `StringInStr` defaults its case-sensitivity parameter to `0` (not case
+  sensitive) when omitted, as it is for every one of these eight calls.
+- Parity tests: `log_eval::tests::recognizes_all_eight_prompt_substrings`,
+  `log_eval::tests::matches_case_insensitively`,
+  `log_eval::tests::does_not_match_ordinary_progress_output`.
+
 ## C144 — Overwrite message treated as extraction success
 **2026-08-18**
 
