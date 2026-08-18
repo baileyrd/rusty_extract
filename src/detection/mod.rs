@@ -3,6 +3,7 @@
 //! produces evidence/candidates, not a single asserted "true type".
 
 pub mod alz_probe;
+pub mod arj_probe;
 pub mod detector_mapping;
 pub mod registry;
 pub mod sevenzip_probe;

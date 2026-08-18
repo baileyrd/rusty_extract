@@ -79,6 +79,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C097: SQLite database dump extractor integration (`extract::sqlite`).
 - C088: NBHextract extractor integration (`extract::nbh`).
 - C101: UHARC 3-version fallback chain (`extract::uharc`).
+- C061: ARJ SFX verification probe (`detection::arj_probe`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
