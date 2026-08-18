@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C113 — arc_conv integration
+**2026-08-18**
+
+- **Added:** `extract::arc_conv::invocation` — builds the `arc_conv.exe`
+  (UniExtract-authored) KiriKiri/ERISA/YU-RIS engine archive conversion
+  command, matching UniExtract.au3:2394's `Case $TYPE_ARC_CONV`:
+  `<program> "<file>"`, run in `outdir` with the window hidden.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"arc_conv"` →
+  `extract::arc_conv`).
+- **Scope note:** the preceding `HasPlugin($arc_conv, ...)` precondition
+  check; the `WinWait`/window-text-polling loop that drives a tray-status
+  display off arc_conv's own window title (deferred GUI subsystem,
+  manifest row D001, matching this row's own "GUI-automated" description);
+  and the trailing `MoveFiles($file & "~", $outdir, ...)` relocation are
+  not modeled — separate runtime behavior.
+- Parity test: `extract::arc_conv::tests::matches_source_invocation`.
+
 ## C121 — Unity `.unitypackage` decoder (7z.exe wrapper + path-remapping)
 **2026-08-18**
 
