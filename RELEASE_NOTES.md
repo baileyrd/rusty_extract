@@ -23,6 +23,45 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C147 — Batch queue file format and duplicate handling
+**2026-08-18**
+
+- **Added:** `batch::build_command_line` — ports `GetCmd()`
+  (UniExtract.au3:4370-4386): the re-invocable, always-double-quoted
+  command line UniExtract2 appends to the batch queue file for the
+  current run's file.
+- **Added:** `batch::should_add_to_batch` — ports `AddToBatch()`'s
+  add-vs-skip decision (UniExtract.au3:4398-4404): an exact-duplicate
+  command line already in the queue defers to a (caller-supplied,
+  standing in for the out-of-scope GUI prompt) confirmation; otherwise, a
+  multipart-archive match against the existing queue content silently
+  suppresses the add with no prompt at all.
+- **Added:** `batch::is_multipart_archive_already_queued` — ports
+  `IsMultipartArchive()`/`__TestMultipart()` (UniExtract.au3:4354-4367):
+  three fixed multipart-volume naming patterns
+  (`.part<digits>.rar`, `.7z<any char><3 digits>`, `.r<2 digits>`/`.r`+`ar`),
+  hand-parsed rather than via a general regex engine — adding a `regex`
+  dependency would be its own stop-and-ask under this migration's
+  dependency policy, and each pattern is a small, fixed structural shape
+  well suited to direct parsing.
+- **Behavioral finding — a real quirk in the third pattern:** `.r` followed
+  by the literal `ar` is one of the pattern's two alternatives, which
+  means a plain solo `.rar` file (no volume digits at all) also matches —
+  `.r` + `ar` decomposes any `....rar` ending exactly. A single-volume
+  archive is therefore treated the same as a genuine multipart one for
+  batch-queue collision purposes, a real behavior in the source, not
+  something this port introduces.
+- **Scope note:** all three `StringInStr` calls this capability relies on
+  (`AddToBatch`'s exact-duplicate check and `__TestMultipart`'s
+  queue-content check) have no case-sensitivity argument, so — like every
+  other bare `StringInStr` this port has encountered (C007-C013, C144,
+  C145) — they default to case-insensitive.
+- Parity tests: `batch::tests::build_command_line_matches_source_shapes`,
+  `batch::tests::detects_queued_part_rar_volume`,
+  `batch::tests::detects_queued_7z_volume`,
+  `batch::tests::solo_rar_matches_via_ar_alternative_quirk`,
+  `batch::tests::should_add_to_batch_matches_source_branches`.
+
 ## C145 — Overwrite/password/no-space/new-filename prompt live-detection
 **2026-08-18**
 

@@ -69,6 +69,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C138: output-subfolder default resolution for `/sub` (`outdir::default_output_subfolder`).
 - C144: overwrite message treated as extraction success in output-log evaluation (`log_eval::is_overwrite_success_message`).
 - C145: overwrite/password/no-space/new-filename prompt live-detection (`log_eval::needs_manual_input`).
+- C147: batch queue file format and duplicate/multipart-archive handling (`batch::build_command_line`, `batch::should_add_to_batch`, `batch::is_multipart_archive_already_queued`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
