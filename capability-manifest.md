@@ -167,7 +167,7 @@ prefix, in table order:
 | C094 | unrpa (`unrpa.exe`) — Ren'Py `.rpa` archives | behavior | code | none found (directory check only) | DONE | | PR [#190](https://github.com/baileyrd/rusty_extract/pull/190), test `extract::rpa::tests::matches_source_invocation` |
 | C095 | sfarkxtc (`sfarkxtc.exe`) — sfArk compressed SoundFont | behavior | code | none found (directory check only) | DONE | | PR [#193](https://github.com/baileyrd/rusty_extract/pull/193), test `extract::sfark::tests::matches_source_invocation` |
 | C096 | extsis (`extsis.exe`) — Symbian OS `.sis`/`.sisx` installers | behavior | code | none found (directory check only) | DONE | | PR [#195](https://github.com/baileyrd/rusty_extract/pull/195), test `extract::extsis::tests::matches_source_invocation` |
-| C097 | SQLite (`sqlite3.exe`) — SQLite database dump | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3032 |
+| C097 | SQLite (`sqlite3.exe`) — SQLite database dump | behavior | code | none found (directory check only) | DONE | | PR [#276](https://github.com/baileyrd/rusty_extract/pull/276), test `extract::sqlite::tests::matches_source_invocation` |
 | C098 | swfextract (`swfextract.exe`) — Shockwave Flash (`.swf`) content extraction (sounds, images, streams) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3045-3098 |
 | C099 | Thinstall/ThinApp extractor (`Extractor.exe`) — virtualized executables, GUI-automated | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3107-3128 |
 | C100 | ttarchext (`ttarchext.exe`) — Telltale Games `.ttarch` archives, game selected via candidate list (C053) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3130-3151 |
