@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C100 — ttarchext extractor integration
+**2026-08-18**
+
+- **Added:** `extract::ttarch::invocation` — ports `Case
+  $TYPE_TTARCH`'s game-selected extraction step
+  (UniExtract.au3:3147): `ttarchext.exe -m <game_index> "<file>"
+  "<outdir>"`, run in `outdir` with the window hidden.
+- **Scope note:** invocation only. The preceding game-listing
+  `FetchStdout` call and its GUI candidate list
+  (`GUI_MethodSelectList`, C053, deferred GUI, D001) that resolve
+  `game_index` are out of scope — composite, conditional dispatch, not
+  registered in `extract::dispatch::HARDCODED_CASES`.
+- Parity tests: `extract::ttarch::tests::matches_source_invocation`.
+
+---
+
 ## C156 — Per-run temp output directory always removed
 **2026-08-18**
 

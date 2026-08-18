@@ -141,6 +141,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C156: unconditional temp-outdir cleanup decision — a still-present
   per-run temp output directory is always removed, success or failure
   (`outdir::should_remove_temp_outdir`).
+- C100: ttarchext extractor integration (`extract::ttarch`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

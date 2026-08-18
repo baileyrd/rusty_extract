@@ -69,6 +69,7 @@ pub mod sit;
 pub mod spoon;
 pub mod sqlite;
 pub mod superdat;
+pub mod ttarch;
 pub mod uharc;
 pub mod uif;
 pub mod unity;
