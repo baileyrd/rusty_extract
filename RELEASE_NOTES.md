@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C066 — ci-extractor integration
+**2026-08-18**
+
+- **Added:** `extract::ci::control_file_content` — the scripted-answer
+  control-file content UniExtract2's `Case $TYPE_CI`
+  (UniExtract.au3:2461-2463) writes before invoking `ci-extractor.exe`:
+  `1\n<file>\n<outdir>\n3\n1`, matching `"1" & @LF & $file & @LF &
+  $outdir & @LF & "3" & @LF & "1"` exactly (AutoIt's `@LF` is a bare line
+  feed).
+- **Added:** `extract::ci::invocation` — builds the `ci-extractor.exe`
+  command (UniExtract.au3:2465): `<program> <tempfile>`, run in `outdir`
+  with the window shown normally.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"ci"` →
+  `extract::ci`).
+- **Scope note:** the preceding `HasPlugin($ci)` precondition check; the
+  `WinWait`/`ControlClick` GUI automation that clicks "Finish" on
+  `ci-extractor.exe`'s wizard, `ProcessClose`, the temp-file cleanup, and
+  the trailing `terminate($STATUS_SILENT)` call are not modeled — GUI
+  automation is out of scope (deferred GUI subsystem, manifest row D001),
+  matching this row's own "GUI-automated" manifest description; the rest
+  is separate runtime behavior.
+- Parity tests: `extract::ci::tests::control_file_content_matches_source`,
+  `extract::ci::tests::invocation_matches_source`.
+
 ## C118 — SuperDAT Updater self-extraction
 **2026-08-18**
 
