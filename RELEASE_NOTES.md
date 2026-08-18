@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C115 — Advanced Installer self-extraction
+**2026-08-18**
+
+- **Added:** `extract::ai::invocation` — builds the self-extracting
+  Advanced Installer command UniExtract2's `Case $TYPE_AI`
+  (UniExtract.au3:2385-2390) makes: `<file> /extract:<outdir>`, run in
+  `outdir` with a normally shown window.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"ai"` →
+  `extract::ai`).
+- **Behavioral finding:** run via `ShellExecute`, not
+  `_Run`/`Run`/`RunWait` — needed (per the source's own comment on this
+  exact case) so the OS can raise a UAC elevation prompt, the same
+  reasoning C116-C118 (`extract::ei`/`extract::fead`/`extract::superdat`)
+  already document. Its `$iShowFlag` parameter defaults to
+  `@SW_SHOWNORMAL` when omitted here, mapped to `WindowMode::Show`.
+- **Scope note:** the preceding `Warn_Execute(...)` confirmation gate
+  (`warnexecute` preference, C023, deferred GUI subsystem D001) and the
+  trailing `ProcessWait`/`ProcessWaitClose` calls that wait for the
+  self-extractor to finish are not modeled — separate runtime behavior.
+- Parity test: `extract::ai::tests::matches_source_invocation`.
+
 ## C114 — Actual Installer inner-blob handling
 **2026-08-18**
 

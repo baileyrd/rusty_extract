@@ -12,6 +12,7 @@
 pub mod ace;
 pub mod actual;
 pub mod adf;
+pub mod ai;
 pub mod alz;
 pub mod arc;
 pub mod arc_conv;

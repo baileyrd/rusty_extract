@@ -68,6 +68,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::ace",
     },
     HardcodedCase {
+        type_key: "ai",
+        module: "extract::ai",
+    },
+    HardcodedCase {
         type_key: "bcm",
         module: "extract::bcm",
     },
