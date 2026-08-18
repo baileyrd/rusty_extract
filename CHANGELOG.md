@@ -132,6 +132,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C160: archive password-list trial decision policy — probe/protected
   detection and password-loop first-match search, used by 7z, DGCA, and
   RAR extraction (`password_search`).
+- C148: batch-item-per-process spawning — pops the batch queue and
+  relaunches the current executable with the next item's arguments,
+  chaining driven entirely by each process's own exit (`batch_runner`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

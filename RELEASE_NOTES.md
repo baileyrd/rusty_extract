@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C148 — Batch-item-per-process execution model
+**2026-08-18**
+
+- **Added:** `batch_runner::pop_and_relaunch_next_batch_item`,
+  `BatchProcessLauncher`/`RealBatchProcessLauncher`/
+  `FakeBatchProcessLauncher` — ports `BatchQueuePop()`'s "spawn the next
+  queued item" branch (UniExtract.au3:4455-4460): pops the queue (via the
+  already-shipped `batch::pop_batch_queue`) and spawns the current
+  executable with the popped item's own arguments, a fresh, non-waited
+  process (`Run()`, not `RunWait()`) — never a loop inside the running
+  process. The chain is driven entirely by each spawned process's own
+  exit reaching the C173 continuation check.
+- **Added:** `batch_runner::split_batch_command_line` — reverses
+  `batch::build_command_line`'s (C147) known output shape
+  (`"<file>" [/sub|"<outdir>"|/scan] [/silent]`) back into argv, so the
+  relaunch goes through `std::process::Command::args` like every other
+  spawn in this crate, rather than needing a Windows-specific
+  raw-command-line API.
+- **Scope note:** closes the process-spawning mechanism itself. Still
+  separate: the batch-queue *file* read/write I/O, the `/batch` CLI flag
+  (C011), single-running-instance queuing (C015), and wiring this into
+  `main.rs`'s composition root.
+- Parity tests: `batch_runner::tests::*` (8 tests covering the argv
+  tokenizer's three token shapes, the pop-and-relaunch happy path, the
+  empty-queue no-op, and that a queue item is popped regardless of
+  whether the spawn itself succeeds).
+
+---
+
 ## C160 — Automated password-list trial
 **2026-08-18**
 
