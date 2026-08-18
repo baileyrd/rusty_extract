@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C086 — MsiX extractor integration
+**2026-08-18**
+
+- **Added:** `extract::msix::invocation` — ports the single command
+  shape shared by three dispatch cases: `$TYPE_MSI`'s "MsiX" fallback
+  candidate (UniExtract.au3:2862-2864), `$TYPE_MSM` merge modules
+  (2887-2889), and `$TYPE_MSP`'s "MsiX" fallback candidate (2907-2908).
+  All three build `<program> "<file>" /out "<outdir>" [/ext]`, run in
+  `filedir` with the window minimized (none of the three `_Run` calls
+  pass an explicit show-flag, so its `@SW_MINIMIZE` default applies).
+  `append_ext` should be the resolved `appendext` preference (C022) for
+  the `$TYPE_MSI`/`$TYPE_MSM` cases; `$TYPE_MSP`'s case is a literal,
+  unconditional `/ext`.
+- **Behavioral finding, flagged not asserted:** every other inline
+  ternary this source embeds inside a `&` concatenation chain is
+  parenthesized (UniExtract.au3:2291, 2502, 3005, 3599, 7881) — a
+  consistent six-site idiom. The `$TYPE_MSM` line (2889) is the *only*
+  one missing those parens: `... & '" ' & $appendext? '/ext': ''`.
+  Depending on AutoIt's actual `?:` precedence relative to `&` (not
+  conclusively verified here), `$appendext` may never actually gate
+  `/ext` for this one case the way it does everywhere else. Documented
+  as an open question for whoever wires up `$TYPE_MSM`'s real dispatch,
+  not settled as fact.
+- Parity tests: `extract::msix::tests::matches_source_invocation_without_ext`,
+  `matches_source_invocation_with_ext`.
+
+---
+
 ## C085 — jsMSIx extractor integration
 **2026-08-18**
 
