@@ -158,7 +158,7 @@ prefix, in table order:
 | C085 | jsMSIx (`jsMSIx.exe`) — MSI fallback method 1 | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2858 |
 | C086 | MsiX (`MsiX.exe`) — MSI fallback 2, MSM merge modules, MSP patches | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2864,2887,2908 |
 | C087 | Windows `msiexec.exe` — MSI administrative-install fallback | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2883 |
-| C088 | NBHextract (`NBHextract.exe`) — HTC NBH ROM images | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2952 |
+| C088 | NBHextract (`NBHextract.exe`) — HTC NBH ROM images | behavior | code | none found (directory check only) | DONE | | PR [#277](https://github.com/baileyrd/rusty_extract/pull/277), test `extract::nbh::tests::matches_source_invocation` |
 | C089 | Xpdf tools (`pdfdetach.exe`, `pdftohtml.exe`, `pdftopng.exe`, `pdftotext.exe`) — PDF content/attachment/text/image extraction, 4 sequential invocations | behavior | code | none found (directory check only) | DONE | | PR [#224](https://github.com/baileyrd/rusty_extract/pull/224), tests `extract::pdf::tests::detach_matches_source_invocation`, `to_html_matches_source_invocation`, `to_png_matches_source_invocation`, `to_text_matches_source_invocation` |
 | C090 | PeaZip (`pea.exe`) — `.pea` PEA archives | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2973 |
 | C091 | RAIU (`RAIU.exe`) — Reflexive Arcade Installer wrapper, chains into Inno Setup extraction (C074) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2994 |
