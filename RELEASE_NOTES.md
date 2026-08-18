@@ -23,6 +23,37 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C104 (partial) — ffmpeg audio conversion + video-convert + stream probe
+**2026-08-18**
+
+- **Added:** `extract::ffmpeg::audio_invocation` — `Case $TYPE_AUDIO`
+  (UniExtract.au3:2414-2416): `<program> -i "<file>" "<stem>.wav"`, run
+  in `outdir` with the window hidden.
+- **Added:** `extract::ffmpeg::video_convert_invocation` — `Case
+  $TYPE_VIDEO_CONVERT` (UniExtract.au3:3288): `<program> -i "<file>"
+  "<stem>.mp4"`, run in `outdir` with the window hidden.
+- **Added:** `extract::ffmpeg::probe_invocation` — `Case $TYPE_VIDEO`'s
+  stream-info probe (UniExtract.au3:3220-3221): `<program> -i "<file>"`,
+  the same probe-then-classify shape as `detection::sevenzip_probe`/
+  `detection::alz_probe`/`detection::arj_probe`.
+- **Registered** in `extract::dispatch::HARDCODED_CASES`: `"audio"` and
+  `"videoconv"` → `extract::ffmpeg` (both are complete, single-invocation
+  cases). `"video"` is deliberately **not** registered — see below.
+- **Scope note — capability C104 stays `REQUIRED`, not closed by this
+  PR.** `$TYPE_VIDEO`'s actual per-stream extraction — parsing ffmpeg's
+  raw `-i` stdout via a regex-based pattern match
+  (UniExtract.au3:3235-3236) to discover each stream's codec/type/index,
+  then dynamically building one extraction command per stream via
+  `_MakeFFmpegCommand` (UniExtract.au3:5118-5126) — is a real, substantial
+  piece of this capability that isn't ported yet, documented as a gap
+  rather than silently dropped. C104's own manifest description covers
+  all three call sites, so the row can't be marked `DONE` until that
+  parsing lands too — the same precedent C140 set (ported across two PRs
+  before being marked `DONE`).
+- Parity tests: `extract::ffmpeg::tests::audio_invocation_matches_source`,
+  `video_convert_invocation_matches_source`,
+  `probe_invocation_matches_source`.
+
 ## C115 — Advanced Installer self-extraction
 **2026-08-18**
 

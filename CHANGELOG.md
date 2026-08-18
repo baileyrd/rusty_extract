@@ -91,6 +91,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C113: arc_conv integration (`extract::arc_conv`).
 - C114: Actual Installer inner-blob handling (`extract::actual`).
 - C115: Advanced Installer self-extraction (`extract::ai`).
+- C104 (partial): ffmpeg audio conversion, video-convert, and stream probe invocations (`extract::ffmpeg`); `$TYPE_VIDEO` per-stream extraction not yet ported, row stays REQUIRED.
 - C117: Netopsystems FEAD self-extraction (`extract::fead`).
 ### Changed
 ### Fixed

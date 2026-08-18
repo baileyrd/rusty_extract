@@ -72,6 +72,14 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::ai",
     },
     HardcodedCase {
+        type_key: "audio",
+        module: "extract::ffmpeg",
+    },
+    HardcodedCase {
+        type_key: "videoconv",
+        module: "extract::ffmpeg",
+    },
+    HardcodedCase {
         type_key: "bcm",
         module: "extract::bcm",
     },

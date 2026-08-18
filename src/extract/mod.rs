@@ -30,6 +30,7 @@ pub mod ei;
 pub mod expand;
 pub mod extsis;
 pub mod fead;
+pub mod ffmpeg;
 pub mod forge;
 pub mod freearc;
 pub mod fsb;
