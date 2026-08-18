@@ -72,6 +72,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::bootimg",
     },
     HardcodedCase {
+        type_key: "ci",
+        module: "extract::ci",
+    },
+    HardcodedCase {
         type_key: "cic",
         module: "extract::cic",
     },

@@ -19,6 +19,7 @@ pub mod bitrock;
 pub mod bootimg;
 pub mod bsa;
 pub mod chdman;
+pub mod ci;
 pub mod cic;
 pub mod daa;
 pub mod dispatch;
