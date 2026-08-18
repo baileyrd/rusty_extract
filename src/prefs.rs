@@ -190,6 +190,19 @@ pub const EXTRACTVIDEOTRACK_DEFAULT: bool = true;
 /// of the per-run `/silent` flag (C007).
 pub const SILENTMODE_DEFAULT: bool = false;
 
+/// C034: `BatchRecurse` preference default — recurse into subdirectories
+/// when batch-adding a directory (C014). Read directly via `IniRead` with
+/// its own default argument (UniExtract.au3:6611: `Local Static $bRecurse
+/// = Number(IniRead($prefs, "UniExtract Preferences", "BatchRecurse",
+/// 1))`) rather than through the generic `LoadPref` helper every other
+/// preference in this module uses — no `SavePref` write-back on a missing
+/// key, and the read only happens once per process (`Local Static`).
+/// Observably, though, `IniRead`'s own default argument resolves a
+/// missing/unreadable key to `1` (true) the same way
+/// [`resolve_bool_pref`]'s `default_when_missing` parameter does, so this
+/// preference reuses that function rather than duplicating its shape.
+pub const BATCHRECURSE_DEFAULT: bool = true;
+
 /// Approximates AutoIt's `_PathFull(path, base)` UDF: not defined anywhere
 /// in this port's source checkout (an external/bundled include this repo
 /// doesn't carry), so this models its well-established, standard meaning
@@ -252,9 +265,9 @@ mod tests {
         parse_cleanup_option, parse_delete_source_file_option, password_list_path,
         resolve_batchqueue_path, resolve_bool_pref, resolve_filescanlogfile_path,
         resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption, APPENDEXT_DEFAULT,
-        BATCHENABLED_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT, FREESPACECHECK_DEFAULT,
-        KEEPOUTPUTDIR_DEFAULT, LOG_DEFAULT, SILENTMODE_DEFAULT, UNICODECHECK_DEFAULT,
-        WARNEXECUTE_DEFAULT,
+        BATCHENABLED_DEFAULT, BATCHRECURSE_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT,
+        FREESPACECHECK_DEFAULT, KEEPOUTPUTDIR_DEFAULT, LOG_DEFAULT, SILENTMODE_DEFAULT,
+        UNICODECHECK_DEFAULT, WARNEXECUTE_DEFAULT,
     };
 
     /// Parity test for capability C026: a normally-stored preference value
@@ -505,6 +518,14 @@ mod tests {
             resolve_filescanlogfile_path(Some(r"D:\logs\filescan.txt"), r"C:\settings"),
             r"D:\logs\filescan.txt"
         );
+    }
+
+    /// Parity test for capability C034: `BatchRecurse` defaults to `true`,
+    /// matching `IniRead`'s own default argument
+    /// (UniExtract.au3:6611: `IniRead(..., "BatchRecurse", 1)`).
+    #[test]
+    fn batchrecurse_preference_default_matches_source() {
+        assert!(resolve_bool_pref(None, BATCHRECURSE_DEFAULT));
     }
 
     /// Parity test for capability C158: `$OPTION_DELETE` always deletes;

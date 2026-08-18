@@ -23,6 +23,22 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C034 — `BatchRecurse` preference
+**2026-08-17**
+
+- **Added:** `prefs::BATCHRECURSE_DEFAULT` — the `BatchRecurse` preference
+  defaults to `true`. Unlike every other preference this module ports,
+  it's read directly via `IniRead` with its own default argument
+  (UniExtract.au3:6611: `Local Static $bRecurse = Number(IniRead($prefs,
+  "UniExtract Preferences", "BatchRecurse", 1))`), not through the
+  generic `LoadPref` helper — no `SavePref` write-back on a missing key,
+  and the read happens only once per process (`Local Static`).
+  Observably, `IniRead`'s own default argument resolves a
+  missing/unreadable key the same way `resolve_bool_pref`'s
+  `default_when_missing` parameter does, so this preference reuses that
+  function rather than duplicating its shape.
+- Parity test: `prefs::tests::batchrecurse_preference_default_matches_source`.
+
 ## C018, C019 — `batchqueue` and `filescanlogfile` path-override preferences
 **2026-08-17**
 
