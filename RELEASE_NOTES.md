@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C116 — Excelsior Installer self-extraction
+**2026-08-18**
+
+- **Added:** `extract::ei::invocation` — builds the self-extracting
+  Excelsior Installer command UniExtract2's `Case $TYPE_EI`
+  (UniExtract.au3:2514-2516) makes: `<file> /batch /no-reg
+  /no-postinstall /dest "<outdir>"`, run in `outdir` with a normally
+  shown window.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"ei"` →
+  `extract::ei`).
+- **Behavioral finding:** the source runs this via `ShellExecuteWait`, not
+  `_Run`/`Run`/`RunWait` — needed (per the sibling `$TYPE_AI` case's own
+  comment) so the OS can raise a UAC elevation prompt, which plain `Run`
+  can't trigger. `ShellExecuteWait`'s `($sFilePath, $sParameters,
+  $sWorkingDir)` shape maps directly onto this crate's `Invocation`
+  (program, args, working dir); its `$iShowFlag` parameter defaults to
+  `@SW_SHOWNORMAL` when omitted, the same as every other
+  unspecified-show-flag call in this crate, mapped to `WindowMode::Show`.
+- **Scope note:** the preceding `Warn_Execute(...)` confirmation gate
+  (`warnexecute` preference, C023, deferred GUI subsystem D001) is not
+  modeled — this function reproduces only the command it passes through,
+  the same as `extract::expand::cab_self_extract_invocation`.
+- Parity test: `extract::ei::tests::matches_source_invocation`.
+
 ## C064 — Windows `expand.exe` (CAB/MSU)
 **2026-08-18**
 
