@@ -23,6 +23,39 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C097 — SQLite database dump extractor integration
+**2026-08-18**
+
+- **Added:** `extract::sqlite::invocation` — builds the `sqlite3.exe`
+  database-dump command, matching UniExtract.au3:3032-3033's `Case
+  $TYPE_SQLITE`: `<program> "<file>" .dump`, run in `filedir` (not
+  `outdir`) with the window hidden.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"sqlite"` →
+  `extract::sqlite`).
+- **Scope note — shell wrapping not modeled:** the source calls this
+  through `FetchStdout`, which routes through `_MakeCommand`'s generic
+  `cmd.exe /d /c` shell-wrapping. That wrapping has no effect on the
+  arguments `sqlite3.exe` itself receives for this call site (no
+  redirection/piping happens here, unlike `FetchStdout`'s tee-log caller)
+  — this port's `Invocation` model targets `sqlite3.exe` directly, the
+  same as every other module in this crate, rather than reproducing the
+  shell wrapper.
+- **Behavioral finding — a source typo with no observable effect:** the
+  source's string literal (`' "' & $file & '" .dump"'`) has a stray,
+  unbalanced trailing double quote after `.dump`. Windows' standard
+  command-line argument parsing toggles "inside quotes" on each unescaped
+  `"`; an unmatched trailing one with nothing after it contributes no
+  literal character to the parsed token, so the actual argument
+  `sqlite3.exe` receives is exactly `.dump` — the well-known `sqlite3
+  <db> ".dump"` CLI usage this case is clearly invoking. This function's
+  `args` reflect that effective argument, not the source's literal (and
+  inert) stray quote.
+- **Scope note:** capturing `sqlite3.exe`'s stdout and writing it to
+  `<outdir>\<filename>.sql` (UniExtract.au3:3034-3037) is separate runtime
+  behavior — committing captured output to the destination — not part of
+  building this invocation, matching every other module in this crate.
+- Parity test: `extract::sqlite::tests::matches_source_invocation`.
+
 ## Composition root: minimal end-to-end wiring for `rgss`/`ace`
 **2026-08-18**
 
