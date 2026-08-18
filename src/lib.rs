@@ -2,6 +2,7 @@
 //! UniExtract2 (AutoIt). See ARCHITECTURE.md for the port's boundaries.
 
 pub mod batch;
+pub mod batch_runner;
 pub mod cleanup;
 pub mod cli;
 pub mod detection;
