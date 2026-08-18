@@ -60,6 +60,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C018, C019: `batchqueue`/`filescanlogfile` path-override preferences (`prefs::resolve_batchqueue_path`, `prefs::resolve_filescanlogfile_path`).
 - C034: `BatchRecurse` preference default (`prefs::BATCHRECURSE_DEFAULT`).
 - C021: `history` preference move-to-front/dedupe/cap-at-10 semantics (`prefs::push_history`).
+- C007, C008, C009, C010, C012, C013: command-line flag detection, case-insensitive as AutoIt's `_ArraySearch`/`=` default to (`cli::has_silent_flag`, `cli::has_nolog_flag`, `cli::has_nostats_flag`, `cli::is_help_flag`, `cli::is_batchclear_flag`, `cli::has_close_flag`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
