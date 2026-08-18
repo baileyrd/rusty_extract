@@ -16,6 +16,7 @@ pub mod arc;
 pub mod aspack;
 pub mod bcm;
 pub mod bitrock;
+pub mod bootimg;
 pub mod bsa;
 pub mod chdman;
 pub mod cic;

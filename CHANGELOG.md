@@ -80,6 +80,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C088: NBHextract extractor integration (`extract::nbh`).
 - C101: UHARC 3-version fallback chain (`extract::uharc`).
 - C061: ARJ SFX verification probe (`detection::arj_probe`).
+- C063: bootimg extractor integration (`extract::bootimg`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

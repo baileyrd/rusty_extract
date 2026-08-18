@@ -46,6 +46,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `recognizes_a_valid_arj_listing`, `matches_case_insensitively`,
   `rejects_output_missing_the_created_header`.
 
+## C063 — bootimg extractor integration
+**2026-08-18**
+
+- **Added:** `extract::bootimg::invocation` — builds the `bootimg.exe`
+  Android boot-image unpack command, matching UniExtract.au3:2421-2429's
+  `Case $TYPE_BOOTIMG`: `<program> --unpack-bootimg`, run in `outdir` with
+  the window minimized.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"bootimg"` →
+  `extract::bootimg`).
+- **Behavioral finding:** `bootimg.exe` takes no file argument at all —
+  `--unpack-bootimg` implicitly operates on a file named exactly
+  `boot.img` in its own working directory. That's why the source stages
+  the input before running this: it copies `bootimg.exe` itself into
+  `outdir` and renames the archive to `outdir\boot.img` first, then
+  renames it back and deletes the copied exe afterward.
+- **Scope note:** that staging (`FileCopy`, two `_FileMove`s,
+  `FileDelete`) and the preceding `HasPlugin($bootimg)` precondition check
+  are separate runtime behavior, not part of building this invocation —
+  `program` must already point at the exe as copied into `outdir` by the
+  time this invocation runs, the same "invocation vs. staging" boundary
+  every module in this crate already draws.
+- **Scope note — shell wrapping not modeled as a literal string:** the
+  source builds this via `cmd.exe /d /c "<program> --unpack-bootimg"` (the
+  whole program+argument pair in one quoted token, the classic idiom for
+  running a space-containing path through `cmd.exe`) — functionally still
+  `<program> --unpack-bootimg`, so this port's `Invocation` targets the exe
+  directly, the same as every other module in this crate.
+- Parity test: `extract::bootimg::tests::matches_source_invocation`.
+
 ## C088 — NBHextract extractor integration
 **2026-08-18**
 
