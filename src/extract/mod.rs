@@ -48,6 +48,7 @@ pub mod lzx;
 pub mod mo;
 pub mod mole;
 pub mod mscf;
+pub mod msiexec;
 pub mod msix;
 pub mod nbh;
 pub mod pdf;

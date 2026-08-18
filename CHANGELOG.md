@@ -128,6 +128,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C085: jsMSIx extractor integration (`extract::jsmsix`).
 - C086: MsiX extractor integration, shared across `$TYPE_MSI`/`$TYPE_MSM`/`$TYPE_MSP`
   (`extract::msix`).
+- C087: msiexec administrative-install fallback (`extract::msiexec`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

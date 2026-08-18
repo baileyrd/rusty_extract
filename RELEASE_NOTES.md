@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C087 — msiexec administrative-install fallback
+**2026-08-18**
+
+- **Added:** `extract::msiexec::invocation` — ports `$TYPE_MSI`'s
+  "Administrative install" fallback candidate
+  (UniExtract.au3:2882-2883): `msiexec.exe /a "<file>" /qb
+  TARGETDIR="<outdir>"`, run in `filedir` with the window shown.
+- **Scope note:** the source wraps the command string in
+  `Warn_Execute(...)` — a gate on the `warnexecute` preference that
+  either passes the command through unchanged or shows a confirmation
+  dialog (deferred GUI, D001) and terminates silently. The command
+  string itself is unaffected either way, so it's a separate concern
+  from building this invocation. Reached only through `$TYPE_MSI`'s GUI
+  candidate-list fallback (see C084's scope note for the full chain) —
+  composite, conditional dispatch, not registered in
+  `extract::dispatch::HARDCODED_CASES`.
+- Parity tests: `extract::msiexec::tests::matches_source_invocation`.
+
+---
+
 ## C086 — MsiX extractor integration
 **2026-08-18**
 
