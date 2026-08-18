@@ -78,6 +78,7 @@ pub mod unzip;
 pub mod upx;
 pub mod utage;
 pub mod uu;
+pub mod visionaire3;
 pub mod wix;
 pub mod wolf;
 pub mod xor;
