@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C120 — MSCF Cab installer (7z.exe wrapper)
+**2026-08-18**
+
+- **Added:** `extract::mscf::cab_extract_invocation` — the per-file
+  7-Zip extraction invocation UniExtract2's `Case $TYPE_MSCF`
+  (UniExtract.au3:2827) makes for each `.cab` file `RipExeInfo`'s GUI
+  automation extracted from the MSCF installer: `<program> x
+  "<cab_file>"`, run in `tempoutdir` with the window hidden.
+- **Scope note:** matching this row's own "Exeinfo-PE GUI rip"
+  description, `RipExeInfo`'s scripted-keystroke GUI automation that
+  extracts the `.cab` files in the first place is out of scope (deferred
+  GUI subsystem, manifest row D001). Also not modeled: the recursive
+  `extract($TYPE_7Z, ...)` dispatch that runs first (composite/recursive
+  dispatch, C054, not yet ported); the surrounding `MoveFiles`/
+  `DirRemove`/`Cleanup` staging; and the recursive `.cab`-file listing
+  that decides which files this invocation runs against.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** `$TYPE_MSCF`'s real
+  dispatch is the recursive 7-Zip call plus GUI automation, not this
+  single per-file invocation — the same reasoning `extract::forge`
+  (C119) already uses for the same kind of exclusion.
+- Parity test: `extract::mscf::tests::cab_extract_invocation_matches_source`.
+
 ## C119 — InstallForge (7z.exe wrapper + base64 path-rename logic)
 **2026-08-18**
 
