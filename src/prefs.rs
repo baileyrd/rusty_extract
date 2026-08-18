@@ -243,8 +243,10 @@ pub const BATCHRECURSE_DEFAULT: bool = true;
 /// — a relative `path` resolves against `base`; an already-absolute path
 /// (a drive letter, `C:...`, or a UNC share, `\\...`) is returned
 /// unchanged. `resolve_batchqueue_path`/`resolve_filescanlogfile_path`
-/// (C018/C019) are the only two capabilities so far that need it.
-fn resolve_relative_path(path: &str, base: &str) -> String {
+/// (C018/C019) use it directly; `pub(crate)` since `extract::unity`
+/// (C121) needs the same approximation for its asset-destination
+/// resolution.
+pub(crate) fn resolve_relative_path(path: &str, base: &str) -> String {
     let bytes = path.as_bytes();
     let is_absolute = (bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':')
         || path.starts_with(r"\\");
