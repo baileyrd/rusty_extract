@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C092 — UnRAR extractor integration
+**2026-08-18**
+
+- **Added:** `extract::rar::invocation` — ports the `$TYPE_RAR` dispatch
+  case's extraction call (UniExtract.au3:3005): `<program> x -kb
+  [-p<password>] "<file>"`, run in `outdir` with the window shown.
+- **Scope note:** resolving `password` is `_FindArchivePassword()`'s job
+  (C160's automated password-list trial, not yet ported) — this function
+  takes an already-resolved `Option<&str>`. Interpreting the run's
+  result (`@error = 3` → missing part, `@extended` → wrong password) is
+  real process-execution outcome handling, out of scope for an
+  invocation builder, matching every other extractor module in this
+  crate. Not registered in `extract::dispatch::HARDCODED_CASES` for the
+  same reason `rpa` isn't — its upstream password resolution doesn't
+  exist yet.
+- Parity tests: `extract::rar::tests::matches_source_invocation_without_password`,
+  `matches_source_invocation_with_password`.
+
+---
+
 ## C155 (partial) — Generic post-extraction cleanup utility
 **2026-08-18**
 
