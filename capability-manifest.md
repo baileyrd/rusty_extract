@@ -186,7 +186,7 @@ prefix, in table order:
 | C113 | arc_conv (`arc_conv.exe`, UniExtract-authored) — KiriKiri/ERISA/YU-RIS engine archive conversion, GUI-automated | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2392-2412 |
 | C114 | Actual Installer inner-blob handling (reuses `unzip.exe` + `7z.exe`, plus embedded `aisetup.ini` rename manifest) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2351-2383 |
 | C115 | Advanced Installer self-extraction (native `/extract:` switch, no external binary) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2385-2390 |
-| C116 | Excelsior Installer self-extraction (native switches) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2514-2516 |
+| C116 | Excelsior Installer self-extraction (native switches) | behavior | code | none found (directory check only) | DONE | | PR [#288](https://github.com/baileyrd/rusty_extract/pull/288), test `extract::ei::tests::matches_source_invocation` |
 | C117 | Netopsystems FEAD self-extraction (native switches) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2530-2536 |
 | C118 | SuperDAT Updater self-extraction (native switches) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:3038-3043 |
 | C119 | InstallForge (wraps `7z.exe` + base64 path-rename logic) | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2538-2554 |
