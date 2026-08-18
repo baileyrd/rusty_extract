@@ -23,6 +23,56 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C119 — InstallForge (7z.exe wrapper + base64 path-rename logic)
+**2026-08-18**
+
+- **Added:** `extract::forge::inner_archive_invocation` — the conditional
+  inner-archive unpack UniExtract2's `Case $TYPE_FORGE`
+  (UniExtract.au3:2546) makes when the primary 7-Zip extraction produced a
+  gzip-compressed inner archive: `<program> x "<tmp>"`, run in
+  `tempoutdir` with the window hidden.
+- **Added:** `extract::forge::decide_rename`/`RenameDecision` — ports
+  `RenameBase64PathNames`'s per-entry decision (UniExtract.au3:4006-4018)
+  as a pure function of a directory entry's name: the `"empty.empty"`
+  placeholder is a delete; anything else is a rename to its base64-decoded
+  name, or a skip if it doesn't decode. The actual directory listing,
+  deletion, and rename/recurse calls are the caller's job, the same
+  "decision vs. I/O" boundary `outdir::decide_outdir_outcome` already
+  draws.
+- **Added:** `extract::forge::base64_decode_utf16le` — ports AutoIt's
+  `_Base64Decode($sInput)` (UniExtract.au3:4728-4750) exactly as
+  `RenameBase64PathNames` calls it: no explicit `$eEncoding` argument, so
+  it takes the function's own default, `$SB_UTF16LE` — decode as standard
+  base64 (`Crypt32.dll`'s `CryptStringToBinary`/`CRYPT_STRING_BASE64`),
+  then interpret the decoded bytes as UTF-16LE text. Backed by a
+  hand-rolled base64 decoder (no `base64` crate — this migration's
+  no-new-dependency policy makes hand-rolling the smaller cost here, the
+  same reasoning already used for `batch`'s multipart-archive pattern
+  matching, C147), verified against the RFC 4648 `"Man"`→`"TWFu"` test
+  vector at the raw-byte level and a UTF-16LE round-trip vector.
+- **Scope note:** an empty input decodes to `""`, matching
+  `_Base64Decode`'s own early-exit; an odd decoded byte count (can't form
+  whole UTF-16 code units) is treated as a decode failure — no direct
+  source equivalent, since `BinaryToString` itself doesn't error on this,
+  but there's no other sensible outcome for a mis-sized buffer.
+- **Not modeled:** the recursive `extract($TYPE_7Z, -1, "", True, False)`
+  dispatch that runs first (composite/recursive dispatch, capability
+  C054, not yet ported); the `FileExists`/`_FileDelete` staging around the
+  inner-archive invocation; `MoveFiles`' final relocation into `outdir` —
+  all separate runtime behavior.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** `$TYPE_FORGE`'s real
+  dispatch is the recursive 7-Zip call, not either function this PR adds
+  — the same reasoning `extract::pdf` and `extract::unzip` already use for
+  the same kind of exclusion.
+- Parity tests: `extract::forge::tests::inner_archive_invocation_matches_source`,
+  `base64_decode_bytes_matches_rfc4648_vector`,
+  `base64_decode_utf16le_decodes_utf16le_text`,
+  `base64_decode_utf16le_empty_input_returns_empty_string`,
+  `base64_decode_utf16le_rejects_invalid_input`,
+  `decide_rename_recognizes_empty_marker`,
+  `decide_rename_decodes_valid_base64_name`,
+  `decide_rename_skips_undecodable_name`.
+
 ## C066 — ci-extractor integration
 **2026-08-18**
 
