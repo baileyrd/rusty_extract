@@ -23,6 +23,42 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C018, C019 — `batchqueue` and `filescanlogfile` path-override preferences
+**2026-08-17**
+
+- **Added:** `prefs::resolve_batchqueue_path` (C018) and
+  `prefs::resolve_filescanlogfile_path` (C019) — port each preference's
+  default-and-override resolution (UniExtract.au3:721-722,725,729-732):
+  `LoadPref` in string mode (a present ini value used verbatim, a
+  missing/unreadable key leaving the `Global` default untouched), then a
+  relative override resolved against `$settingsdir` via `_PathFull`.
+- **Scope note — preserved asymmetry:** the two post-`LoadPref` gates
+  differ in the source: `batchqueue` checks the *value's* truthiness
+  (`If $batchQueue Then ...`), so path resolution runs even on the
+  default (a no-op, since it's already absolute) and is skipped only if
+  the ini explicitly sets an empty `batchqueue=`; `filescanlogfile` checks
+  `LoadPref`'s `@error` flag instead (`If Not @error Then ...`), so
+  resolution runs only on a value actually read from the ini, never on
+  the default. Both defaults are already absolute paths, so the two gates
+  produce identical practical output — but the *procedure* differs, and
+  this port models each one as written rather than collapsing them to a
+  single shared code path.
+- **Scope note — `_PathFull`:** this UDF isn't defined anywhere in this
+  port's source checkout (an external/bundled AutoIt include not carried
+  into this repo), so `resolve_relative_path` approximates its
+  well-established standard meaning — an absolute path (drive letter or
+  UNC share) is returned unchanged, a relative one joins against the base
+  directory.
+- **Not yet in scope:** C017 (`language` preference) shares `LoadPref`'s
+  string-mode/default-on-missing-key mechanics with C018/C019, but its
+  own fallback chain — auto-detecting from OS locale via
+  `_WinAPI_GetLocaleInfo`/`_GetOSLanguage` when the stored value doesn't
+  match a known translation catalog (UniExtract.au3:780-786) — is a
+  genuinely different, OS-integration-shaped capability, not addressed by
+  this PR.
+- Parity tests: `prefs::tests::batchqueue_path_matches_source_default_and_override`,
+  `prefs::tests::filescanlogfile_path_matches_source_default_and_override`.
+
 ## C020, C022, C023, C025, C027, C028, C029, C030, C031, C032 — Simple boolean preferences
 **2026-08-17**
 
