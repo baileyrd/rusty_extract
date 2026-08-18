@@ -44,6 +44,7 @@ pub mod qm;
 pub mod rgss;
 pub mod rpa;
 pub mod rpgmvp;
+pub mod runner;
 pub mod sfark;
 pub mod sgb;
 pub mod sim;

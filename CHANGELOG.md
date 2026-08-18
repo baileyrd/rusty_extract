@@ -71,6 +71,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C145: overwrite/password/no-space/new-filename prompt live-detection (`log_eval::needs_manual_input`).
 - C147: batch queue file format and duplicate/multipart-archive handling (`batch::build_command_line`, `batch::should_add_to_batch`, `batch::is_multipart_archive_already_queued`).
 - C148: batch queue FIFO pop mechanics (`batch::pop_batch_queue`).
+- Composition root: `ExtractorRunner` port (`extract::runner::CommandExtractorRunner`,
+  `extract::runner::FakeExtractorRunner`) and a real `main.rs` wiring the
+  `rgss`/`ace` extractors end-to-end (output-directory resolution, dispatch,
+  run, log evaluation, exit code) — the first working slice of the
+  composition root `ARCHITECTURE.md` describes.
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
