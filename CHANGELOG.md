@@ -119,6 +119,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`log_eval::parse_warnings`, `ParseWarnings()`).
 - C164: debug-line format — `<datetime>:<msec>\t<msg>\r\n`
   (`run_log::build_debug_line`).
+- C155 (partial): post-extraction cleanup mode gating, action
+  selection, path resolution, and wildcard-target classification
+  (`cleanup` module); wildcard expansion and the real filesystem calls
+  not yet ported, row stays REQUIRED.
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

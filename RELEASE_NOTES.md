@@ -23,6 +23,46 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C155 (partial) — Generic post-extraction cleanup utility
+**2026-08-18**
+
+- **Added:** `cleanup::resolve_target_path`, `classify_target`,
+  `should_expand_wildcard`, `decide_cleanup_action` — port the pure
+  decision core of `Cleanup()` (UniExtract.au3:3645-3703): mode gating
+  (`$OPTION_KEEP` disables entirely), the delete-vs-move/folder-vs-file
+  action selection, `$outdir`-prefixing path resolution, and wildcard
+  target classification.
+- **Behavioral finding — `$bIsFolderWildcard` is a silent no-op:** a
+  target ending `\*` (meant to mean "everything inside this folder") is
+  computed and excluded from the wildcard-expansion trigger, but then
+  never read again — it isn't a real, existing directory either (a
+  literal `...\*` path fails `_IsDirectory`), so it falls straight
+  through to the *file* delete/move calls, which silently do nothing
+  against a path that can't exist. The source logs "Cleanup:
+  Deleting/Moving ..." for it regardless. Reproduced as-is by letting
+  `decide_cleanup_action` take `is_folder` as a plain caller fact — a
+  `FolderWildcard` target's real `is_folder = false` naturally lands on
+  the same no-op outcome.
+- **Behavioral finding — `$OPTION_ASK` silently means "move":** the
+  source's action selector is a plain `If $iMode = $OPTION_DELETE Then
+  ... Else ...`, so *any* non-Keep, non-Delete mode — in practice just
+  `$OPTION_ASK` alongside the intended `$OPTION_MOVE` — takes the move
+  branch, with no prompt ever shown from inside `Cleanup()` itself.
+- **Scope note — partial, manifest row stays REQUIRED:** actually
+  expanding a wildcard target into the files it matches
+  (`_FileListToArray`) and the real `DirRemove`/`FileDelete`/
+  `_DirMove`/`_FileMove` calls are real filesystem I/O, the caller's
+  job.
+- Parity tests: `cleanup::tests::resolve_target_path_leaves_outdir_prefixed_path_unchanged`,
+  `resolve_target_path_prefixes_relative_name`,
+  `resolve_target_path_containment_check_is_case_insensitive`,
+  `classify_target_distinguishes_all_three_shapes`,
+  `should_expand_wildcard_only_for_wildcard_kind`,
+  `keep_mode_disables_cleanup`, `delete_mode_selects_folder_or_file_delete`,
+  `move_and_ask_modes_both_select_move_action`.
+
+---
+
 ## C164 — Debug-line accumulation
 **2026-08-18**
 
