@@ -23,6 +23,37 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C007, C008, C009, C010, C012, C013 — Command-line flag detection
+**2026-08-18**
+
+- **Added:** `cli::has_silent_flag` (C007), `cli::has_nolog_flag` (C008),
+  `cli::has_nostats_flag` (C009), `cli::is_help_flag` (C010),
+  `cli::is_batchclear_flag` (C012), `cli::has_close_flag` (C013) — port
+  the flag-presence checks `ParseCommandLine` (UniExtract.au3:589-694)
+  makes directly against the raw argv array, before any
+  positional-argument-dependent parsing happens.
+- **Behavioral finding — every check is case-insensitive:** `_ArraySearch`
+  (used for C007/C008/C009/C013) defaults its `$iCase` parameter to `0`
+  (not case sensitive), and a plain `=` comparison (used for C010/C012's
+  `$cmdline[1] = "..."` checks) is itself case-insensitive by default in
+  AutoIt — the script never calls `Opt("StringCompareMode", 1)` to change
+  that. `/SILENT`, `/Silent`, and `/silent` are all the same flag to
+  UniExtract2. This is a real, easy-to-miss AutoIt-ism, not something
+  this port invented, and every function here preserves it via
+  `eq_ignore_ascii_case` rather than "fixing" it into a conventional
+  case-sensitive CLI. Each function's parity test asserts an uppercased
+  spelling still matches.
+- **Scope note:** C009's own manifest description is "accepted without
+  error" — the actual stats-send suppression this flag drives is a
+  separate, deferred capability (manifest row D004); this PR only ports
+  the flag's detectability.
+- Parity tests: `cli::tests::silent_flag_detected_case_insensitively`,
+  `cli::tests::nolog_flag_detected_case_insensitively`,
+  `cli::tests::nostats_flag_detected_case_insensitively`,
+  `cli::tests::help_flag_matches_all_six_spellings_case_insensitively`,
+  `cli::tests::batchclear_flag_matches_case_insensitively`,
+  `cli::tests::close_flag_detected_case_insensitively`.
+
 ## C021 — `history` preference
 **2026-08-17**
 
