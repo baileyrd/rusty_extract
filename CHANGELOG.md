@@ -92,6 +92,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C114: Actual Installer inner-blob handling (`extract::actual`).
 - C115: Advanced Installer self-extraction (`extract::ai`).
 - C104 (partial): ffmpeg audio conversion, video-convert, and stream probe invocations (`extract::ffmpeg`); `$TYPE_VIDEO` per-stream extraction not yet ported, row stays REQUIRED.
+- C169, C170: run-log write policy (`run_log::should_append_error_log`, `run_log::build_error_log_line`, `run_log::should_save_log`).
 - C117: Netopsystems FEAD self-extraction (`extract::fead`).
 ### Changed
 ### Fixed

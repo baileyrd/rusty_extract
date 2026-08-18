@@ -23,6 +23,37 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C169, C170 — Run-log write policy
+**2026-08-18**
+
+- **Added:** `run_log::should_append_error_log`/`build_error_log_line`
+  (C169) — port the batch-mode error-log append inside `terminate()`
+  (UniExtract.au3:4216-4218): a line is appended only when exiting
+  non-zero, in silent mode, on an extraction run, formatted as `<datetime>
+  <name> (<STATUS-UPPERCASE>) - <arctype>\r\n` (`filenamefull` preferred
+  over `fname` when non-empty).
+- **Added:** `run_log::should_save_log` (C170) — ports the guard deciding
+  whether `SaveLog()` actually writes a log file for this run
+  (UniExtract.au3:4231-4233): enabled, not already saved, and the status
+  isn't one of five suppressed terminal statuses (`Silent`, `Syntax`,
+  `FileInfo`, `NotPacked`, `Batch`) — unless it's `FileInfo` in silent
+  mode, which bypasses both gates.
+- **Behavioral finding — operator precedence, easy to misread:** the
+  source's guard is `$bOptCreateLog And Not $bLogSaved And Not (...) Or
+  ($status = $STATUS_FILEINFO And $silentmode)`. AutoIt's `And` binds
+  tighter than `Or` (as in most languages), so this parses as `(A And B
+  And C) Or D`, not `A And B And (C Or D)` — the silent-mode `FileInfo`
+  branch is a genuine unconditional bypass of the enabled/already-saved
+  gates, not just an exception folded into the suppressed-status check.
+  Asserted directly by its own test.
+- Parity tests: `run_log::tests::should_append_error_log_requires_all_three_conditions`,
+  `build_error_log_line_prefers_filenamefull_when_present`,
+  `build_error_log_line_falls_back_to_fname_when_filenamefull_empty`,
+  `should_save_log_writes_for_ordinary_enabled_case`,
+  `should_save_log_suppresses_five_terminal_statuses`,
+  `should_save_log_fileinfo_in_silent_mode_bypasses_other_gates`,
+  `should_save_log_respects_enabled_and_already_saved_gates`.
+
 ## C104 (partial) — ffmpeg audio conversion + video-convert + stream probe
 **2026-08-18**
 
