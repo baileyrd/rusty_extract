@@ -23,6 +23,50 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C121 — Unity `.unitypackage` decoder (7z.exe wrapper + path-remapping)
+**2026-08-18**
+
+- **Added:** `extract::unity::inner_tar_invocation` — the conditional
+  inner-tar extraction UniExtract2's `Case $TYPE_UNITYPACKAGE`
+  (UniExtract.au3:3177) makes for newer-format packages (those containing
+  an `archtemp.tar`): `<program> x "<tar_file>"`, run in `tempoutdir` with
+  the window minimized (`_Run`'s own default for the omitted `$show_flag`
+  argument).
+- **Added:** `extract::unity::resolve_asset_destination` — ports the
+  per-asset destination computation (UniExtract.au3:3196),
+  `_PathFull($sName, $outdir)`, approximated via `prefs::resolve_relative_path`
+  (now `pub(crate)`, shared with C018/C019) — the same already-documented
+  `_PathFull` gap.
+- **Added:** `extract::unity::is_destination_within_outdir` — ports the
+  safety check the rename loop makes before moving an asset into place
+  (UniExtract.au3:3197): `StringInStr($sDestination, $outdir)`,
+  case-insensitive per the same bare-`StringInStr` default already
+  documented for C007-C013, C144, C145, C147, C061.
+- **Behavioral finding — a preserved weak-check quirk, not hardened:**
+  this is a substring containment check, not a proper path-prefix
+  validation — `outdir` merely needs to appear *somewhere* in
+  `destination`, which a crafted relative pathname could satisfy without
+  the resolved path actually staying under `outdir`. This is exactly the
+  class of directory-escape risk `ExtractionTransaction` (ADR-0119)
+  exists to close properly once built; this function reproduces the
+  source's weaker check as written, not a fixed version of it.
+- **Not modeled:** the recursive `extract($TYPE_7Z, -1, "gz", True,
+  False)` dispatch that runs first (composite/recursive dispatch, C054,
+  not yet ported); the `FileExists`/`FileDelete` staging around the
+  inner-tar call; the rest of the per-asset rename/restructure loop
+  (reading `pathname` files, moving `asset`/`asset.meta`/`preview.png`
+  into place) — all separate runtime behavior.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** `$TYPE_UNITYPACKAGE`'s
+  real dispatch is the recursive 7-Zip call plus the rename loop, not
+  either function this PR adds — the same reasoning `extract::forge`
+  (C119) and `extract::mscf` (C120) already use for the same kind of
+  exclusion.
+- Parity tests: `extract::unity::tests::inner_tar_invocation_matches_source`,
+  `resolve_asset_destination_resolves_relative_pathname`,
+  `is_destination_within_outdir_accepts_contained_path`,
+  `is_destination_within_outdir_is_case_insensitive`,
+  `is_destination_within_outdir_rejects_unrelated_path`.
+
 ## C120 — MSCF Cab installer (7z.exe wrapper)
 **2026-08-18**
 

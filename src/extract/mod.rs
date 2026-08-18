@@ -62,6 +62,7 @@ pub mod sqlite;
 pub mod superdat;
 pub mod uharc;
 pub mod uif;
+pub mod unity;
 pub mod unreal;
 pub mod unzip;
 pub mod upx;
