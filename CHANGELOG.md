@@ -68,6 +68,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C157: empty created-output-directory cleanup on failure (`outdir::should_remove_empty_created_outdir`).
 - C138: output-subfolder default resolution for `/sub` (`outdir::default_output_subfolder`).
 - C144: overwrite message treated as extraction success in output-log evaluation (`log_eval::is_overwrite_success_message`).
+- C145: overwrite/password/no-space/new-filename prompt live-detection (`log_eval::needs_manual_input`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
