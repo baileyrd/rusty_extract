@@ -59,6 +59,7 @@ pub mod placeholder;
 pub mod plugin;
 pub mod plugin_config;
 pub mod qm;
+pub mod raiu;
 pub mod rar;
 pub mod rgss;
 pub mod rpa;
