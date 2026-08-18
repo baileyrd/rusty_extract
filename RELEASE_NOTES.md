@@ -46,6 +46,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   invocation.
 - Parity test: `extract::superdat::tests::matches_source_invocation`.
 
+## C117 — Netopsystems FEAD self-extraction
+**2026-08-18**
+
+- **Added:** `extract::fead::invocation` — builds the self-extracting FEAD
+  command UniExtract2's `Case $TYPE_FEAD` (UniExtract.au3:2530-2536)
+  makes: `<file> /s -nos_ne -nos_o<tempoutdir>\`, run in `filedir` with a
+  normally shown window.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"fead"` →
+  `extract::fead`).
+- **Behavioral finding:** `-nos_o<tempoutdir>\` is a single
+  concatenated-flag argument token, including a trailing literal
+  backslash the source's own string concatenation adds — preserved
+  exactly, matching the pattern already established in
+  `extract::bcm`/`extract::lzop`/`extract::unreal`.
+- **Behavioral finding:** run via `ShellExecuteWait`, not
+  `_Run`/`Run`/`RunWait` — needed (per the sibling `$TYPE_AI` case's own
+  comment) so the OS can raise a UAC elevation prompt. Its `$iShowFlag`
+  parameter defaults to `@SW_SHOWNORMAL` when omitted here, mapped to
+  `WindowMode::Show`, the same as every other unspecified-show-flag call
+  in this crate.
+- **Scope note:** the preceding `Warn_Execute(...)` confirmation gate
+  (`warnexecute` preference, C023, deferred GUI subsystem D001) and the
+  trailing `FileSetAttrib`/`MoveFiles`/`DirRemove` calls that move
+  `tempoutdir`'s contents into `outdir` and clean up afterward are not
+  modeled — separate runtime behavior, not part of building this
+  invocation.
+- Parity test: `extract::fead::tests::matches_source_invocation`.
+
 ## C116 — Excelsior Installer self-extraction
 **2026-08-18**
 

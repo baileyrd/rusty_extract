@@ -84,6 +84,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C064: Windows `expand.exe` CAB/MSU invocations (`extract::expand`).
 - C116: Excelsior Installer self-extraction (`extract::ei`).
 - C118: SuperDAT Updater self-extraction (`extract::superdat`).
+- C117: Netopsystems FEAD self-extraction (`extract::fead`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
