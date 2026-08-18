@@ -126,6 +126,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C092: UnRAR extractor integration (`extract::rar`).
 - C084: lessmsi extractor integration (`extract::lessmsi`).
 - C085: jsMSIx extractor integration (`extract::jsmsix`).
+- C086: MsiX extractor integration, shared across `$TYPE_MSI`/`$TYPE_MSM`/`$TYPE_MSP`
+  (`extract::msix`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
