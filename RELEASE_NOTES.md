@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C021 — `history` preference
+**2026-08-17**
+
+- **Added:** `prefs::push_history` — ports `WriteHist`'s move-to-front /
+  dedupe / cap-at-10 semantics (UniExtract.au3:857-869), expressed as the
+  resulting ordered list a subsequent `ReadHist`
+  (UniExtract.au3:844-854) would observe.
+- **Scope note — preserved quirks:** `WriteHist` writes the new item to
+  ini key `"0"` unconditionally, then re-writes each of the old history's
+  first 9 entries to its own original key — except any entry equal to the
+  new item, which gets deleted instead of rewritten, leaving a *hole* in
+  the ini rather than shifting later entries down to fill it. `ReadHist`
+  skips empty slots when reconstructing the list, so that hole is
+  invisible to every consumer that only ever reads history through
+  `ReadHist` (every consumer in the source) — this function models that
+  externally observable list, not `WriteHist`'s raw ini key layout.
+  Separately, the 9-entry scan over the old list is positional, not
+  count-of-survivors: a duplicate found among the first 9 old entries
+  shrinks the resulting list below 10 rather than reaching into a 10th
+  old entry to backfill the freed slot. Both preserved as written, not
+  "fixed" into a cleaner LRU.
+- Parity tests: `prefs::tests::push_history_prepends_new_item`,
+  `prefs::tests::push_history_deduplicates_and_moves_to_front`,
+  `prefs::tests::push_history_ten_entry_cap_does_not_backfill_a_deduped_slot`,
+  `prefs::tests::push_history_from_empty_history`.
+
 ## C034 — `BatchRecurse` preference
 **2026-08-17**
 

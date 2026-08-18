@@ -59,6 +59,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C020, C022, C023, C025, C027, C028, C029, C030, C031, C032: simple boolean preference defaults (`prefs::resolve_bool_pref` and one `..._DEFAULT` constant per preference).
 - C018, C019: `batchqueue`/`filescanlogfile` path-override preferences (`prefs::resolve_batchqueue_path`, `prefs::resolve_filescanlogfile_path`).
 - C034: `BatchRecurse` preference default (`prefs::BATCHRECURSE_DEFAULT`).
+- C021: `history` preference move-to-front/dedupe/cap-at-10 semantics (`prefs::push_history`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
