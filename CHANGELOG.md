@@ -142,6 +142,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   per-run temp output directory is always removed, success or failure
   (`outdir::should_remove_temp_outdir`).
 - C100: ttarchext extractor integration (`extract::ttarch`).
+- C105: Visionaire Engine v3 two-pass extraction invocations
+  (`extract::visionaire3`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

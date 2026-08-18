@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C105 — Visionaire Engine v3 two-pass extraction
+**2026-08-18**
+
+- **Added:** `extract::visionaire3::generate_names_invocation`,
+  `extract::visionaire3::extract_invocation` — port `Case
+  $TYPE_VISIONAIRE3`'s two `_Run` invocations
+  (UniExtract.au3:3310,3317,3321): a first pass generating
+  `<outdir>\names.txt` from the archive's main `.vis` data file, and a
+  second extraction pass that includes `/names=` when the first pass
+  produced a non-empty `names.txt`, falling back to a bare `/force`
+  otherwise.
+- **Scope note:** invocation only. Locating the main `.vis` file
+  (searches up to three parent directories, GUI candidate list when
+  ambiguous — C053, deferred GUI, D001) and the `names.txt`
+  existence/size checks driving which pass runs are real filesystem
+  concerns left to the caller.
+- Parity tests: `extract::visionaire3::tests::*` (3 tests).
+
+---
+
 ## C100 — ttarchext extractor integration
 **2026-08-18**
 
