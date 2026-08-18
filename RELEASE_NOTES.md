@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C073 — helpdeco extractor integration, RTF reconstruction pass
+**2026-08-18**
+
+- **Added:** `extract::helpdeco::extract_invocation`,
+  `extract::helpdeco::reconstruct_invocation`,
+  `extract::helpdeco::should_reconstruct_rtf`,
+  `extract::helpdeco::reconstructed_rtf_filename` — port `Case
+  $TYPE_HLP`'s two `_Run` invocations (UniExtract.au3:2606-2610): a
+  primary extraction pass, the `_DirGetSize($outdir, $initdirsize + 1) >
+  $initdirsize` gate deciding whether the primary pass produced any
+  output, and a conditional RTF reconstruction pass whose output
+  filename embeds a translated term (injected by the caller, same
+  convention as `outdir::default_output_subfolder`, C138).
+- **Scope note:** invocations and the size-growth/filename decisions
+  only. The `$tempoutdir` creation/removal and the `_FileMove` of the
+  reconstructed RTF into `outdir` are real filesystem I/O, left to the
+  caller.
+- Parity tests: `extract::helpdeco::tests::*` (5 tests).
+
+---
+
 ## C105 — Visionaire Engine v3 two-pass extraction
 **2026-08-18**
 
