@@ -124,6 +124,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`cleanup` module); wildcard expansion and the real filesystem calls
   not yet ported, row stays REQUIRED.
 - C092: UnRAR extractor integration (`extract::rar`).
+- C084: lessmsi extractor integration (`extract::lessmsi`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

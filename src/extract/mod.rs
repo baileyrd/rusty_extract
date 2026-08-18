@@ -39,6 +39,7 @@ pub mod godot;
 pub mod isz;
 pub mod kgb;
 pub mod lbr;
+pub mod lessmsi;
 pub mod lit;
 pub mod lzip;
 pub mod lzop;
