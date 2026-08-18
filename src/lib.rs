@@ -11,6 +11,7 @@ pub mod free_space;
 pub mod ini;
 pub mod log_eval;
 pub mod outdir;
+pub mod password_search;
 pub mod prefs;
 pub mod result_heuristic;
 pub mod run_log;
