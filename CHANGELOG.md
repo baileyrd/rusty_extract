@@ -78,6 +78,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   composition root `ARCHITECTURE.md` describes.
 - C097: SQLite database dump extractor integration (`extract::sqlite`).
 - C088: NBHextract extractor integration (`extract::nbh`).
+- C101: UHARC 3-version fallback chain (`extract::uharc`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
