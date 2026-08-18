@@ -23,6 +23,41 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C004, C005, C139, C140 — Output-directory token and path resolution
+**2026-08-18**
+
+- **Added:** `outdir::resolve_output_directory` — ports
+  `ValidateOutputDirectory()` (UniExtract.au3:526-544): `/sub` (C004)
+  resolves to a caller-supplied `initoutdir`; `/last` (C005) resolves to
+  a caller-supplied, already-resolved `last_outdir`; a drive-absolute
+  (`X:...`) or UNC (`\\...`) path passes through unchanged; a single
+  leading backslash inherits the input file's drive letter rather than
+  being treated as relative (C139); anything else resolves against
+  `filedir` by concatenation (C139); and a trailing `/` is stripped, then
+  a trailing `\` is unconditionally appended regardless of which branch
+  produced the path (C140).
+- **Added:** `outdir::get_last_outdir` (C005) — ports `GetLastOutdir()`
+  (UniExtract.au3:872-878): the most recently used output directory is
+  the `"Directory History"` ini section's slot `"0"` (the newest slot in
+  `prefs::push_history`'s convention, C021). A missing history maps to
+  `None`, standing in for the source's failure path — a `MsgBox` (out of
+  scope, deferred GUI subsystem) followed by `terminate($STATUS_SILENT)`
+  (exit 0, C016) — which never returns a directory at all.
+- **Scope note — `_PathFull`'s segment normalization not modeled:** the
+  relative-path branch mirrors the source's exact string concatenation
+  (`$filedir & '\' & $outdir`) but doesn't reproduce whatever `.`/`..`
+  collapsing AutoIt's single-argument `_PathFull(path)` performs
+  internally — that UDF isn't defined anywhere in this port's source
+  checkout, the same gap already noted for the two-argument `_PathFull`
+  behind C018/C019's path-override preferences.
+- Parity tests: `outdir::tests::get_last_outdir_matches_source`,
+  `outdir::tests::sub_token_resolves_to_initoutdir`,
+  `outdir::tests::last_token_resolves_to_last_outdir`,
+  `outdir::tests::drive_absolute_and_unc_paths_pass_through`,
+  `outdir::tests::single_leading_backslash_inherits_drive_letter`,
+  `outdir::tests::relative_path_resolves_against_filedir`,
+  `outdir::tests::trailing_slash_normalized_to_backslash`.
+
 ## C007, C008, C009, C010, C012, C013 — Command-line flag detection
 **2026-08-18**
 

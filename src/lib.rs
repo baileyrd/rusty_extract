@@ -5,5 +5,6 @@ pub mod cli;
 pub mod detection;
 pub mod extract;
 pub mod ini;
+pub mod outdir;
 pub mod prefs;
 pub mod status;
