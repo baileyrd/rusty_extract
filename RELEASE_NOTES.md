@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C074 — innounp/innoextract primary/fallback pair
+**2026-08-18**
+
+- **Added:** `extract::inno::unnp_invocation`,
+  `extract::inno::innoextract_invocation`,
+  `extract::inno::should_use_innoextract_fallback`,
+  `extract::inno::rename_first_version_target` — port `Case
+  $TYPE_INNO`'s two `_Run` invocations (UniExtract.au3:2616, 2649),
+  the fallback gate deciding whether innoextract runs after innounp
+  (`$additionalParameters Or $success == $RESULT_FAILED`), and the
+  multi-version file rename target (`,1`/`,2`/`,3`-suffixed duplicate
+  files Inno Setup can produce, `StringReplace(..., ",1", "", -1)`
+  replacing every occurrence).
+- **Scope note:** invocations and the fallback/rename decisions only.
+  The multi-version file discovery (`_FileListToArrayRec`), cleanup
+  lists, and `MoveFiles` output-restructuring calls are real
+  filesystem I/O left to the caller.
+- Parity tests: `extract::inno::tests::*` (6 tests).
+
+---
+
 ## C091 — RAIU extractor integration
 **2026-08-18**
 

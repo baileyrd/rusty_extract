@@ -148,6 +148,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`extract::helpdeco`).
 - C076: IsXunpack extractor integration (`extract::isxunpack`).
 - C091: RAIU extractor integration (`extract::raiu`).
+- C074: innounp/innoextract primary/fallback pair (`extract::inno`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
