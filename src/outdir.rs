@@ -116,11 +116,74 @@ pub fn reappend_trailing_backslash_after_extraction(outdir: &str) -> String {
     format!("{outdir}\\")
 }
 
+/// C142: the result of `CreateOutdir()`'s decision tree
+/// (UniExtract.au3:3968-3978) — an already-existing outdir that's a
+/// writable directory needs no action; anything else either creates the
+/// directory or terminates.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OutdirOutcome {
+    /// `$outdir` already existed as a writable directory — nothing to do.
+    AlreadyValid,
+    /// `$outdir` didn't exist and `DirCreate` succeeded — the source sets
+    /// `$createdir = True` here (UniExtract.au3:3976), tracked so a later
+    /// cleanup step can remove it if the extraction that follows fails
+    /// and leaves it empty (capability C157, not ported by this
+    /// function).
+    Created,
+    /// `terminate($STATUS_INVALIDDIR, $outdir, "")` (UniExtract.au3:3970):
+    /// `$outdir` exists but isn't a directory.
+    ExistsButNotADirectory,
+    /// `terminate($STATUS_INVALIDDIR, $outdir)` (UniExtract.au3:3973):
+    /// `$outdir` exists, is a directory, but isn't writable
+    /// (`CanAccess` failed).
+    ExistsButNotAccessible,
+    /// `terminate($STATUS_INVALIDDIR, $outdir)` (UniExtract.au3:3975):
+    /// `$outdir` didn't exist and `DirCreate` failed.
+    CreateFailed,
+}
+
+impl OutdirOutcome {
+    /// Whether this outcome corresponds to one of `CreateOutdir()`'s three
+    /// `terminate($STATUS_INVALIDDIR, ...)` calls — exit code 5, per
+    /// `status::exit_code(status::Status::InvalidDir)` (C016).
+    pub fn is_fatal(self) -> bool {
+        !matches!(self, OutdirOutcome::AlreadyValid | OutdirOutcome::Created)
+    }
+}
+
+/// C142: ports `CreateOutdir()` (UniExtract.au3:3968-3978) as a pure
+/// decision over already-known filesystem facts — the actual
+/// `FileExists`/`_IsDirectory`/`CanAccess`/`DirCreate` calls are the
+/// caller's job; this function only reproduces the branching UniExtract2
+/// does once those facts are known. `dir_create_succeeded` is ignored
+/// when `exists` is `true` (the source never calls `DirCreate` in that
+/// case).
+pub fn decide_outdir_outcome(
+    exists: bool,
+    is_directory: bool,
+    can_access: bool,
+    dir_create_succeeded: bool,
+) -> OutdirOutcome {
+    if exists {
+        if !is_directory {
+            OutdirOutcome::ExistsButNotADirectory
+        } else if !can_access {
+            OutdirOutcome::ExistsButNotAccessible
+        } else {
+            OutdirOutcome::AlreadyValid
+        }
+    } else if dir_create_succeeded {
+        OutdirOutcome::Created
+    } else {
+        OutdirOutcome::CreateFailed
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        get_last_outdir, reappend_trailing_backslash_after_extraction, resolve_output_directory,
-        strip_trailing_backslash_for_extraction,
+        decide_outdir_outcome, get_last_outdir, reappend_trailing_backslash_after_extraction,
+        resolve_output_directory, strip_trailing_backslash_for_extraction, OutdirOutcome,
     };
 
     /// Parity test for capability C005: a present history slot 0 is
@@ -260,5 +323,53 @@ mod tests {
             strip_trailing_backslash_for_extraction(r"C:\downloads\"),
             r"C:\downloads"
         );
+    }
+
+    /// Parity test for capability C142: an already-existing, writable
+    /// directory needs no action.
+    #[test]
+    fn existing_writable_directory_is_already_valid() {
+        assert_eq!(
+            decide_outdir_outcome(true, true, true, false),
+            OutdirOutcome::AlreadyValid
+        );
+        assert!(!OutdirOutcome::AlreadyValid.is_fatal());
+    }
+
+    /// Parity test for capability C142: a missing outdir that `DirCreate`
+    /// successfully creates is `Created`, not fatal.
+    #[test]
+    fn missing_directory_created_successfully() {
+        assert_eq!(
+            decide_outdir_outcome(false, false, false, true),
+            OutdirOutcome::Created
+        );
+        assert!(!OutdirOutcome::Created.is_fatal());
+    }
+
+    /// Parity test for capability C142: the three
+    /// `terminate($STATUS_INVALIDDIR, ...)` cases (UniExtract.au3:3970,
+    /// 3973, 3975) are each distinguished and all fatal.
+    #[test]
+    fn invalid_directory_cases_are_all_fatal() {
+        assert_eq!(
+            decide_outdir_outcome(true, false, true, false),
+            OutdirOutcome::ExistsButNotADirectory
+        );
+        assert_eq!(
+            decide_outdir_outcome(true, true, false, false),
+            OutdirOutcome::ExistsButNotAccessible
+        );
+        assert_eq!(
+            decide_outdir_outcome(false, false, false, false),
+            OutdirOutcome::CreateFailed
+        );
+        for outcome in [
+            OutdirOutcome::ExistsButNotADirectory,
+            OutdirOutcome::ExistsButNotAccessible,
+            OutdirOutcome::CreateFailed,
+        ] {
+            assert!(outcome.is_fatal());
+        }
     }
 }

@@ -64,6 +64,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C004, C005, C139, C140: output-directory `/sub`/`/last` token and relative/trailing-slash path resolution (`outdir::resolve_output_directory`, `outdir::get_last_outdir`).
 - C140 (continued): `extract()`'s trailing-backslash strip/reappend cycle (`outdir::strip_trailing_backslash_for_extraction`, `outdir::reappend_trailing_backslash_after_extraction`).
 - C141: drive-root output directory ambiguity, reproducing the documented "Extracting to C:/" bug (test only, using the existing C140 strip function).
+- C142: output-directory creation and validation decision tree (`outdir::OutdirOutcome`, `outdir::decide_outdir_outcome`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
