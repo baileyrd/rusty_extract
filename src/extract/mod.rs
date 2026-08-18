@@ -37,6 +37,7 @@ pub mod fsb;
 pub mod garbro;
 pub mod godot;
 pub mod isz;
+pub mod jsmsix;
 pub mod kgb;
 pub mod lbr;
 pub mod lessmsi;

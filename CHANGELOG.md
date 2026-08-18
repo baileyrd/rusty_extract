@@ -125,6 +125,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   not yet ported, row stays REQUIRED.
 - C092: UnRAR extractor integration (`extract::rar`).
 - C084: lessmsi extractor integration (`extract::lessmsi`).
+- C085: jsMSIx extractor integration (`extract::jsmsix`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

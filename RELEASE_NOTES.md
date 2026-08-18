@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C085 — jsMSIx extractor integration
+**2026-08-18**
+
+- **Added:** `extract::jsmsix::invocation` — ports `$TYPE_MSI`'s "jsMSI
+  Unpacker" fallback candidate (UniExtract.au3:2858): `<program>
+  "<file>|<outdir>"`, run in `filedir` with the window hidden.
+- **Behavioral finding — the source's `"<file>"|"<outdir>"` collapses
+  to one argument:** the literal command-line string has no whitespace
+  anywhere between the two quoted segments and the `|` between them.
+  Standard Windows command-line tokenization only splits on whitespace,
+  so after dequoting this is a *single* argument, `<file>|<outdir>` —
+  jsMSIx's own file/output-path delimiter convention, not a shell pipe.
+- **Scope note:** reached only through `$TYPE_MSI`'s GUI candidate-list
+  fallback (see C084's own scope note for the full chain) — composite,
+  conditional dispatch, not registered in
+  `extract::dispatch::HARDCODED_CASES`. Also out of scope: reading
+  `<outdir>\MSI Unpack.log` and the follow-up `Cleanup("*.cab")` call,
+  both real filesystem I/O.
+- Parity tests: `extract::jsmsix::tests::matches_source_invocation`.
+
+---
+
 ## C084 — lessmsi extractor integration
 **2026-08-18**
 
