@@ -23,6 +23,43 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C179 (partial) — Free-space check
+**2026-08-18**
+
+- **Added:** `free_space::measure_free_space`, `has_enough_free_space`,
+  `decide_free_space_outcome` — port the pure decision core of
+  `HasFreeSpace()` (UniExtract.au3:3782-3808): whether a measured drive
+  has enough free space for the file being extracted, and whether that
+  should terminate the run outright (silent mode) or hand off to an
+  interactive prompt.
+- **Behavioral finding — rounding order:** the megabyte conversion
+  rounds to 2 decimals *before* the modifier is applied
+  (`Round(FileGetSize($file) / 1048576, 2) * $fModifier`), not after —
+  reproduced exactly rather than rounding the final product.
+- **Behavioral finding — exit-status quirk:** the silent-mode
+  termination call is `terminate($STATUS_FAILED, $filenamefull,
+  $STATUS_NOFREESPACE, $sMsg)` — the actual exit status passed is
+  `$STATUS_FAILED`, not `$STATUS_NOFREESPACE`; `$STATUS_NOFREESPACE` is
+  stuffed into the `$arctype` parameter slot purely for message display.
+  This is a distinct code path from the post-extraction `Case
+  $RESULT_NOFREESPACE: terminate($STATUS_NOFREESPACE)` branch
+  (`result_heuristic`'s neighboring capability), which *does* use the
+  real `$STATUS_NOFREESPACE` exit status — documented explicitly so the
+  two aren't conflated.
+- **Scope note — partial, manifest row stays REQUIRED:** the interactive
+  abort/retry/ignore `MsgBox` prompt is GUI (deferred, manifest row
+  D001) and isn't implemented; neither is the source's preliminary
+  walk-up-to-an-existing-directory-ancestor step, which is real
+  filesystem I/O entangled with path manipulation. Only the free-space
+  arithmetic and the silent-mode termination decision are covered.
+- Parity tests: `free_space::tests::measure_free_space_rounds_before_applying_modifier`,
+  `has_enough_free_space_boundary_is_inclusive`,
+  `disabled_check_always_continues`, `enough_space_always_continues`,
+  `not_enough_space_silent_mode_terminates`,
+  `not_enough_space_interactive_prompts`.
+
+---
+
 ## C154 — Scan-only silent-mode file output
 **2026-08-18**
 

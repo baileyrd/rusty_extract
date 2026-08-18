@@ -6,6 +6,7 @@ pub mod cli;
 pub mod detection;
 pub mod extract;
 pub mod filetype_report;
+pub mod free_space;
 pub mod ini;
 pub mod log_eval;
 pub mod outdir;
