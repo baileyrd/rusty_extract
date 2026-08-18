@@ -88,6 +88,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::ei",
     },
     HardcodedCase {
+        type_key: "fead",
+        module: "extract::fead",
+    },
+    HardcodedCase {
         type_key: "freearc",
         module: "extract::freearc",
     },

@@ -25,6 +25,7 @@ pub mod dispatch;
 pub mod ei;
 pub mod expand;
 pub mod extsis;
+pub mod fead;
 pub mod freearc;
 pub mod fsb;
 pub mod garbro;
