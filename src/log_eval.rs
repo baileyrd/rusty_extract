@@ -28,6 +28,63 @@ pub fn is_overwrite_success_message(log: &str) -> bool {
     log.contains("already exists.") || log.contains("Overwrite")
 }
 
+/// Reproduces `_StringGetLine($sLog, -1)` (UniExtract.au3:4577-4583) for
+/// the one purpose [`is_password_failure`] uses it: a substring search
+/// over its result. For negative `$iLine`, the source's own
+/// implementation searches for the `(1 - $iLine)`-th `@CRLF` occurrence
+/// counting from the end — for `$iLine = -1` that's the *second*-to-last
+/// `@CRLF` — and returns everything from there to the end of the
+/// string. **If fewer than two `@CRLF`s exist, `StringInStr` returns 0
+/// and the source falls back to `StringTrimLeft($sString, 0)`, i.e. the
+/// *entire, unmodified string* — not just its (only) line.** That
+/// means a log with zero or exactly one line break has its whole text
+/// searched, while a log with two or more line breaks only has its true
+/// last line searched. Preserved exactly, not "fixed" into a plain
+/// last-line helper.
+fn tail_for_password_prompt_search(log: &str) -> &str {
+    let mut from_end = log.rmatch_indices("\r\n");
+    from_end.next(); // the last occurrence itself, not the one we want
+    match from_end.next() {
+        Some((pos, _)) => &log[pos..],
+        None => log,
+    }
+}
+
+/// C162: ports the invalid-password branch of `EvaluateLog()`
+/// (UniExtract.au3:4782-4787) — the first, highest-priority arm of its
+/// `ElseIf` chain. A log is classified as a password failure when it
+/// contains any of five substrings anywhere, or when
+/// [`tail_for_password_prompt_search`]'s result contains a sixth
+/// ("Enter password").
+///
+/// Matches case-insensitively: AutoIt's `StringInStr` defaults its case
+/// parameter to not-case-sensitive when omitted, as it is for all six
+/// calls here — the same convention already documented for
+/// `needs_manual_input` (C145).
+///
+/// **Scope — one branch, not the whole chain** (see
+/// [`is_overwrite_success_message`]'s doc comment for the general note
+/// on `EvaluateLog`'s `ElseIf` ordering). This is the chain's *first*
+/// arm, so a caller applies it before every other classification, not
+/// after.
+pub fn is_password_failure(log: &str) -> bool {
+    let lower = log.to_lowercase();
+    let whole_log_match = [
+        "wrong password?",
+        "the specified password is incorrect.",
+        "archive encrypted.",
+        "corrupt file or wrong password",
+        "error: wrong password",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle));
+
+    whole_log_match
+        || tail_for_password_prompt_search(log)
+            .to_lowercase()
+            .contains("enter password")
+}
+
 /// C145: ports the live user-input-needed detection inside the
 /// subprocess-output-streaming loop (UniExtract.au3:4930-4933): as each
 /// new chunk of a helper binary's live output arrives, it's scanned for
@@ -64,7 +121,7 @@ pub fn needs_manual_input(chunk: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_overwrite_success_message, needs_manual_input};
+    use super::{is_overwrite_success_message, is_password_failure, needs_manual_input};
 
     /// Parity test for capability C144: both substrings the source
     /// checks for are recognized.
@@ -111,5 +168,71 @@ mod tests {
     fn does_not_match_ordinary_progress_output() {
         assert!(!needs_manual_input("Extracting: file.txt  50%"));
         assert!(!needs_manual_input(""));
+    }
+
+    /// Parity test for capability C162: each of the five whole-log
+    /// substrings is recognized anywhere in the text.
+    #[test]
+    fn recognizes_all_five_whole_log_password_substrings() {
+        assert!(is_password_failure("Wrong password?\r\nsome other line"));
+        assert!(is_password_failure(
+            "first line\r\nThe specified password is incorrect."
+        ));
+        assert!(is_password_failure("Archive encrypted.\r\nmore text"));
+        assert!(is_password_failure("Corrupt file or wrong password\r\n"));
+        assert!(is_password_failure("ERROR: Wrong password\r\ntail"));
+    }
+
+    /// Parity test for capability C162: "Enter password" on the true
+    /// last line of a 3+-line log (2+ line breaks) is recognized.
+    #[test]
+    fn recognizes_enter_password_on_true_last_line() {
+        assert!(is_password_failure(
+            "starting extraction\r\nsome progress\r\nEnter password:"
+        ));
+    }
+
+    /// Parity test for capability C162: "Enter password" on a
+    /// *non*-last line of a 3+-line log is NOT recognized, since only
+    /// the true last line is searched once there are 2+ line breaks.
+    #[test]
+    fn does_not_recognize_enter_password_on_earlier_line_of_long_log() {
+        assert!(!is_password_failure(
+            "Enter password:\r\nsome progress\r\ndone extracting"
+        ));
+    }
+
+    /// Parity test for capability C162: the source quirk — a log with
+    /// exactly one line break (two lines) has its *entire* text
+    /// searched, not just the true last line, because
+    /// `_StringGetLine($sLog, -1)` can't find a second-to-last `@CRLF`
+    /// and falls back to returning the whole string unmodified.
+    #[test]
+    fn two_line_log_searches_whole_text_not_just_last_line() {
+        assert!(is_password_failure("Enter password:\r\nsome progress"));
+    }
+
+    /// Parity test for capability C162: a single-line log (no line
+    /// breaks at all) also has its entire text searched.
+    #[test]
+    fn single_line_log_searches_whole_text() {
+        assert!(is_password_failure("Enter password:"));
+    }
+
+    /// Parity test for capability C162: matching is case-insensitive.
+    #[test]
+    fn password_failure_matches_case_insensitively() {
+        assert!(is_password_failure("ARCHIVE ENCRYPTED."));
+        assert!(is_password_failure("enter PASSWORD:"));
+    }
+
+    /// Parity test for capability C162: ordinary log text with none of
+    /// the six substrings doesn't match.
+    #[test]
+    fn does_not_match_unrelated_password_log_text() {
+        assert!(!is_password_failure(
+            "Extracting: file.txt\r\nEverything is Ok"
+        ));
+        assert!(!is_password_failure(""));
     }
 }

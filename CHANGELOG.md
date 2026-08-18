@@ -111,6 +111,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   not yet ported, row stays REQUIRED.
 - C165: per-run log file naming — `<logdir>YYYY-MM-DD_HH-MM-SS_[STATUS_]<name>.<ext>.log`,
   status omitted on success (`run_log::build_log_file_name`).
+- C162: generic password-failure detection via output-text matching,
+  including the `_StringGetLine($sLog, -1)` off-by-one fallback quirk
+  (`log_eval::is_password_failure`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
