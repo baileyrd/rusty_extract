@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C118 — SuperDAT Updater self-extraction
+**2026-08-18**
+
+- **Added:** `extract::superdat::invocation` — builds the self-extracting
+  SuperDAT Updater command UniExtract2's `Case $TYPE_SUPERDAT`
+  (UniExtract.au3:3038-3043) makes: `<file> /LOGFILE
+  "<outdir>\SuperDAT.log" /e "<outdir>"`, run in `outdir` with a normally
+  shown window.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"superdat"` →
+  `extract::superdat`).
+- **Behavioral finding:** run via `ShellExecuteWait`, not
+  `_Run`/`Run`/`RunWait` — needed (per the sibling `$TYPE_AI` case's own
+  comment) so the OS can raise a UAC elevation prompt, the same reasoning
+  as C116 (`extract::ei`) and C117 (`extract::fead`). Its `$iShowFlag`
+  parameter defaults to `@SW_SHOWNORMAL` when omitted here, mapped to
+  `WindowMode::Show`.
+- **Scope note:** the preceding `Warn_Execute(...)` confirmation gate
+  (`warnexecute` preference, C023, deferred GUI subsystem D001) and the
+  trailing `_FileRead($sPath, True)` call that reads the log file back in
+  are not modeled — separate runtime behavior, not part of building this
+  invocation.
+- Parity test: `extract::superdat::tests::matches_source_invocation`.
+
 ## C116 — Excelsior Installer self-extraction
 **2026-08-18**
 

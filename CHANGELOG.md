@@ -83,6 +83,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C063: bootimg extractor integration (`extract::bootimg`).
 - C064: Windows `expand.exe` CAB/MSU invocations (`extract::expand`).
 - C116: Excelsior Installer self-extraction (`extract::ei`).
+- C118: SuperDAT Updater self-extraction (`extract::superdat`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

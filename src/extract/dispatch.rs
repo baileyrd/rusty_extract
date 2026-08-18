@@ -112,6 +112,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::sqlite",
     },
     HardcodedCase {
+        type_key: "superdat",
+        module: "extract::superdat",
+    },
+    HardcodedCase {
         type_key: "lz",
         module: "extract::lzip",
     },
