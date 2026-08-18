@@ -82,6 +82,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C061: ARJ SFX verification probe (`detection::arj_probe`).
 - C063: bootimg extractor integration (`extract::bootimg`).
 - C064: Windows `expand.exe` CAB/MSU invocations (`extract::expand`).
+- C116: Excelsior Installer self-extraction (`extract::ei`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
