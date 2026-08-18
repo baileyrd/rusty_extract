@@ -117,6 +117,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C167: output-log evaluation (`log_eval::evaluate_log`, full
   `EvaluateLog()` `ElseIf` chain) and warning extraction
   (`log_eval::parse_warnings`, `ParseWarnings()`).
+- C164: debug-line format — `<datetime>:<msec>\t<msg>\r\n`
+  (`run_log::build_debug_line`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
