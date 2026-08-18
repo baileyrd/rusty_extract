@@ -154,6 +154,32 @@ pub fn build_command_line(
     cmd
 }
 
+/// C148: ports the queue-popping half of `BatchQueuePop()`
+/// (UniExtract.au3:4444-4462) — removes and returns the first queued
+/// command line, leaving the rest as the new persisted queue (the
+/// source's `_ArrayDelete($queueArray, 0)` followed by
+/// `SaveBatchQueue()`), or `None` if the queue is already empty.
+///
+/// This is only the FIFO queue-management half of C148's own
+/// description. The other half — "each queued item spawns a brand-new
+/// process rather than looping in-process; chaining driven by the
+/// terminating status" — describes the source's actual execution model:
+/// `BatchQueuePop()` spawns the popped command line as a fresh process
+/// (`Run(@ScriptFullPath & " " & $element)`) and returns immediately;
+/// the *next* item in the queue is only popped when *that* new process's
+/// own `terminate()` call reaches its `$batchEnabled = 1 And $status <>
+/// $STATUS_SILENT` check (UniExtract.au3:4235) and calls
+/// `BatchQueuePop()` again — so the chain is driven entirely by each
+/// process's own exit, never by a loop inside a single running process.
+/// That process-spawning-and-chaining architecture is this port's own
+/// runtime concern (not yet built) rather than portable pure logic, so
+/// it isn't reproduced by this function — only the queue-array mechanics
+/// are.
+pub fn pop_batch_queue(queue: &[String]) -> Option<(String, Vec<String>)> {
+    let (first, rest) = queue.split_first()?;
+    Some((first.clone(), rest.to_vec()))
+}
+
 /// Ports the add-vs-skip decision inside `AddToBatch()`
 /// (UniExtract.au3:4398-4404): an exact-duplicate command line already
 /// present in the queue defers to `user_confirmed_duplicate` (standing
@@ -183,7 +209,10 @@ pub fn should_add_to_batch(
 
 #[cfg(test)]
 mod tests {
-    use super::{build_command_line, is_multipart_archive_already_queued, should_add_to_batch};
+    use super::{
+        build_command_line, is_multipart_archive_already_queued, pop_batch_queue,
+        should_add_to_batch,
+    };
 
     /// Parity test for capability C147: `GetCmd`'s command-line shape
     /// across its `extract`/`/sub`/plain-outdir/`/scan`/`/silent`
@@ -264,5 +293,32 @@ mod tests {
             "archive.zip",
             false
         ));
+    }
+
+    /// Parity test for capability C148: popping a non-empty queue
+    /// returns the first item and the remaining items in order.
+    #[test]
+    fn pop_batch_queue_returns_first_and_rest() {
+        let queue = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+        let (first, rest) = pop_batch_queue(&queue).unwrap();
+        assert_eq!(first, "a");
+        assert_eq!(rest, vec!["b".to_string(), "c".to_string()]);
+    }
+
+    /// Parity test for capability C148: popping the last item leaves an
+    /// empty queue.
+    #[test]
+    fn pop_batch_queue_last_item_leaves_empty_queue() {
+        let queue = vec!["only".to_string()];
+        let (first, rest) = pop_batch_queue(&queue).unwrap();
+        assert_eq!(first, "only");
+        assert!(rest.is_empty());
+    }
+
+    /// Parity test for capability C148: popping an empty queue returns
+    /// `None`, matching `BatchQueuePop`'s "queue empty" branch.
+    #[test]
+    fn pop_batch_queue_empty_queue_returns_none() {
+        assert_eq!(pop_batch_queue(&[]), None);
     }
 }
