@@ -1,11 +1,14 @@
-//! Extraction output-log evaluation: ports pieces of `EvaluateLog()`
-//! (UniExtract.au3:4778-4825), the substring-classifier `extract()` runs
-//! over a helper binary's captured stdout/stderr to decide success vs.
-//! failure. `EvaluateLog()` is a long `ElseIf` chain — invalid password,
-//! user cancellation, low disk space, missing archive part, several
-//! generic success/failure phrasings, and finally the overwrite case
-//! this module ports — each branch is its own capability (or not yet
-//! ported); this module doesn't attempt the whole chain.
+//! Extraction output-log evaluation: ports `EvaluateLog()`
+//! (UniExtract.au3:4778-4825) and `ParseWarnings()`
+//! (UniExtract.au3:4832-4845), the substring-classifier and
+//! warning-block extractor `extract()` runs over a helper binary's
+//! captured stdout/stderr. `EvaluateLog()` is a long `ElseIf` chain —
+//! invalid password (C162), user cancellation, low disk space, missing
+//! archive part, several generic success/failure phrasings, and finally
+//! the overwrite case (C144) — each branch has its own predicate
+//! function, individually documented and independently testable, plus
+//! [`evaluate_log`] (C167) which applies them all in the source's exact
+//! priority order.
 
 /// C144: ports the "already exists"/"Overwrite" branch of `EvaluateLog()`
 /// (UniExtract.au3:4819-4823): a log mentioning either substring is
@@ -15,15 +18,14 @@
 /// separate "did the folder size change" check that would otherwise
 /// flag this as a failure gets skipped for exactly that reason.
 ///
-/// **Scope — one branch, not the whole chain.** This predicate only
-/// reproduces this one `ElseIf` arm. In the source, it's reached only
-/// after several higher-priority classifications (invalid password, user
-/// cancellation, low disk space, missing archive part, and multiple
-/// generic success/failure phrasings, UniExtract.au3:4778-4818) have all
-/// failed to match — each of those is its own capability, not ported
-/// here. A caller applying this predicate must replicate that ordering:
-/// check this only once every higher-priority classification has been
-/// ruled out, matching the source's `ElseIf` chain.
+/// **Scope — one branch, standalone use.** This predicate only
+/// reproduces this one `ElseIf` arm; it's the *last* one in the chain,
+/// reached only once every higher-priority classification (invalid
+/// password, user cancellation, low disk space, missing archive part,
+/// and the generic success/failure phrasings, UniExtract.au3:4778-4818)
+/// has failed to match. A caller applying this predicate on its own must
+/// replicate that ordering; [`evaluate_log`] already does, for every
+/// branch, if the whole chain is what's needed.
 pub fn is_overwrite_success_message(log: &str) -> bool {
     log.contains("already exists.") || log.contains("Overwrite")
 }
@@ -119,9 +121,253 @@ pub fn needs_manual_input(chunk: &str) -> bool {
     .any(|needle| chunk_lower.contains(needle))
 }
 
+/// Ports the user-cancellation branch of `EvaluateLog()`
+/// (UniExtract.au3:4788): `$RESULT_CANCELED`. Matches case-insensitively
+/// (all three calls are bare `StringInStr`).
+pub fn is_canceled_message(log: &str) -> bool {
+    let lower = log.to_lowercase();
+    ["break signaled", "program aborted", "user break"]
+        .iter()
+        .any(|needle| lower.contains(needle))
+}
+
+/// Ports the low-disk-space branch of `EvaluateLog()`
+/// (UniExtract.au3:4791-4792): `$RESULT_NOFREESPACE`. Matches
+/// case-insensitively (both calls are bare `StringInStr`).
+pub fn is_no_free_space_message(log: &str) -> bool {
+    let lower = log.to_lowercase();
+    lower.contains("there is not enough space on the disk")
+        || lower.contains(
+            "[x] there is not enough space in working directory. unpacking would most likely fail!",
+        )
+}
+
+/// Ports the missing-archive-part branch of `EvaluateLog()`
+/// (UniExtract.au3:4795-4796): `$RESULT_FAILED`. Matches
+/// case-insensitively (all three calls are bare `StringInStr`).
+pub fn is_missing_part_message(log: &str) -> bool {
+    let lower = log.to_lowercase();
+    [
+        "you need to start extraction from a previous volume",
+        "unavailable start of archive",
+        "missing volume",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+/// Ports the generic-success branch of `EvaluateLog()`
+/// (UniExtract.au3:4800-4806): `$RESULT_SUCCESS`. Matches
+/// case-insensitively (all thirteen calls are bare `StringInStr`). The
+/// literal tab character inside `"Result:\tSuccessful, errorcode 0"`
+/// (shown as a gap in the source) is preserved exactly.
+pub fn is_generic_success_message(log: &str) -> bool {
+    let lower = log.to_lowercase();
+    [
+        "everything is ok",
+        "0 failed",
+        "all files ok",
+        "all ok",
+        "done.",
+        "done ...",
+        ": done",
+        "result:\tsuccessful, errorcode 0",
+        "... successful",
+        "extract files [ ",
+        "done; file is ok",
+        "successfully extracted to",
+        "[+] finished!",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle))
+}
+
+/// Ports the generic-failure branch of `EvaluateLog()`
+/// (UniExtract.au3:4809-4816): `$RESULT_FAILED`.
+///
+/// **Behavioral finding — mixed case sensitivity within one branch,**
+/// unlike every other arm of this `ElseIf` chain (all uniformly
+/// case-insensitive): five of these `StringInStr` calls pass an
+/// explicit case-sensitive mode (`1`) — `"err code("`, `"stacktrace"`,
+/// `"Write error: "`, `"ERROR: Wrong tag in package"`, and
+/// `"unzip:  cannot find"` (note the double space) — while the
+/// remaining nine are bare (case-insensitive), matching every other
+/// branch's convention. **One nested `And`:** `"Cannot create"` and
+/// `"No files to extract"` (both case-sensitive) must *both* appear for
+/// that pair to count, unlike every other substring here which is
+/// independently `Or`'d.
+pub fn is_generic_failure_message(log: &str) -> bool {
+    let case_sensitive_hit = [
+        "err code(",
+        "stacktrace",
+        "Write error: ",
+        "ERROR: Wrong tag in package",
+        "unzip:  cannot find",
+    ]
+    .iter()
+    .any(|needle| log.contains(needle));
+
+    let cannot_create_and_no_files =
+        log.contains("Cannot create") && log.contains("No files to extract");
+
+    let lower = log.to_lowercase();
+    let case_insensitive_hit = [
+        "archives with errors: 1",
+        "open error: can not open the file as",
+        "error: system.exception:",
+        "unknown wise-version -> contact author",
+        "critical error:",
+        "[error] ",
+        "mainheadernotfounderror",
+        "*** error:",
+        "expected section name \".enigma2\"",
+    ]
+    .iter()
+    .any(|needle| lower.contains(needle));
+
+    case_sensitive_hit || cannot_create_and_no_files || case_insensitive_hit
+}
+
+/// C167: what a log gets classified as by `EvaluateLog()`'s `ElseIf`
+/// chain (UniExtract.au3:4778-4825), in the source's own priority
+/// order. `Unclassified` means no branch matched, leaving `$success`
+/// at whatever it already was (typically `$RESULT_UNKNOWN`, feeding
+/// into this crate's `result_heuristic` module).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LogEvalOutcome {
+    /// `$RESULT_FAILED`, `SetError(1, 1)` (UniExtract.au3:4785-4787).
+    PasswordFailure,
+    /// `$RESULT_CANCELED` (UniExtract.au3:4789-4790).
+    Canceled,
+    /// `$RESULT_NOFREESPACE`, `SetError(2)` (UniExtract.au3:4793-4794).
+    NoFreeSpace,
+    /// `$RESULT_FAILED`, `SetError(3)` (UniExtract.au3:4797-4799).
+    MissingPart,
+    /// `$RESULT_SUCCESS` (UniExtract.au3:4807-4808).
+    Success,
+    /// `$RESULT_FAILED`, `SetError(1)` (UniExtract.au3:4817-4818).
+    Failed,
+    /// `$RESULT_SUCCESS` (UniExtract.au3:4820-4823) — see
+    /// [`is_overwrite_success_message`]'s doc comment for why an
+    /// overwrite prompt counts as success here.
+    OverwriteSuccess,
+    /// No arm matched.
+    Unclassified,
+}
+
+/// C167: ports the whole of `EvaluateLog()`'s classification chain
+/// (UniExtract.au3:4782-4825) as a single ordered decision, reusing
+/// every already-shipped branch predicate ([`is_password_failure`]
+/// C162, [`is_overwrite_success_message`] C144) alongside the five new
+/// ones this capability adds. Branch order matters — this function
+/// checks them in exactly the source's `ElseIf` sequence, so a caller
+/// no longer needs to replicate that ordering itself (unlike the
+/// individual predicates' own doc comments, which still describe it for
+/// standalone use).
+pub fn evaluate_log(log: &str) -> LogEvalOutcome {
+    if is_password_failure(log) {
+        LogEvalOutcome::PasswordFailure
+    } else if is_canceled_message(log) {
+        LogEvalOutcome::Canceled
+    } else if is_no_free_space_message(log) {
+        LogEvalOutcome::NoFreeSpace
+    } else if is_missing_part_message(log) {
+        LogEvalOutcome::MissingPart
+    } else if is_generic_success_message(log) {
+        LogEvalOutcome::Success
+    } else if is_generic_failure_message(log) {
+        LogEvalOutcome::Failed
+    } else if is_overwrite_success_message(log) {
+        LogEvalOutcome::OverwriteSuccess
+    } else {
+        LogEvalOutcome::Unclassified
+    }
+}
+
+/// Reproduces `_StringExtractAfter($sString, $sSubstring, $sEnd =
+/// @CRLF)` (UniExtract.au3:4586-4594): finds `marker` (case-insensitive,
+/// matching its bare `StringInStr` call), then returns everything from
+/// right after that match up to the next occurrence of `end`
+/// (case-insensitive). Returns `None` if either isn't found, matching
+/// the source's two `SetError` cases.
+///
+/// Case-insensitive matching is done by lowercasing the whole string
+/// once; that only preserves byte offsets between the lowercased and
+/// original text for text whose case-folding doesn't change its byte
+/// length (true for plain ASCII, which is what these helper-binary
+/// output logs are in practice) — this function bails out (`None`)
+/// rather than risk a misaligned slice when that's not the case.
+fn extract_after<'a>(log: &'a str, marker: &str, end: &str) -> Option<&'a str> {
+    let lower = log.to_lowercase();
+    if lower.len() != log.len() {
+        return None;
+    }
+    let match_start = lower.find(&marker.to_lowercase())?;
+    let start = match_start + marker.len();
+    let end_pos = start + lower.get(start..)?.find(&end.to_lowercase())?;
+    Some(&log[start..end_pos])
+}
+
+/// Reproduces `_StringInStrGetLine($sString, $sSubstring, $sLineEnd =
+/// @CRLF)` (UniExtract.au3:4597-4609): finds `needle` (case-insensitive)
+/// and returns the whole line it appears on — scanning backward from
+/// the match for the previous `@CRLF` (or the start of the string if
+/// there isn't one) and forward from the end of the match for the next
+/// `@CRLF` (or the end of the string). `@CRLF` itself is ASCII, so its
+/// scan doesn't need the lowercased copy; only the `needle` search
+/// does, under the same byte-length-preservation guard as
+/// [`extract_after`].
+fn in_str_get_line<'a>(log: &'a str, needle: &str) -> Option<&'a str> {
+    let lower = log.to_lowercase();
+    if lower.len() != log.len() {
+        return None;
+    }
+    let pos = lower.find(&needle.to_lowercase())?;
+
+    let prefix_end = (pos + 1).min(log.len());
+    let start = match log[..prefix_end].rfind("\r\n") {
+        Some(p) => p + 2,
+        None => 0,
+    };
+
+    let search_from = pos + needle.len();
+    let end = log[search_from..]
+        .find("\r\n")
+        .map(|p| search_from + p)
+        .unwrap_or(log.len());
+
+    Some(&log[start..end])
+}
+
+/// C167: ports `ParseWarnings()` (UniExtract.au3:4832-4845) — three
+/// tool-specific warning-block extractions, each appended to the result
+/// (source: `AddWarning()`, a bare push onto a global array) only when
+/// found. Order matches the source: 7-Zip's `WARNINGS:` block first,
+/// then UnRAR's checksum-error line, then a generic `Open WARNING: `
+/// line.
+pub fn parse_warnings(log: &str) -> Vec<String> {
+    let mut warnings = Vec::new();
+
+    if let Some(w) = extract_after(log, "WARNINGS:\r\n", "\r\n") {
+        warnings.push(w.to_string());
+    }
+    if let Some(w) = in_str_get_line(log, " - checksum error") {
+        warnings.push(w.to_string());
+    }
+    if let Some(w) = extract_after(log, "Open WARNING: ", "\r\n") {
+        warnings.push(w.to_string());
+    }
+
+    warnings
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{is_overwrite_success_message, is_password_failure, needs_manual_input};
+    use super::{
+        evaluate_log, is_canceled_message, is_generic_failure_message, is_generic_success_message,
+        is_missing_part_message, is_no_free_space_message, is_overwrite_success_message,
+        is_password_failure, needs_manual_input, parse_warnings, LogEvalOutcome,
+    };
 
     /// Parity test for capability C144: both substrings the source
     /// checks for are recognized.
@@ -234,5 +480,162 @@ mod tests {
             "Extracting: file.txt\r\nEverything is Ok"
         ));
         assert!(!is_password_failure(""));
+    }
+
+    /// Parity test for capability C167: each of the three cancellation
+    /// substrings is recognized.
+    #[test]
+    fn recognizes_all_three_cancellation_substrings() {
+        assert!(is_canceled_message("Break signaled"));
+        assert!(is_canceled_message("Program aborted"));
+        assert!(is_canceled_message("User break"));
+        assert!(is_canceled_message("USER BREAK")); // case-insensitive
+    }
+
+    /// Parity test for capability C167: each of the two no-free-space
+    /// substrings is recognized.
+    #[test]
+    fn recognizes_both_no_free_space_substrings() {
+        assert!(is_no_free_space_message(
+            "There is not enough space on the disk"
+        ));
+        assert!(is_no_free_space_message(
+            "[x] There is not enough space in working directory. Unpacking would most likely fail!"
+        ));
+    }
+
+    /// Parity test for capability C167: each of the three missing-part
+    /// substrings is recognized.
+    #[test]
+    fn recognizes_all_three_missing_part_substrings() {
+        assert!(is_missing_part_message(
+            "You need to start extraction from a previous volume"
+        ));
+        assert!(is_missing_part_message("Unavailable start of archive"));
+        assert!(is_missing_part_message("Missing volume"));
+    }
+
+    /// Parity test for capability C167: each of the thirteen
+    /// generic-success substrings is recognized, including the tab
+    /// character embedded in one of them.
+    #[test]
+    fn recognizes_all_thirteen_generic_success_substrings() {
+        for text in [
+            "Everything is Ok",
+            "0 failed",
+            "All files OK",
+            "All OK",
+            "done.",
+            "Done ...",
+            ": done",
+            "Result:\tSuccessful, errorcode 0",
+            "... Successful",
+            "Extract files [ ",
+            "Done; file is OK",
+            "Successfully extracted to",
+            "[+] Finished!",
+        ] {
+            assert!(is_generic_success_message(text), "expected match: {text}");
+        }
+    }
+
+    /// Parity test for capability C167: the five case-sensitive
+    /// substrings only match with exact casing.
+    #[test]
+    fn generic_failure_case_sensitive_substrings_require_exact_case() {
+        assert!(is_generic_failure_message("err code(1)"));
+        assert!(!is_generic_failure_message("ERR CODE(1)"));
+        assert!(is_generic_failure_message("a stacktrace follows"));
+        assert!(!is_generic_failure_message("a STACKTRACE follows"));
+    }
+
+    /// Parity test for capability C167: the nested `And` pair only
+    /// counts when *both* substrings are present.
+    #[test]
+    fn generic_failure_and_combo_requires_both_substrings() {
+        assert!(is_generic_failure_message(
+            "Cannot create output\r\nNo files to extract"
+        ));
+        assert!(!is_generic_failure_message("Cannot create output"));
+        assert!(!is_generic_failure_message("No files to extract"));
+    }
+
+    /// Parity test for capability C167: the nine case-insensitive
+    /// substrings match regardless of case.
+    #[test]
+    fn generic_failure_case_insensitive_substrings_match_any_case() {
+        assert!(is_generic_failure_message("ARCHIVES WITH ERRORS: 1"));
+        assert!(is_generic_failure_message("critical error: disk full"));
+    }
+
+    /// Parity test for capability C167: `evaluate_log` applies the
+    /// branches in the source's exact priority order — a password
+    /// failure wins even when generic-success text also appears.
+    #[test]
+    fn evaluate_log_password_failure_takes_priority_over_success_text() {
+        assert_eq!(
+            evaluate_log("Everything is Ok\r\nWrong password?"),
+            LogEvalOutcome::PasswordFailure
+        );
+    }
+
+    /// Parity test for capability C167: `evaluate_log` covers every
+    /// classification in order.
+    #[test]
+    fn evaluate_log_classifies_each_outcome() {
+        assert_eq!(evaluate_log("User break"), LogEvalOutcome::Canceled);
+        assert_eq!(
+            evaluate_log("There is not enough space on the disk"),
+            LogEvalOutcome::NoFreeSpace
+        );
+        assert_eq!(evaluate_log("Missing volume"), LogEvalOutcome::MissingPart);
+        assert_eq!(evaluate_log("Everything is Ok"), LogEvalOutcome::Success);
+        assert_eq!(evaluate_log("stacktrace"), LogEvalOutcome::Failed);
+        assert_eq!(
+            evaluate_log("output.txt already exists."),
+            LogEvalOutcome::OverwriteSuccess
+        );
+        assert_eq!(
+            evaluate_log("nothing recognizable here"),
+            LogEvalOutcome::Unclassified
+        );
+    }
+
+    /// Parity test for capability C167: `parse_warnings` extracts the
+    /// 7-Zip `WARNINGS:` block.
+    #[test]
+    fn parse_warnings_extracts_7zip_warnings_block() {
+        let log = "some output\r\nWARNINGS:\r\n1 file was skipped\r\nmore output";
+        assert_eq!(parse_warnings(log), vec!["1 file was skipped"]);
+    }
+
+    /// Parity test for capability C167: `parse_warnings` extracts the
+    /// UnRAR checksum-error line in full.
+    #[test]
+    fn parse_warnings_extracts_unrar_checksum_error_line() {
+        let log = "extracting file.txt\r\nfile.dat - checksum error\r\ndone";
+        assert_eq!(parse_warnings(log), vec!["file.dat - checksum error"]);
+    }
+
+    /// Parity test for capability C167: `parse_warnings` extracts a
+    /// generic `Open WARNING: ` line.
+    #[test]
+    fn parse_warnings_extracts_open_warning_line() {
+        let log = "start\r\nOpen WARNING: archive header truncated\r\nend";
+        assert_eq!(parse_warnings(log), vec!["archive header truncated"]);
+    }
+
+    /// Parity test for capability C167: `parse_warnings` can return
+    /// multiple warnings from a single log, and none when nothing
+    /// matches.
+    #[test]
+    fn parse_warnings_collects_multiple_and_none() {
+        let log =
+            "junk\r\nWARNINGS:\r\nheader warning\r\nfile.dat - checksum error\r\nOpen WARNING: trailer bad\r\n";
+        assert_eq!(
+            parse_warnings(log),
+            vec!["header warning", "file.dat - checksum error", "trailer bad"]
+        );
+        assert!(parse_warnings("nothing interesting here").is_empty());
     }
 }
