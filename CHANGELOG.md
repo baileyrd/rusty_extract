@@ -129,6 +129,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C086: MsiX extractor integration, shared across `$TYPE_MSI`/`$TYPE_MSM`/`$TYPE_MSP`
   (`extract::msix`).
 - C087: msiexec administrative-install fallback (`extract::msiexec`).
+- C160: archive password-list trial decision policy — probe/protected
+  detection and password-loop first-match search, used by 7z, DGCA, and
+  RAR extraction (`password_search`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
