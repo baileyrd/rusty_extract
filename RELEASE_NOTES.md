@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C140 (continued) — `extract()`'s trailing-backslash strip/reappend cycle
+**2026-08-18**
+
+- **Added:** `outdir::strip_trailing_backslash_for_extraction` and
+  `outdir::reappend_trailing_backslash_after_extraction` — complete C140
+  by porting the second half of its documented quirk: `extract()`
+  (UniExtract.au3:2278) strips `ValidateOutputDirectory`'s trailing
+  backslash immediately on entry, and only re-appends it
+  (UniExtract.au3:3413) once, right before returning. Every extraction
+  routine in between therefore sees an outdir with *no* trailing slash —
+  a real inconsistency `todo.txt:35` documents in the source itself,
+  preserved here rather than normalized away. The first half (that
+  `ValidateOutputDirectory` always *adds* the trailing backslash) shipped
+  in the previous PR as part of `outdir::resolve_output_directory`.
+- Parity tests: `outdir::tests::strip_trailing_backslash_matches_extract_start`,
+  `outdir::tests::reappend_trailing_backslash_matches_extract_end`.
+
 ## C004, C005, C139, C140 — Output-directory token and path resolution
 **2026-08-18**
 
