@@ -23,6 +23,43 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C114 — Actual Installer inner-blob handling
+**2026-08-18**
+
+- **Added:** `extract::actual::meta_invocation` — the metadata-extraction
+  invocation UniExtract2's `Case $TYPE_ACTUAL` (UniExtract.au3:2355)
+  makes: `unzip.exe "<file>"`, run in `tempoutdir` with the window
+  minimized. This pulls out `aisetup.ini`, the rename manifest the rest
+  of this capability consumes — the actual installer payload is a
+  second, recursive `extract($TYPE_7Z, ...)` dispatch (composite/
+  recursive dispatch, C054, not yet ported), not modeled here.
+- **Added:** `extract::actual::sanitize_destination_filename`/
+  `resolve_rename` — port the per-entry rename the source applies to
+  each raw name read from `aisetup.ini`'s `[Files]` section
+  (UniExtract.au3:2367-2380): `<`/`>` become `[`/`]`, then a
+  `?`-truncation step.
+- **Behavioral finding — a real, preserved source bug.** The `?`-
+  truncation guard is `Local $iPos = StringInStr($sDestination, "?") ...
+  If $iPos > -1 Then $sDestination = StringLeft($sDestination, $iPos -
+  1)`. `StringInStr` returns `0` (not `-1`) when the substring isn't
+  found, so `$iPos > -1` is true unconditionally — the author evidently
+  meant `<> 0` or `> 0`. When a `?` genuinely is present, this correctly
+  truncates everything before it; when it *isn't*, `$iPos` is `0`, so
+  `StringLeft($s, -1)` runs instead — AutoIt's negative-count form,
+  meaning "all but the last N characters" — which silently drops the
+  last character of every renamed file that has no `?` in its name. A
+  genuine bug in the source, preserved here exactly rather than "fixed"
+  into the evidently intended `?`-only truncation.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** `$TYPE_ACTUAL`'s
+  real dispatch is the recursive 7-Zip call plus the rename loop, not
+  either function this PR adds — the same reasoning `extract::forge`
+  (C119), `extract::mscf` (C120), and `extract::unity` (C121) already
+  use for the same kind of exclusion.
+- Parity tests: `extract::actual::tests::meta_invocation_matches_source`,
+  `sanitize_replaces_angle_brackets`, `sanitize_truncates_at_question_mark`,
+  `sanitize_drops_last_character_when_no_question_mark_present`,
+  `resolve_rename_builds_source_and_destination_paths`.
+
 ## C113 — arc_conv integration
 **2026-08-18**
 
