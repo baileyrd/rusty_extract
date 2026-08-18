@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C142 — Output-directory creation and validation
+**2026-08-18**
+
+- **Added:** `outdir::OutdirOutcome`/`outdir::decide_outdir_outcome` —
+  ports `CreateOutdir()`'s decision tree (UniExtract.au3:3968-3978) as a
+  pure function of already-known filesystem facts: an existing, writable
+  directory needs no action; a missing one is created (tracked as
+  `Created`, standing in for the source's `$createdir = True`, consumed
+  by C157's later cleanup-on-failure logic, not ported here); anything
+  else — exists but isn't a directory, exists but isn't writable, or
+  creation failed — is one of three distinct fatal outcomes, all mapping
+  to `terminate($STATUS_INVALIDDIR, ...)` (exit 5, per
+  `status::exit_code` / C016).
+- **Scope note:** the actual `FileExists`/`_IsDirectory`/`CanAccess`/
+  `DirCreate` filesystem calls are the caller's job — this function only
+  reproduces the branching once those facts are known, consistent with
+  this port's pattern for source functions that mix real I/O with a pure
+  decision (e.g. `prefs::password_list_path`, C035).
+- Parity tests: `outdir::tests::existing_writable_directory_is_already_valid`,
+  `outdir::tests::missing_directory_created_successfully`,
+  `outdir::tests::invalid_directory_cases_are_all_fatal`.
+
 ## C141 — Drive-root output directory behavior
 **2026-08-18**
 
