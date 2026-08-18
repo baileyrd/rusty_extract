@@ -88,6 +88,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C119: InstallForge 7z.exe wrapper + base64 path-rename logic (`extract::forge`).
 - C120: MSCF Cab installer 7z.exe wrapper (`extract::mscf`).
 - C121: Unity `.unitypackage` decoder 7z.exe wrapper + path-remapping (`extract::unity`).
+- C113: arc_conv integration (`extract::arc_conv`).
 - C117: Netopsystems FEAD self-extraction (`extract::fead`).
 ### Changed
 ### Fixed

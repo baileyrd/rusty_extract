@@ -60,6 +60,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::extsis",
     },
     HardcodedCase {
+        type_key: "arc_conv",
+        module: "extract::arc_conv",
+    },
+    HardcodedCase {
         type_key: "ace",
         module: "extract::ace",
     },
