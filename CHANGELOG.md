@@ -99,6 +99,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C171: generic success/failure fallback heuristic — output-directory
   size/mtime comparison used when an extractor case never explicitly
   reports success (`result_heuristic::resolve_unknown_result`).
+- C153: scan-only full-detail output — concatenates every scanner's
+  result into one report, with or without centered dashed headers
+  (`filetype_report::format_filetype_results`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

@@ -23,6 +23,38 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C153 — Scan-only full-detail output
+**2026-08-18**
+
+- **Added:** `filetype_report::format_filetype_results` — ports
+  `_FiletypeGet($bHeader = True, $iWidth = 50)`
+  (UniExtract.au3:5292-5313): concatenates every scanner's
+  `($sScanner, $sType)` result (TrID, Unix `file`, Exeinfo PE, PEiD,
+  MediaInfo) into one report string, entries separated by a blank line.
+- **Behavioral finding — two distinct output shapes, same function:**
+  `with_header = false` (used to build the plain `$sFileType` value both
+  `terminate()` and C154's silent-mode scan log consume) yields only
+  concatenated type text, no scanner names anywhere; `with_header = true`
+  (used for on-screen display) centers each scanner name between dashes
+  sized to `Floor((width - len(" name ")) / 2)` per side.
+- **Behavioral finding — `Floor`, not round, and no negative-padding
+  guard needed:** an odd remainder always shortens the header by one
+  character rather than rounding up; a scanner name longer than `width`
+  drives the computed padding negative, which reproduces as no dashes at
+  all (matching the standard `_StringRepeat` UDF's own non-positive-count
+  guard) rather than a truncated name or a crash. `width <= 0` skips
+  padding entirely and uses the bare scanner name.
+- Parity tests: `filetype_report::tests::no_header_joins_type_text_only`,
+  `no_header_single_entry_has_no_leading_separator`,
+  `empty_entries_produce_empty_string`,
+  `header_centers_scanner_name_with_floor_division`,
+  `header_floor_rounding_on_odd_remainder`,
+  `header_name_longer_than_width_has_no_padding`,
+  `zero_width_uses_bare_scanner_name`,
+  `multiple_header_entries_are_separated`.
+
+---
+
 ## C171 — Generic success/failure fallback heuristic
 **2026-08-18**
 
