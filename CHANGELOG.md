@@ -102,6 +102,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C153: scan-only full-detail output — concatenates every scanner's
   result into one report, with or without centered dashed headers
   (`filetype_report::format_filetype_results`).
+- C154: scan-only silent-mode file output — the file-scan log entry
+  format appended per item in a batch run
+  (`filetype_report::build_scan_log_entry`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

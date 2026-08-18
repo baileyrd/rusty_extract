@@ -1,12 +1,15 @@
 //! Scan-only file-type report formatting: ports `_FiletypeGet()`
-//! (UniExtract.au3:5292-5313) — capability C153. Each detector that ran
+//! (UniExtract.au3:5292-5313, capability C153) and the silent-mode
+//! file-scan log entry format it feeds into
+//! (UniExtract.au3:4139-4142, capability C154). Each detector that ran
 //! (TrID, Unix `file`, Exeinfo PE, PEiD, MediaInfo) appends its own
 //! `($sScanner, $sType)` pair to the source's `$aFiletype` array via
-//! `_FiletypeAdd()`; this function concatenates all of them into one
-//! report string, either as a single unlabeled block (`$bHeader = False`,
-//! used to build the plain `$sFileType` value `terminate()` and C154's
-//! silent-mode scan log both consume) or with a centered dashed header
-//! per scanner (`$bHeader = True`, used for on-screen display).
+//! `_FiletypeAdd()`; [`format_filetype_results`] concatenates all of
+//! them into one report string, either as a single unlabeled block
+//! (`$bHeader = False`, used to build the plain `$sFileType` value
+//! `terminate()` and [`build_scan_log_entry`]'s silent-mode scan log
+//! both consume) or with a centered dashed header per scanner
+//! (`$bHeader = True`, used for on-screen display).
 
 /// One scanner's contribution to the report: the scanner's display name
 /// and the type text it produced. Mirrors one row of the source's
@@ -67,9 +70,26 @@ pub fn format_filetype_results(entries: &[ScannerResult], with_header: bool, wid
     result
 }
 
+/// Ports the `$STATUS_FILEINFO`/silent-mode branch of `terminate()`
+/// (UniExtract.au3:4139-4142) — capability C154: the block appended to
+/// the file-scan log when a scan-only run finishes in silent mode.
+/// `filetype` is exactly `_FiletypeGet(False)`'s output — in this crate,
+/// [`format_filetype_results`] called with `with_header = false`.
+///
+/// The 60-dash separator is a literal from the source, not a computed
+/// width — unrelated to the `width` parameter [`format_filetype_results`]
+/// takes. Opening `$fileScanLogFile` in append mode
+/// (`$FO_CREATEPATH + $FO_APPEND`) is real filesystem I/O and the
+/// caller's job; every scanned item in a batch run appends its own block
+/// to the same file, which is how results accumulate across the run —
+/// this function only builds the one block for a single item.
+pub fn build_scan_log_entry(file: &str, filetype: &str) -> String {
+    format!("{file}\r\n\r\n{filetype}\r\n{}\r\n", "-".repeat(60))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{format_filetype_results, ScannerResult};
+    use super::{build_scan_log_entry, format_filetype_results, ScannerResult};
 
     /// Parity test for capability C153: `with_header = false` joins raw
     /// type text only, no scanner names, entries separated by a blank
@@ -196,5 +216,27 @@ mod tests {
             result,
             "--- AB ---\r\n\r\ntype one\r\n\r\n--- CD ---\r\n\r\ntype two"
         );
+    }
+
+    /// Parity test for capability C154: the scan log entry format
+    /// matches the source's exact concatenation — file path, blank line,
+    /// filetype text, a 60-dash separator line, each `\r\n`-terminated.
+    #[test]
+    fn build_scan_log_entry_matches_source_format() {
+        let dashes = "-".repeat(60);
+        assert_eq!(
+            build_scan_log_entry(r"C:\downloads\archive.zip", "ZIP archive"),
+            format!("C:\\downloads\\archive.zip\r\n\r\nZIP archive\r\n{dashes}\r\n")
+        );
+    }
+
+    /// Parity test for capability C154: the separator is exactly 60
+    /// dashes, matching the source's literal string length.
+    #[test]
+    fn build_scan_log_entry_separator_is_sixty_dashes() {
+        let entry = build_scan_log_entry("file.exe", "unknown type");
+        let separator_line = entry.lines().nth(3).unwrap();
+        assert_eq!(separator_line.len(), 60);
+        assert!(separator_line.chars().all(|c| c == '-'));
     }
 }

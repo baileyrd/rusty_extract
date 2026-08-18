@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C154 — Scan-only silent-mode file output
+**2026-08-18**
+
+- **Added:** `filetype_report::build_scan_log_entry` — ports the
+  `$STATUS_FILEINFO`/silent-mode branch of `terminate()`
+  (UniExtract.au3:4139-4142): the block appended to the file-scan log
+  when a scan-only run finishes in silent mode — file path, blank line,
+  filetype text, a 60-dash separator line, each `\r\n`-terminated.
+  `filetype` is exactly `format_filetype_results`'s `with_header = false`
+  output (C153).
+- **Scope note:** opening `$fileScanLogFile` in append mode
+  (`$FO_CREATEPATH + $FO_APPEND`) is real filesystem I/O and stays the
+  caller's job — that append-per-call is also how results accumulate
+  across a batch run; this function only builds the one block for a
+  single item.
+- Parity tests: `filetype_report::tests::build_scan_log_entry_matches_source_format`,
+  `build_scan_log_entry_separator_is_sixty_dashes`.
+
+---
+
 ## C153 — Scan-only full-detail output
 **2026-08-18**
 
