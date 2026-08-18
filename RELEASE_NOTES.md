@@ -23,6 +23,42 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C171 — Generic success/failure fallback heuristic
+**2026-08-18**
+
+- **Added:** `result_heuristic::resolve_unknown_result` — ports the
+  `$RESULT_UNKNOWN` arm of the success-evaluation `Switch $success` in
+  `extract()` (UniExtract.au3:3415-3430). When an extractor case never
+  explicitly sets `$success`, the fallback compares the output
+  directory's size and modification time against a before-extraction
+  snapshot: no size growth (when a real size measurement was taken) or
+  an unchanged mtime is enough to reclassify the run as failed.
+- **Behavioral finding — cheap-measurement sentinel:** `initdirsize ==
+  -1` reproduces `_DirGetSize`'s own `$return` default, returned instead
+  of an actual (expensive) `DirGetSize` call when the output directory is
+  a drive root with more than 4 GB already in use. The source's own
+  `$initdirsize > -1` guard exists specifically to skip the
+  size-comparison half of the heuristic in that case, leaving only the
+  mtime comparison.
+- **Behavioral finding — ace/exe carve-out:** `$arctype = "ace" And
+  $fileext = "exe"` is a genuinely different code path, not just "not
+  failed": the source `Return False`s out of the entire `extract()`
+  function right there, bypassing the normal `terminate()`/success flow
+  this heuristic otherwise feeds into. Modeled as its own
+  `AceExeEarlyAbort` outcome rather than folding it into `TreatAsSuccess`.
+- **Scope note:** capturing the before/after directory size and mtime
+  snapshots is real filesystem I/O (`_DirGetSize`, `FileGetTime`) and
+  stays the caller's job — this ports the pure decision over
+  already-known values only.
+- Parity tests: `result_heuristic::tests::no_size_growth_resolves_to_failed`,
+  `unchanged_mtime_alone_resolves_to_failed`,
+  `growth_and_mtime_change_treated_as_success`,
+  `negative_one_initdirsize_skips_size_check`,
+  `ace_exe_case_early_aborts_instead_of_failing`,
+  `ace_exe_case_with_evidence_of_output_treats_as_success`.
+
+---
+
 ## C173 — Batch continues past an ordinary per-item failure
 **2026-08-18**
 

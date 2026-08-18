@@ -96,6 +96,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C117: Netopsystems FEAD self-extraction (`extract::fead`).
 - C173: batch continues past an ordinary per-item failure, stops only on
   `$STATUS_SILENT` (`batch::should_continue_batch`).
+- C171: generic success/failure fallback heuristic — output-directory
+  size/mtime comparison used when an extractor case never explicitly
+  reports success (`result_heuristic::resolve_unknown_result`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
