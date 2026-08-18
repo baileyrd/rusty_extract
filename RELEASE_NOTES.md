@@ -23,6 +23,59 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## Composition root: minimal end-to-end wiring for `rgss`/`ace`
+**2026-08-18**
+
+- **Context:** this repo had ~150 pure ported functions but nothing driving
+  them — `src/main.rs` was a one-line stub, and none of `ARCHITECTURE.md`'s
+  three ports (`TypeDetector`, `ExtractorRunner`, `ExtractionTransaction`)
+  had an adapter. This surfaced while investigating C148 (batch-item
+  process spawning): there was no process-spawning runtime anywhere for
+  that capability to hook into. Rather than patch around the gap
+  capability-by-capability, this PR builds the first real, working slice —
+  a `main.rs` that actually extracts a file end-to-end for two extractors —
+  proving the wiring pattern before it's extended further. The
+  ports-and-adapters design itself is unchanged (it implements ADR-0119/
+  ADR-0120 from `rusty_foundation_akb`, already a pre-accepted governing
+  standard); this PR only implements the pieces that were missing.
+- **Added:** `extract::runner::ExtractorRunner` — the `ExtractorRunner`
+  port: `CommandExtractorRunner` is the real adapter (`std::process::Command`,
+  full-capture `.output()`, not streaming — streaming was only ever in
+  service of force-showing a window on a detected prompt, itself
+  out-of-scope GUI, manifest row D001), `FakeExtractorRunner` is a
+  hand-rolled test double (records calls, returns a canned `RunOutcome`),
+  following the same real-I/O/testable-core split `extract::plugin`'s
+  `resolve_plugin_ini`/`resolve_plugin_ini_with` already established. No
+  new dependency — `Cargo.toml` still has zero.
+- **Added:** `main.rs` — a real composition root. Takes `<extractor-type>
+  <program> <file> [outdir]` positionally, resolves the output directory
+  via the already-shipped `outdir::resolve_output_directory`/
+  `outdir::default_output_subfolder`/`outdir::decide_outdir_outcome`
+  (C004, C138, C139, C140, C142), dispatches via the already-shipped
+  `extract::dispatch::dispatch` but only actually wires the two extractors
+  whose invocation builders need no unresolved dependency (`rgss`, `ace`;
+  `rpa` needs an `@ScriptDir`-equivalent that doesn't exist yet), sandwiches
+  the run in the already-shipped C140 trailing-backslash strip/reappend
+  cycle, classifies the captured output with `log_eval::is_overwrite_success_message`,
+  and exits via the already-shipped `status::exit_code` contract (C016).
+- **Scope note — deliberately deferred, not dropped:** the `/type` override
+  (C006) and the `cli` flags (C007-C013) — this binary only takes
+  positional arguments; the detection cascade (C037-046) picking
+  `extractor_type` automatically — this phase requires it as an explicit
+  argument; `def/*.ini` plugin-engine dispatch (`DispatchTarget::Plugin`);
+  batch-queue execution/process chaining (C011, C015, the remainder of
+  C148); `ExtractionTransaction`/ADR-0119 staged-commit hardening
+  (extractors here still write straight to `outdir`, matching today's
+  documented behavior); `/last` (no output-directory history wired up yet
+  — a clear error is returned instead of silently misresolving).
+- Parity/wiring tests: `extract::runner::tests::command_runner_captures_a_real_process_output`,
+  `extract::runner::tests::command_runner_reports_launch_failure_without_panicking`,
+  `extract::runner::tests::fake_runner_records_calls_and_returns_canned_outcome`,
+  `tests::wires_rgss_through_dispatch_to_the_runner`,
+  `tests::wires_ace_through_dispatch_to_the_runner`,
+  `tests::rejects_extractor_types_not_wired_up_yet`,
+  `tests::split_file_path_separates_dir_stem_and_extension` (in `main.rs`).
+
 ## C148 — Batch-item-per-process execution model
 **2026-08-18**
 
