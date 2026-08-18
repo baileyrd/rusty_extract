@@ -86,6 +86,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C118: SuperDAT Updater self-extraction (`extract::superdat`).
 - C066: ci-extractor integration (`extract::ci`).
 - C119: InstallForge 7z.exe wrapper + base64 path-rename logic (`extract::forge`).
+- C120: MSCF Cab installer 7z.exe wrapper (`extract::mscf`).
 - C117: Netopsystems FEAD self-extraction (`extract::fead`).
 ### Changed
 ### Fixed
