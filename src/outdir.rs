@@ -1,6 +1,10 @@
 //! Output-directory resolution: ports `ValidateOutputDirectory()`
-//! (UniExtract.au3:526-544) and `GetLastOutdir()`
-//! (UniExtract.au3:872-878).
+//! (UniExtract.au3:526-544), `GetLastOutdir()`
+//! (UniExtract.au3:872-878), `CreateOutdir()`
+//! (UniExtract.au3:3968-3978), and the empty-outdir cleanup check inside
+//! `terminate()` (UniExtract.au3:4224).
+
+use crate::status::Status;
 
 /// C005: ports `GetLastOutdir()` (UniExtract.au3:872-878) — the most
 /// recently used output directory is the `"Directory History"` section's
@@ -179,12 +183,31 @@ pub fn decide_outdir_outcome(
     }
 }
 
+/// C157: ports the empty-output-directory cleanup check inside
+/// `terminate()` (UniExtract.au3:4224: `If $createdir And $status <>
+/// $STATUS_SUCCESS And DirGetSize($outdir) = 0 Then DirRemove($outdir,
+/// 1)`). `created_dir` is whether *this run* created the directory
+/// (C142's `OutdirOutcome::Created`, not an outdir that already
+/// existed) — only a directory this run itself brought into being gets
+/// cleaned up. A failed run whose output directory is non-empty is left
+/// alone; only a still-empty one (nothing was ever written, or
+/// everything written was itself removed) qualifies.
+pub fn should_remove_empty_created_outdir(
+    created_dir: bool,
+    status: Status,
+    dir_is_empty: bool,
+) -> bool {
+    created_dir && status != Status::Success && dir_is_empty
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         decide_outdir_outcome, get_last_outdir, reappend_trailing_backslash_after_extraction,
-        resolve_output_directory, strip_trailing_backslash_for_extraction, OutdirOutcome,
+        resolve_output_directory, should_remove_empty_created_outdir,
+        strip_trailing_backslash_for_extraction, OutdirOutcome,
     };
+    use crate::status::Status;
 
     /// Parity test for capability C005: a present history slot 0 is
     /// returned as the resolved directory; a missing one maps to `None`,
@@ -371,5 +394,50 @@ mod tests {
         ] {
             assert!(outcome.is_fatal());
         }
+    }
+
+    /// Parity test for capability C157: a directory this run created,
+    /// still empty, on a failed run gets removed.
+    #[test]
+    fn empty_created_outdir_removed_on_failure() {
+        assert!(should_remove_empty_created_outdir(
+            true,
+            Status::Failed,
+            true
+        ));
+    }
+
+    /// Parity test for capability C157: a non-empty failed output
+    /// directory is left in place, even if this run created it.
+    #[test]
+    fn nonempty_created_outdir_not_removed_on_failure() {
+        assert!(!should_remove_empty_created_outdir(
+            true,
+            Status::Failed,
+            false
+        ));
+    }
+
+    /// Parity test for capability C157: an outdir that already existed
+    /// before this run (not created by it) is never removed, empty or
+    /// not.
+    #[test]
+    fn preexisting_outdir_never_removed() {
+        assert!(!should_remove_empty_created_outdir(
+            false,
+            Status::Failed,
+            true
+        ));
+    }
+
+    /// Parity test for capability C157: a successful run never removes
+    /// the output directory, even if this run created it and it's empty.
+    #[test]
+    fn successful_run_never_removes_outdir() {
+        assert!(!should_remove_empty_created_outdir(
+            true,
+            Status::Success,
+            true
+        ));
     }
 }
