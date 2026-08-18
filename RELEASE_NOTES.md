@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C159 — Unicode-relocation reversion at end of run
+**2026-08-18**
+
+- **Added:** `unicode_relocation::decide_unicode_reversion` — ports the
+  end-of-run half of the `$iUnicodeMode` state machine: `terminate()`'s
+  unconditional reversal (UniExtract.au3:4101-4114), run at the top of
+  every `terminate()` call — success, failure, or anything else — never
+  gated on the run's outcome, only on whether a relocation happened at
+  all. Given `UnicodeMode::None`/`Move`/`Copy`, decides whether to move
+  the working copy back, recycle it, or do nothing, and whether the
+  output directory needs moving back too.
+- **Scope note:** reversion decision only. The relocation itself —
+  `MoveInputFileIfNecessary()` (UniExtract.au3:2218-2266), which decides
+  *whether* to relocate and sets the mode this function consumes — is
+  C175/C176, not yet ported.
+- Parity tests: `unicode_relocation::tests::*` (3 tests, one per mode).
+
+---
+
 ## C148 — Batch-item-per-process execution model
 **2026-08-18**
 

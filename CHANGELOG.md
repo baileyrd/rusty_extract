@@ -135,6 +135,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C148: batch-item-per-process spawning — pops the batch queue and
   relaunches the current executable with the next item's arguments,
   chaining driven entirely by each process's own exit (`batch_runner`).
+- C159: unicode-relocation reversion decision — given the relocation
+  mode a run left behind, decides whether to move the working copy
+  back, recycle it, or do nothing (`unicode_relocation`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
