@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C061 — ARJ SFX verification
+**2026-08-18**
+
+- **Added:** `detection::arj_probe::probe_invocation`/`is_arj_sfx` — ports
+  `checkArj` (UniExtract.au3:1958-1972) exactly, the same shape as
+  `detection::alz_probe`'s `CheckAlz` (C059): builds the `arj l "<file>"`
+  listing probe, then reimplements the source's exact recognition
+  predicate (`Archive created:` present in the captured output) as a pure
+  function of that output.
+- **Behavioral finding:** matches case-insensitively — the source's
+  `StringInStr($return, "Archive created:", 0)` passes an explicit `0`
+  case-sensitivity argument, the same AutoIt default already documented
+  for every other bare/explicit-`0` `StringInStr` call this port has
+  encountered (C007-C013, C144, C145, C147).
+- **Scope note:** the recursive `extract($TYPE_7Z, ...)` dispatch call the
+  source makes when this returns `true` (UniExtract.au3:1966) is
+  composite/recursive dispatch (capability C054, not yet ported), not this
+  probe's job — the same "probe vs. dispatch" boundary `detection::alz_probe`
+  already draws for its own recursive `extract($TYPE_ALZ, -1)` call.
+- Parity tests: `detection::arj_probe::tests::probe_invocation_matches_source`,
+  `recognizes_a_valid_arj_listing`, `matches_case_insensitively`,
+  `rejects_output_missing_the_created_header`.
+
 ## C088 — NBHextract extractor integration
 **2026-08-18**
 
