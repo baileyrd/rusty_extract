@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C084 — lessmsi extractor integration
+**2026-08-18**
+
+- **Added:** `extract::lessmsi::invocation` — ports `$TYPE_MSI`'s
+  primary extraction attempt (UniExtract.au3:2843-2845): `<program> x
+  "<file>" "<outdir>\"`, run in `outdir` with the window hidden.
+- **Scope note:** `$TYPE_MSI`'s full source behavior is a fallback
+  chain — lessmsi first, then (only on failure or a missing .NET
+  runtime) a GUI candidate list among jsMSI Unpacker (C085), MsiX
+  (C086), an MSI Total Commander plugin path, and an administrative
+  `msiexec.exe` install (C087). Like C075's InstallShield chain, that
+  makes `msi` a composite/conditional dispatch case, not registered in
+  `extract::dispatch::HARDCODED_CASES`. Also out of scope: the
+  post-extraction `SourceDir`-flattening `MoveFiles` call and the
+  `DirGetSize($outdir) == $initdirsize` success/failure check right
+  after it — both real filesystem I/O.
+- Parity tests: `extract::lessmsi::tests::matches_source_invocation`.
+
+---
+
 ## C092 — UnRAR extractor integration
 **2026-08-18**
 
