@@ -37,6 +37,7 @@ pub mod fsb;
 pub mod garbro;
 pub mod godot;
 pub mod helpdeco;
+pub mod inno;
 pub mod isxunpack;
 pub mod isz;
 pub mod jsmsix;
