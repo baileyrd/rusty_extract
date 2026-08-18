@@ -154,7 +154,7 @@ prefix, in table order:
 | C081 | lzop (`lzop.exe`) — `.lzo` LZO compressed files | behavior | code | none found (directory check only) | DONE | | PR [#203](https://github.com/baileyrd/rusty_extract/pull/203), test `extract::lzop::tests::matches_source_invocation` |
 | C082 | unlzx (`unlzx.exe`) — `.lzx` LZX (Amiga) archives | behavior | code | none found (directory check only) | DONE | | PR [#223](https://github.com/baileyrd/rusty_extract/pull/223), test `extract::lzx::tests::matches_source_invocation` |
 | C083 | demoleition / MoleBox (`demoleition.exe`) — MoleBox-packaged executables | behavior | code | none found (directory check only) | DONE | | PR [#222](https://github.com/baileyrd/rusty_extract/pull/222), test `extract::mole::tests::matches_source_invocation` |
-| C084 | lessmsi (`lessmsi.exe`) — Windows Installer `.msi`, primary extractor | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2132,2841-2848 |
+| C084 | lessmsi (`lessmsi.exe`) — Windows Installer `.msi`, primary extractor | behavior | code | none found (directory check only) | DONE | | PR [#332](https://github.com/baileyrd/rusty_extract/pull/332), tests `extract::lessmsi::tests::matches_source_invocation` |
 | C085 | jsMSIx (`jsMSIx.exe`) — MSI fallback method 1 | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2858 |
 | C086 | MsiX (`MsiX.exe`) — MSI fallback 2, MSM merge modules, MSP patches | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2864,2887,2908 |
 | C087 | Windows `msiexec.exe` — MSI administrative-install fallback | behavior | code | none found (directory check only) | REQUIRED | | UniExtract.au3:2883 |
