@@ -57,6 +57,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C033: `cleanup` preference (`prefs::parse_cleanup_option`).
 - C035: password list file path resolution (`prefs::password_list_path`).
 - C020, C022, C023, C025, C027, C028, C029, C030, C031, C032: simple boolean preference defaults (`prefs::resolve_bool_pref` and one `..._DEFAULT` constant per preference).
+- C018, C019: `batchqueue`/`filescanlogfile` path-override preferences (`prefs::resolve_batchqueue_path`, `prefs::resolve_filescanlogfile_path`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

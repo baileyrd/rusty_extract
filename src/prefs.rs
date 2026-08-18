@@ -190,14 +190,71 @@ pub const EXTRACTVIDEOTRACK_DEFAULT: bool = true;
 /// of the per-run `/silent` flag (C007).
 pub const SILENTMODE_DEFAULT: bool = false;
 
+/// Approximates AutoIt's `_PathFull(path, base)` UDF: not defined anywhere
+/// in this port's source checkout (an external/bundled include this repo
+/// doesn't carry), so this models its well-established, standard meaning
+/// — a relative `path` resolves against `base`; an already-absolute path
+/// (a drive letter, `C:...`, or a UNC share, `\\...`) is returned
+/// unchanged. `resolve_batchqueue_path`/`resolve_filescanlogfile_path`
+/// (C018/C019) are the only two capabilities so far that need it.
+fn resolve_relative_path(path: &str, base: &str) -> String {
+    let bytes = path.as_bytes();
+    let is_absolute = (bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':')
+        || path.starts_with(r"\\");
+    if is_absolute {
+        path.to_string()
+    } else {
+        format!("{base}\\{path}")
+    }
+}
+
+/// C018: ports the `batchqueue` preference's default-and-override
+/// resolution (UniExtract.au3:721,729-730): `LoadPref("batchqueue",
+/// $batchQueue, False)` (string mode: a present value is used verbatim,
+/// a missing/unreadable key leaves `$batchQueue` at its `Global` default,
+/// `$settingsdir & "\batch.queue"`), followed by `If $batchQueue Then
+/// $batchQueue = _PathFull($batchQueue, $settingsdir)` — AutoIt's truthy
+/// check on the *value itself*, not `@error`, so this resolution step
+/// runs on the default too (a no-op here since the default is already
+/// absolute) and is skipped only for the one edge case where the ini
+/// explicitly sets an empty `batchqueue=` value.
+pub fn resolve_batchqueue_path(raw: Option<&str>, settingsdir: &str) -> String {
+    let value = raw
+        .map(str::to_string)
+        .unwrap_or_else(|| format!("{settingsdir}\\batch.queue"));
+    if value.is_empty() {
+        value
+    } else {
+        resolve_relative_path(&value, settingsdir)
+    }
+}
+
+/// C019: ports the `filescanlogfile` preference's default-and-override
+/// resolution (UniExtract.au3:722,725,731-732): `LoadPref("filescanlogfile",
+/// $fileScanLogFile, False)` (string mode, same missing-key-keeps-default
+/// semantics as C018 — the default is `$logdir & "filescan.txt"`, i.e.
+/// `$settingsdir\log\filescan.txt`), followed by `If Not @error Then
+/// $fileScanLogFile = _PathFull(...)` — unlike C018, this checks
+/// `LoadPref`'s error flag rather than the value's truthiness, so the
+/// resolution step is skipped whenever the default is kept (harmless
+/// either way since that default is already absolute) and only ever runs
+/// on a value actually read from the ini.
+pub fn resolve_filescanlogfile_path(raw: Option<&str>, settingsdir: &str) -> String {
+    match raw {
+        Some(v) => resolve_relative_path(v, settingsdir),
+        None => format!("{settingsdir}\\log\\filescan.txt"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         parse_cleanup_option, parse_delete_source_file_option, password_list_path,
-        resolve_bool_pref, resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption,
-        APPENDEXT_DEFAULT, BATCHENABLED_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT,
-        FREESPACECHECK_DEFAULT, KEEPOUTPUTDIR_DEFAULT, LOG_DEFAULT, SILENTMODE_DEFAULT,
-        UNICODECHECK_DEFAULT, WARNEXECUTE_DEFAULT,
+        resolve_batchqueue_path, resolve_bool_pref, resolve_filescanlogfile_path,
+        resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption, APPENDEXT_DEFAULT,
+        BATCHENABLED_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT, FREESPACECHECK_DEFAULT,
+        KEEPOUTPUTDIR_DEFAULT, LOG_DEFAULT, SILENTMODE_DEFAULT, UNICODECHECK_DEFAULT,
+        WARNEXECUTE_DEFAULT,
     };
 
     /// Parity test for capability C026: a normally-stored preference value
@@ -398,6 +455,56 @@ mod tests {
     #[test]
     fn silentmode_preference_default_matches_source() {
         assert!(!resolve_bool_pref(None, SILENTMODE_DEFAULT));
+    }
+
+    /// Parity test for capability C018: a missing/unreadable `batchqueue`
+    /// key falls back to `$settingsdir\batch.queue`; a present relative
+    /// value resolves against `settingsdir`; a present absolute value is
+    /// kept as-is; an explicit empty value skips resolution entirely
+    /// (AutoIt's `If $batchQueue Then` truthy check).
+    #[test]
+    fn batchqueue_path_matches_source_default_and_override() {
+        assert_eq!(
+            resolve_batchqueue_path(None, r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract"),
+            r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract\batch.queue"
+        );
+        assert_eq!(
+            resolve_batchqueue_path(
+                Some("custom.queue"),
+                r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract"
+            ),
+            r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract\custom.queue"
+        );
+        assert_eq!(
+            resolve_batchqueue_path(Some(r"D:\queues\batch.queue"), r"C:\settings"),
+            r"D:\queues\batch.queue"
+        );
+        assert_eq!(resolve_batchqueue_path(Some(""), r"C:\settings"), "");
+    }
+
+    /// Parity test for capability C019: a missing/unreadable
+    /// `filescanlogfile` key falls back to
+    /// `$settingsdir\log\filescan.txt` (skipping `_PathFull` entirely,
+    /// matching the source's `If Not @error Then` gate rather than a
+    /// truthiness check); a present relative value resolves against
+    /// `settingsdir`; a present absolute value is kept as-is.
+    #[test]
+    fn filescanlogfile_path_matches_source_default_and_override() {
+        assert_eq!(
+            resolve_filescanlogfile_path(None, r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract"),
+            r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract\log\filescan.txt"
+        );
+        assert_eq!(
+            resolve_filescanlogfile_path(
+                Some("scan-results.txt"),
+                r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract"
+            ),
+            r"C:\Users\me\AppData\Roaming\Bioruebe\UniExtract\scan-results.txt"
+        );
+        assert_eq!(
+            resolve_filescanlogfile_path(Some(r"D:\logs\filescan.txt"), r"C:\settings"),
+            r"D:\logs\filescan.txt"
+        );
     }
 
     /// Parity test for capability C158: `$OPTION_DELETE` always deletes;
