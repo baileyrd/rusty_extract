@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C144 — Overwrite message treated as extraction success
+**2026-08-18**
+
+- **Added:** `log_eval::is_overwrite_success_message` — ports the
+  "already exists."/"Overwrite" branch of `EvaluateLog()`
+  (UniExtract.au3:4819-4823): a log mentioning either substring is
+  treated as success, not failure — the source's own stated reasoning is
+  that an overwritten file leaves the output folder's total size roughly
+  unchanged, so the separate "did the folder size change" check that
+  would otherwise flag this as a failure gets skipped for exactly that
+  reason.
+- **Scope note:** `EvaluateLog()` is a much longer `ElseIf` chain —
+  invalid password, user cancellation, low disk space, missing archive
+  part, and several generic success/failure phrasings all take priority
+  over this branch in the source (UniExtract.au3:4778-4818). Each is its
+  own capability (or not yet ported); this predicate reproduces only the
+  overwrite branch itself, and a caller must replicate the source's
+  ordering — ruling those out first — to match behavior exactly.
+- Parity tests: `log_eval::tests::recognizes_both_overwrite_substrings`,
+  `log_eval::tests::does_not_match_unrelated_log_text`.
+
 ## C138 — Output-subfolder default resolution
 **2026-08-18**
 
