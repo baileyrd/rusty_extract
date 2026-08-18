@@ -146,6 +146,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`extract::visionaire3`).
 - C073: helpdeco extractor integration, RTF reconstruction pass
   (`extract::helpdeco`).
+- C076: IsXunpack extractor integration (`extract::isxunpack`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
