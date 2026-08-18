@@ -207,12 +207,33 @@ pub fn should_add_to_batch(
     }
 }
 
+/// C173: ports the batch-continuation gate inside `terminate()`
+/// (UniExtract.au3:4235-4237): `If $batchEnabled = 1 And $status <>
+/// $STATUS_SILENT Then BatchQueuePop()`. A `Failed` status (or any other
+/// ordinary terminal status) still satisfies `status != Silent`, so a
+/// normal, clean-exit per-item failure does **not** stop the chain — only
+/// `$STATUS_SILENT` (used when the GUI itself has been closed/aborted)
+/// does. This is the condition [`pop_batch_queue`]'s own doc comment
+/// already describes in prose (the next process's own `terminate()` call
+/// reaching this check before popping again); this function is that
+/// check itself, ported.
+///
+/// **Not modeled here:** whether an extraction *hangs or crashes*
+/// instead of exiting cleanly — that's a process-liveness concern for
+/// this port's not-yet-built runtime orchestration (the same territory
+/// `pop_batch_queue`'s own doc comment already flags), not something a
+/// status-comparison function can observe.
+pub fn should_continue_batch(batch_enabled: bool, status: crate::status::Status) -> bool {
+    batch_enabled && status != crate::status::Status::Silent
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         build_command_line, is_multipart_archive_already_queued, pop_batch_queue,
-        should_add_to_batch,
+        should_add_to_batch, should_continue_batch,
     };
+    use crate::status::Status;
 
     /// Parity test for capability C147: `GetCmd`'s command-line shape
     /// across its `extract`/`/sub`/plain-outdir/`/scan`/`/silent`
@@ -320,5 +341,32 @@ mod tests {
     #[test]
     fn pop_batch_queue_empty_queue_returns_none() {
         assert_eq!(pop_batch_queue(&[]), None);
+    }
+
+    /// Parity test for capability C173: an ordinary terminal status (not
+    /// `Silent`) does not stop the chain when batch mode is enabled —
+    /// covers `Failed`, `Success`, and `NotPacked` as representative
+    /// non-`Silent` statuses.
+    #[test]
+    fn should_continue_batch_continues_on_ordinary_statuses() {
+        assert!(should_continue_batch(true, Status::Failed));
+        assert!(should_continue_batch(true, Status::Success));
+        assert!(should_continue_batch(true, Status::NotPacked));
+    }
+
+    /// Parity test for capability C173: `$STATUS_SILENT` stops the chain
+    /// regardless of whether batch mode is enabled.
+    #[test]
+    fn should_continue_batch_stops_on_silent_status() {
+        assert!(!should_continue_batch(true, Status::Silent));
+        assert!(!should_continue_batch(false, Status::Silent));
+    }
+
+    /// Parity test for capability C173: batch mode disabled stops the
+    /// chain regardless of status.
+    #[test]
+    fn should_continue_batch_stops_when_batch_disabled() {
+        assert!(!should_continue_batch(false, Status::Failed));
+        assert!(!should_continue_batch(false, Status::Success));
     }
 }

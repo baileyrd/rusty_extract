@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C173 — Batch continues past an ordinary per-item failure
+**2026-08-18**
+
+- **Added:** `batch::should_continue_batch` — ports the batch-continuation
+  gate inside `terminate()` (UniExtract.au3:4235-4237): `If $batchEnabled
+  = 1 And $status <> $STATUS_SILENT Then BatchQueuePop()`. A `Failed`
+  status (or any other ordinary terminal status) still satisfies `status
+  != Silent`, so a normal, clean-exit per-item failure does **not** stop
+  the chain — only `$STATUS_SILENT` (used when the GUI itself has been
+  closed/aborted) does.
+- **Scope note:** this is the condition `pop_batch_queue`'s own doc
+  comment (C148) already described in prose — the next process's own
+  `terminate()` call reaching this check before popping again. This
+  function is that check itself, now ported and tested directly. Not
+  modeled: whether an extraction *hangs or crashes* instead of exiting
+  cleanly, which is a process-liveness concern for this port's
+  not-yet-built runtime orchestration, not something a status-comparison
+  function can observe.
+- Parity tests: `batch::tests::should_continue_batch_continues_on_ordinary_statuses`,
+  `should_continue_batch_stops_on_silent_status`,
+  `should_continue_batch_stops_when_batch_disabled`.
+
+---
+
 ## C169, C170 — Run-log write policy
 **2026-08-18**
 
