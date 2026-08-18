@@ -35,6 +35,7 @@ pub mod lzop;
 pub mod lzx;
 pub mod mo;
 pub mod mole;
+pub mod nbh;
 pub mod pdf;
 pub mod pex;
 pub mod placeholder;

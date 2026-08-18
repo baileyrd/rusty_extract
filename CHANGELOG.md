@@ -77,6 +77,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   run, log evaluation, exit code) — the first working slice of the
   composition root `ARCHITECTURE.md` describes.
 - C097: SQLite database dump extractor integration (`extract::sqlite`).
+- C088: NBHextract extractor integration (`extract::nbh`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
