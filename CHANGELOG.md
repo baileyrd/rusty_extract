@@ -105,6 +105,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C154: scan-only silent-mode file output — the file-scan log entry
   format appended per item in a batch run
   (`filetype_report::build_scan_log_entry`).
+- C179 (partial): free-space check arithmetic and silent-mode
+  termination decision (`free_space::measure_free_space`,
+  `decide_free_space_outcome`); interactive abort/retry/ignore prompt
+  not yet ported, row stays REQUIRED.
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
