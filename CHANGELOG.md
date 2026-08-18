@@ -123,6 +123,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   selection, path resolution, and wildcard-target classification
   (`cleanup` module); wildcard expansion and the real filesystem calls
   not yet ported, row stays REQUIRED.
+- C092: UnRAR extractor integration (`extract::rar`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
