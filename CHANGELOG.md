@@ -114,6 +114,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C162: generic password-failure detection via output-text matching,
   including the `_StringGetLine($sLog, -1)` off-by-one fallback quirk
   (`log_eval::is_password_failure`).
+- C167: output-log evaluation (`log_eval::evaluate_log`, full
+  `EvaluateLog()` `ElseIf` chain) and warning extraction
+  (`log_eval::parse_warnings`, `ParseWarnings()`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

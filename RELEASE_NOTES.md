@@ -23,6 +23,55 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C167 — Output-log evaluation and warning extraction
+**2026-08-18**
+
+- **Added:** `log_eval::evaluate_log` — ports the whole of `EvaluateLog()`'s
+  classification `ElseIf` chain (UniExtract.au3:4778-4825) as a single
+  ordered decision (`LogEvalOutcome`), applying every branch in the
+  source's exact priority order: password failure (C162) → cancellation
+  → no free space → missing part → generic success → generic failure →
+  overwrite-as-success (C144) → unclassified. Five new standalone branch
+  predicates (`is_canceled_message`, `is_no_free_space_message`,
+  `is_missing_part_message`, `is_generic_success_message`,
+  `is_generic_failure_message`) back it, each independently documented
+  and testable like the two that already shipped.
+- **Added:** `log_eval::parse_warnings` — ports `ParseWarnings()`
+  (UniExtract.au3:4832-4845): three tool-specific warning-block
+  extractions (7-Zip's `WARNINGS:` block, UnRAR's checksum-error line, a
+  generic `Open WARNING: ` line), each appended only when found.
+- **Behavioral finding — mixed case sensitivity within one branch:** the
+  generic-failure branch is the one place in this whole chain that isn't
+  uniformly case-insensitive. Five substrings (`"err code("`,
+  `"stacktrace"`, `"Write error: "`, `"ERROR: Wrong tag in package"`,
+  `"unzip:  cannot find"`) pass AutoIt's explicit case-sensitive mode;
+  the other nine default to case-insensitive like every other branch.
+- **Behavioral finding — one nested `And` inside an otherwise all-`Or`
+  chain:** `"Cannot create"` and `"No files to extract"` (both
+  case-sensitive) must *both* appear for that pair to count toward a
+  generic-failure match.
+- **Scope note:** `_StringExtractAfter`/`_StringInStrGetLine` (the two
+  project-local helpers `ParseWarnings` depends on) are reproduced via
+  new private `extract_after`/`in_str_get_line` functions. Both bail out
+  (`None`) rather than risk a misaligned slice on text whose
+  case-folding would change its byte length — plain ASCII (what these
+  helper-binary logs are in practice) is unaffected.
+- Parity tests: `log_eval::tests::recognizes_all_three_cancellation_substrings`,
+  `recognizes_both_no_free_space_substrings`,
+  `recognizes_all_three_missing_part_substrings`,
+  `recognizes_all_thirteen_generic_success_substrings`,
+  `generic_failure_case_sensitive_substrings_require_exact_case`,
+  `generic_failure_and_combo_requires_both_substrings`,
+  `generic_failure_case_insensitive_substrings_match_any_case`,
+  `evaluate_log_password_failure_takes_priority_over_success_text`,
+  `evaluate_log_classifies_each_outcome`,
+  `parse_warnings_extracts_7zip_warnings_block`,
+  `parse_warnings_extracts_unrar_checksum_error_line`,
+  `parse_warnings_extracts_open_warning_line`,
+  `parse_warnings_collects_multiple_and_none`.
+
+---
+
 ## C162 — Generic password-failure detection via output-text matching
 **2026-08-18**
 
