@@ -23,6 +23,21 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C157 — Empty created-output-directory cleanup on failure
+**2026-08-18**
+
+- **Added:** `outdir::should_remove_empty_created_outdir` — ports the
+  cleanup check inside `terminate()` (UniExtract.au3:4224): a directory
+  *this run* created (C142's `OutdirOutcome::Created`, not one that
+  already existed) gets removed if the run didn't succeed and the
+  directory is still empty. A non-empty failed output directory is left
+  in place; a pre-existing output directory is never removed regardless
+  of outcome.
+- Parity tests: `outdir::tests::empty_created_outdir_removed_on_failure`,
+  `outdir::tests::nonempty_created_outdir_not_removed_on_failure`,
+  `outdir::tests::preexisting_outdir_never_removed`,
+  `outdir::tests::successful_run_never_removes_outdir`.
+
 ## C142 — Output-directory creation and validation
 **2026-08-18**
 
