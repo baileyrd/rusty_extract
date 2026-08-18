@@ -109,6 +109,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   termination decision (`free_space::measure_free_space`,
   `decide_free_space_outcome`); interactive abort/retry/ignore prompt
   not yet ported, row stays REQUIRED.
+- C165: per-run log file naming — `<logdir>YYYY-MM-DD_HH-MM-SS_[STATUS_]<name>.<ext>.log`,
+  status omitted on success (`run_log::build_log_file_name`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

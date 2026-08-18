@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C165 — Per-run log file naming/location/encoding
+**2026-08-18**
+
+- **Added:** `run_log::build_log_file_name` — ports `SaveLog()`'s log
+  file name construction (UniExtract.au3:4765-4768): `<logdir>`
+  `YYYY-MM-DD_HH-MM-SS_` `[STATUS_UPPER]` `[_<filename>.<ext>]` `.log`.
+  The status marker is omitted entirely on a successful run.
+- **Behavioral finding — two unconditional underscores, not
+  separators:** neither the `"_"` right after the timestamp nor the
+  `"_"` right before the file segment only appears when needed to join
+  two non-empty pieces — both are always emitted. A successful run with
+  a file therefore gets a doubled `"__"` between the timestamp and the
+  file name (no status marker consumed the first one); a successful run
+  with no file ends with that first `"_"` immediately before `.log` —
+  e.g. `...12-00-00_.log`. Neither is a typo in this port.
+- **Scope note:** reading the current date/time (`@YEAR`/`@MON`/etc.)
+  is real I/O and stays the caller's job (matching this crate's existing
+  `datetime` convention from C169's `build_error_log_line`), as is
+  `$logdir`'s own trivial resolution (`$settingsdir & "\log\"`) and the
+  UTF-16 file write itself (`FileOpen($FO_UNICODE + ...)`)  — none of
+  those involve any further decision logic beyond what this function
+  already formats.
+- Parity tests: `run_log::tests::build_log_file_name_failed_run_includes_status_and_file`,
+  `build_log_file_name_success_run_omits_status_marker`,
+  `build_log_file_name_success_no_file_reproduces_trailing_underscore_quirk`,
+  `build_log_file_name_failed_no_file_includes_status_only`.
+
+---
+
 ## C179 (partial) — Free-space check
 **2026-08-18**
 

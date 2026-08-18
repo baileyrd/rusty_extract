@@ -1,9 +1,11 @@
 //! Per-run application log policy: whether a batch-mode error-log line
-//! gets appended (C169) and whether `SaveLog()` actually writes a log
-//! file at all for a given terminal status (C170). Ports pieces of
-//! `terminate()` (UniExtract.au3:4216-4233) — not to be confused with
-//! `log_eval`, which classifies a helper binary's captured *subprocess*
-//! output, a different log entirely.
+//! gets appended (C169), whether `SaveLog()` actually writes a log file
+//! at all for a given terminal status (C170), and the log file's own
+//! name (C165). Ports pieces of `terminate()`
+//! (UniExtract.au3:4216-4233) and `SaveLog()` itself
+//! (UniExtract.au3:4764-4775) — not to be confused with `log_eval`,
+//! which classifies a helper binary's captured *subprocess* output, a
+//! different log entirely.
 
 use crate::status::Status;
 
@@ -70,6 +72,57 @@ pub fn should_save_log(
     );
     (create_log_enabled && !already_saved && !suppressed)
         || (matches!(status, Status::FileInfo { .. }) && silent_mode)
+}
+
+/// C165: ports `SaveLog()`'s log file name construction
+/// (UniExtract.au3:4765-4768):
+///
+/// ```text
+/// $sName = $logdir & @YEAR & "-" & @MON & "-" & @MDAY & "_" & @HOUR & "-" & @MIN & "-" & @SEC & "_"
+/// If $status <> $STATUS_SUCCESS Then $sName &= StringUpper($status)
+/// If $file <> "" Then $sName &= "_" & GetFileName() & "." & $fileext
+/// $sName &= ".log"
+/// ```
+///
+/// `timestamp` is caller-supplied — reading `@YEAR`/`@MON`/.../`@SEC`
+/// is real I/O, matching this crate's existing convention (see
+/// [`build_error_log_line`]'s `datetime` parameter). `file_name` is
+/// `GetFileName()`'s result — itself a runtime choice between the
+/// unicode-relocation working name and the real one (capabilities
+/// C159/C175, not yet ported); the caller resolves it, this function
+/// only formats.
+///
+/// **Quirk, preserved as-is:** the trailing `"_"` after `timestamp` is
+/// unconditional, and the `"_"` before the file segment is *also*
+/// unconditional — neither one only appears when needed to separate two
+/// non-empty pieces. A successful run (`is_success = true`) with a
+/// non-empty `file` therefore gets a doubled `"__"` between the
+/// timestamp and the file name (no status marker was appended to
+/// consume the first `"_"`), and a successful run with an empty `file`
+/// ends up with that first `"_"` immediately followed by `".log"` — e.g.
+/// `...12-00-00_.log`. Neither is a typo in this port; the source
+/// produces exactly this.
+pub fn build_log_file_name(
+    logdir: &str,
+    timestamp: &str,
+    is_success: bool,
+    status_name: &str,
+    file: &str,
+    file_name: &str,
+    file_ext: &str,
+) -> String {
+    let mut name = format!("{logdir}{timestamp}_");
+    if !is_success {
+        name.push_str(&status_name.to_uppercase());
+    }
+    if !file.is_empty() {
+        name.push('_');
+        name.push_str(file_name);
+        name.push('.');
+        name.push_str(file_ext);
+    }
+    name.push_str(".log");
+    name
 }
 
 #[cfg(test)]
@@ -158,5 +211,83 @@ mod tests {
     fn should_save_log_respects_enabled_and_already_saved_gates() {
         assert!(!should_save_log(false, false, Status::Success, false));
         assert!(!should_save_log(true, true, Status::Success, false));
+    }
+
+    /// Parity test for capability C165: a failed run with a file
+    /// includes both the uppercased status marker and the
+    /// `_<name>.<ext>` segment.
+    #[test]
+    fn build_log_file_name_failed_run_includes_status_and_file() {
+        assert_eq!(
+            build_log_file_name(
+                r"C:\settings\log\",
+                "2026-08-18_12-00-00",
+                false,
+                "failed",
+                r"C:\downloads\archive.zip",
+                "archive",
+                "zip"
+            ),
+            r"C:\settings\log\2026-08-18_12-00-00_FAILED_archive.zip.log"
+        );
+    }
+
+    /// Parity test for capability C165: a successful run with a file
+    /// omits the status marker, but still includes the file segment —
+    /// note the double underscore this leaves behind, since the source
+    /// unconditionally prefixes the file segment with its own `"_"`
+    /// regardless of whether a status marker was appended just before
+    /// it.
+    #[test]
+    fn build_log_file_name_success_run_omits_status_marker() {
+        assert_eq!(
+            build_log_file_name(
+                r"C:\settings\log\",
+                "2026-08-18_12-00-00",
+                true,
+                "success",
+                r"C:\downloads\archive.zip",
+                "archive",
+                "zip"
+            ),
+            r"C:\settings\log\2026-08-18_12-00-00__archive.zip.log"
+        );
+    }
+
+    /// Parity test for capability C165: a successful run with no file
+    /// (e.g. a syntax error before a file was resolved) reproduces the
+    /// source's trailing-underscore-before-extension quirk exactly.
+    #[test]
+    fn build_log_file_name_success_no_file_reproduces_trailing_underscore_quirk() {
+        assert_eq!(
+            build_log_file_name(
+                r"C:\settings\log\",
+                "2026-08-18_12-00-00",
+                true,
+                "success",
+                "",
+                "",
+                ""
+            ),
+            r"C:\settings\log\2026-08-18_12-00-00_.log"
+        );
+    }
+
+    /// Parity test for capability C165: a failed run with no file
+    /// includes the status marker but not the file segment.
+    #[test]
+    fn build_log_file_name_failed_no_file_includes_status_only() {
+        assert_eq!(
+            build_log_file_name(
+                r"C:\settings\log\",
+                "2026-08-18_12-00-00",
+                false,
+                "syntax",
+                "",
+                "",
+                ""
+            ),
+            r"C:\settings\log\2026-08-18_12-00-00_SYNTAX.log"
+        );
     }
 }
