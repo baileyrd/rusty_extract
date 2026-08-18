@@ -36,6 +36,7 @@ pub mod freearc;
 pub mod fsb;
 pub mod garbro;
 pub mod godot;
+pub mod helpdeco;
 pub mod isz;
 pub mod jsmsix;
 pub mod kgb;
