@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C088 — NBHextract extractor integration
+**2026-08-18**
+
+- **Added:** `extract::nbh::invocation` — builds the NBHextract
+  (`NBHextract.exe`) HTC NBH ROM image extraction command, matching
+  UniExtract.au3:2952-2953's `Case $TYPE_NBH`: `<program> "<file>"`, run in
+  `outdir` with the window shown normally.
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"nbh"` →
+  `extract::nbh`).
+- **Behavioral finding:** the source calls AutoIt's native `RunWait`
+  directly (not this script's own `_Run` wrapper) with no explicit
+  `show_flag` argument, so it takes `RunWait`'s own default,
+  `@SW_SHOWNORMAL` — mapped to `WindowMode::Show`, the same mapping this
+  crate already uses for an explicit `True` show-flag literal.
+- **Scope note — shell wrapping not modeled:** `_MakeCommand($nbh, True)`
+  routes through the same generic `cmd.exe /d /c` shell-wrapping as
+  `extract::sqlite`'s call site, with no effect on the arguments
+  `NBHextract.exe` itself receives — this port's `Invocation` targets
+  `NBHextract.exe` directly, consistent with every other module in this
+  crate.
+- Parity test: `extract::nbh::tests::matches_source_invocation`.
+
 ## C097 — SQLite database dump extractor integration
 **2026-08-18**
 
