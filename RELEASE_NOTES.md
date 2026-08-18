@@ -23,6 +23,36 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C160 — Automated password-list trial
+**2026-08-18**
+
+- **Added:** `password_search::probe_shows_protected`,
+  `password_search::find_password` — port `_FindArchivePassword`'s
+  decision logic (UniExtract.au3:4847-4877): whether a probe command's
+  captured output shows an archive is password-protected, and which
+  password (if any) from a list satisfies a per-password test-command
+  check. Used by 7-Zip (C056), DGCA, and RAR (C092) extraction
+  (UniExtract.au3:2290, 2501, 3004).
+- **Added:** `password_search::nth_line_from_end` — generalizes the
+  `$iLine < 0` branch of `_StringGetLine` (UniExtract.au3:4577-4583),
+  previously ported only for `$iLine = -1` as `log_eval`'s private
+  `tail_for_password_prompt_search`, to arbitrary negative values since
+  `_FindArchivePassword`'s own default `$iLine` is `-3`.
+- **Scope note:** decision policy only, no process spawning — the source
+  runs two shell commands per archive type via `FetchStdout`; this
+  module doesn't run anything (that's `extract::runner`'s job).
+  `probe_shows_protected` and `find_password` take already-captured
+  output / a caller-supplied closure standing in for "run the test
+  command", the same dependency-injection split already used by
+  `extract::plugin::resolve_plugin_ini`/`resolve_plugin_ini_with`.
+  Reading the password-list file (with its `@ScriptDir\passwords.txt`
+  fallback) is left to the caller.
+- Parity tests: `password_search::tests::*` (12 tests covering the
+  `$iLine` line-selection fallback quirk, case-insensitive matching, and
+  the password-trial loop's first-match/exhausted/empty-list outcomes).
+
+---
+
 ## C087 — msiexec administrative-install fallback
 **2026-08-18**
 
