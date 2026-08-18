@@ -23,6 +23,43 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C064 — Windows `expand.exe` (CAB/MSU)
+**2026-08-18**
+
+- **Added:** `extract::expand::invocation` — the shared `expand.exe`
+  invocation both call sites use: the non-self-extracting `Case $TYPE_CAB`
+  branch (UniExtract.au3:2438) and `Case $TYPE_MSU`'s two `expand.exe`
+  calls (UniExtract.au3:2916,2927): `<program> -F:* "<file>" "<destdir>"`,
+  run in `filedir` with the window hidden.
+- **Added:** `extract::expand::cab_self_extract_invocation` — the "Type 1"
+  self-extracting-CAB branch (UniExtract.au3:2432-2433): the archive is
+  itself a self-extracting executable, run directly as `<file> /q
+  /x:<outdir>`, with a normally shown window (`RunWait`'s own default,
+  same mapping `extract::nbh` already uses).
+- **Scope note — shell wrapping not modeled as a literal string:** the
+  shared `expand.exe` call builds its command as a literal `cmd.exe /d /c
+  ` prefix concatenated directly onto the string (bypassing `_Run`'s own
+  bindir-prefixing, since `$expand` is already a fully resolved,
+  pre-quoted `@SystemDir` path) — functionally still `<expand> -F:*
+  "<file>" "<destdir>"`, so this port's `Invocation` targets the exe
+  directly, the same as every other module in this crate.
+- **Not modeled:** the CAB call site's preceding `check7z($arcdisp)` probe
+  and `HasPlugin($expand)` precondition check; `Warn_Execute`'s
+  "continue?" confirmation gate around the self-extracting-CAB path
+  (deferred GUI subsystem, manifest row D001, `warnexecute` preference
+  C023); and the MSU call site's surrounding orchestration (temp-directory
+  staging, extracting a nested `.cab` found inside the first expansion,
+  sorting the second expansion's output into `x86`/`x64`/`WOW64`/`MSIL`
+  subfolders by filename prefix) — all separate runtime behavior, not part
+  of building either `expand.exe` call.
+- **No `extract::dispatch::HARDCODED_CASES` entry:** both `$TYPE_CAB` and
+  `$TYPE_MSU` dispatch to more than one invocation depending on runtime
+  conditions the flat dispatch table doesn't model — the same reasoning
+  `extract::pdf` (4 invocations) and `extract::unzip` (composite
+  `$TYPE_ZIP` dispatch) already use for the same kind of exclusion.
+- Parity tests: `extract::expand::tests::matches_source_invocation`,
+  `extract::expand::tests::cab_self_extract_matches_source_invocation`.
+
 ## C061 — ARJ SFX verification
 **2026-08-18**
 

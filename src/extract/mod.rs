@@ -22,6 +22,7 @@ pub mod chdman;
 pub mod cic;
 pub mod daa;
 pub mod dispatch;
+pub mod expand;
 pub mod extsis;
 pub mod freearc;
 pub mod fsb;
