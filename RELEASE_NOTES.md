@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C164 — Debug-line accumulation
+**2026-08-18**
+
+- **Added:** `run_log::build_debug_line` — ports `Cout()`'s debug-line
+  format (UniExtract.au3:5352-5357): `<datetime>:<msec>\t<msg>\r\n`.
+- **Scope note:** the source appends every formatted line onto a
+  growing `$sFullLog` string for the whole run's duration ("buffered in
+  memory for the full run") — that accumulation is the caller's own
+  trivial responsibility (one `push_str` per call), not modeled as its
+  own function here. Reading the current date/time/millisecond
+  (`GetDateTime()`, `@MSEC`) and `ConsoleWrite`ing the line when not
+  running as a compiled executable are both real I/O, out of scope.
+- Parity tests: `run_log::tests::build_debug_line_matches_source_format`,
+  `build_debug_line_with_empty_message`.
+
+---
+
 ## C167 — Output-log evaluation and warning extraction
 **2026-08-18**
 

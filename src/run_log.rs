@@ -1,11 +1,11 @@
 //! Per-run application log policy: whether a batch-mode error-log line
 //! gets appended (C169), whether `SaveLog()` actually writes a log file
-//! at all for a given terminal status (C170), and the log file's own
-//! name (C165). Ports pieces of `terminate()`
-//! (UniExtract.au3:4216-4233) and `SaveLog()` itself
-//! (UniExtract.au3:4764-4775) — not to be confused with `log_eval`,
-//! which classifies a helper binary's captured *subprocess* output, a
-//! different log entirely.
+//! at all for a given terminal status (C170), the log file's own name
+//! (C165), and each debug line's own format (C164). Ports pieces of
+//! `terminate()` (UniExtract.au3:4216-4233), `SaveLog()` itself
+//! (UniExtract.au3:4764-4775), and `Cout()` (UniExtract.au3:5352-5357)
+//! — not to be confused with `log_eval`, which classifies a helper
+//! binary's captured *subprocess* output, a different log entirely.
 
 use crate::status::Status;
 
@@ -41,6 +41,24 @@ pub fn build_error_log_line(
         "{datetime} {name} ({}) - {arctype}\r\n",
         status_name.to_uppercase()
     )
+}
+
+/// C164: ports `Cout()`'s debug-line format (UniExtract.au3:5352-5357):
+/// `<datetime>:<msec>\t<msg>\r\n`. `datetime` (`GetDateTime()`'s result,
+/// itself `@YEAR-@MON-@MDAY @HOUR:@MIN:@SEC`) and `msec` (`@MSEC`) are
+/// both real-clock reads and stay the caller's job, matching this
+/// module's existing `datetime` convention (C169's
+/// `build_error_log_line`).
+///
+/// **Scope:** the source appends every formatted line onto a
+/// growing `$sFullLog` string for the whole run's duration ("buffered
+/// in memory for the full run") — that accumulation is the caller's own
+/// trivial responsibility (one `push_str` per call), not modeled as its
+/// own function here. `ConsoleWrite`ing the line when not running as a
+/// compiled executable (`If Not @Compiled Then ConsoleWrite(...)`) is
+/// also real I/O, out of scope.
+pub fn build_debug_line(datetime: &str, msec: &str, msg: &str) -> String {
+    format!("{datetime}:{msec}\t{msg}\r\n")
 }
 
 /// C170: ports the guard deciding whether `SaveLog()` actually writes a
@@ -288,6 +306,27 @@ mod tests {
                 ""
             ),
             r"C:\settings\log\2026-08-18_12-00-00_SYNTAX.log"
+        );
+    }
+
+    /// Parity test for capability C164: the debug-line format matches
+    /// the source's exact concatenation — datetime, colon, millisecond,
+    /// tab, message, CRLF.
+    #[test]
+    fn build_debug_line_matches_source_format() {
+        assert_eq!(
+            build_debug_line("2026-08-18 12:00:00", "123", "Starting extraction"),
+            "2026-08-18 12:00:00:123\tStarting extraction\r\n"
+        );
+    }
+
+    /// Parity test for capability C164: an empty message still produces
+    /// a well-formed line (timestamp/tab/CRLF present, message empty).
+    #[test]
+    fn build_debug_line_with_empty_message() {
+        assert_eq!(
+            build_debug_line("2026-08-18 12:00:00", "007", ""),
+            "2026-08-18 12:00:00:007\t\r\n"
         );
     }
 }
