@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C091 — RAIU extractor integration
+**2026-08-18**
+
+- **Added:** `extract::raiu::invocation`,
+  `extract::raiu::intermediate_file_path` — port `Case $TYPE_RAI`'s
+  shell-unwrap invocation (UniExtract.au3:2994-2999): `RAIU.exe
+  "<file>" "<tmp>"`, run in `filedir`, plus the intermediate
+  unpacked-file path it's built for
+  (`<tempoutdir><filename>_<term>.exe`, with the localized
+  `t('TERM_UNPACKED')` term injected by the caller, same convention
+  as C138/C073).
+- **Scope note:** invocation only. The recursive re-dispatch into
+  `extract($TYPE_INNO, ...)` on the unwrapped file (C181) and the
+  `Cleanup`/`DirRemove` temp-file teardown are out of scope.
+- Parity tests: `extract::raiu::tests::*` (2 tests).
+
+---
+
 ## C076 — IsXunpack extractor integration
 **2026-08-18**
 

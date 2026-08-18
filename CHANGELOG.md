@@ -147,6 +147,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C073: helpdeco extractor integration, RTF reconstruction pass
   (`extract::helpdeco`).
 - C076: IsXunpack extractor integration (`extract::isxunpack`).
+- C091: RAIU extractor integration (`extract::raiu`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
