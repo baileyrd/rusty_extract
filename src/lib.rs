@@ -9,5 +9,6 @@ pub mod ini;
 pub mod log_eval;
 pub mod outdir;
 pub mod prefs;
+pub mod result_heuristic;
 pub mod run_log;
 pub mod status;
