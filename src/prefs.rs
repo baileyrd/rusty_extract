@@ -125,6 +125,40 @@ pub fn password_list_path(
     }
 }
 
+/// C021: ports `WriteHist`'s move-to-front/dedupe/cap-at-10 semantics
+/// (UniExtract.au3:857-869), expressed as the resulting ordered list a
+/// subsequent `ReadHist` (UniExtract.au3:844-854) would observe.
+///
+/// `WriteHist` writes `new_item` to ini key `"0"` unconditionally, then
+/// walks the *old* history (as `ReadHist` returns it — already
+/// non-empty-only, in slot order) for at most 9 entries, re-writing each
+/// to its own original ini key except any entry equal to `new_item`,
+/// which it deletes instead of rewriting. Two quirks fall out of that,
+/// both preserved here:
+///
+/// - **A dedup match leaves a hole, not a shift.** Deleting a mid-list
+///   duplicate's ini key doesn't pull later entries forward to fill the
+///   gap — but `ReadHist` skips empty slots when reconstructing the list,
+///   so the hole is invisible to every consumer that only ever reads
+///   history through `ReadHist`, which is every consumer in the source.
+///   This function models that externally observable list, not
+///   `WriteHist`'s raw ini key layout.
+/// - **The 9-entry scan is positional, not count-of-survivors.** The loop
+///   stops after considering the old list's first 9 entries regardless of
+///   whether one of them got dropped as a duplicate — it never reaches
+///   into a 10th old entry to backfill the slot a dedup match freed up.
+///   A duplicate found within the first 9 old entries therefore shrinks
+///   the resulting list below 10, rather than keeping it topped up.
+pub fn push_history(existing: &[String], new_item: &str) -> Vec<String> {
+    let mut result = vec![new_item.to_string()];
+    for item in existing.iter().take(9) {
+        if item != new_item {
+            result.push(item.clone());
+        }
+    }
+    result
+}
+
 /// Ports `LoadPref`'s int-preference path (`$bInt = True`, the default,
 /// UniExtract.au3:825-841) as applied to a simple 0/1-valued preference
 /// read as a boolean. UniExtract2 treats any nonzero integer as truthy in
@@ -262,7 +296,7 @@ pub fn resolve_filescanlogfile_path(raw: Option<&str>, settingsdir: &str) -> Str
 #[cfg(test)]
 mod tests {
     use super::{
-        parse_cleanup_option, parse_delete_source_file_option, password_list_path,
+        parse_cleanup_option, parse_delete_source_file_option, password_list_path, push_history,
         resolve_batchqueue_path, resolve_bool_pref, resolve_filescanlogfile_path,
         resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption, APPENDEXT_DEFAULT,
         BATCHENABLED_DEFAULT, BATCHRECURSE_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT,
@@ -526,6 +560,68 @@ mod tests {
     #[test]
     fn batchrecurse_preference_default_matches_source() {
         assert!(resolve_bool_pref(None, BATCHRECURSE_DEFAULT));
+    }
+
+    /// Parity test for capability C021: a brand-new item is prepended to
+    /// an existing history list, with the rest carried over unchanged.
+    #[test]
+    fn push_history_prepends_new_item() {
+        let existing = vec!["B".to_string(), "C".to_string()];
+        assert_eq!(
+            push_history(&existing, "A"),
+            vec!["A".to_string(), "B".to_string(), "C".to_string()]
+        );
+    }
+
+    /// Parity test for capability C021: re-using an item already in the
+    /// history moves it to the front instead of appearing twice — the
+    /// hole `WriteHist` leaves in the raw ini is invisible here because
+    /// `ReadHist` skips empty slots (UniExtract.au3:849-850).
+    #[test]
+    fn push_history_deduplicates_and_moves_to_front() {
+        let existing = vec![
+            "A".to_string(),
+            "B".to_string(),
+            "C".to_string(),
+            "D".to_string(),
+            "E".to_string(),
+        ];
+        assert_eq!(
+            push_history(&existing, "C"),
+            vec![
+                "C".to_string(),
+                "A".to_string(),
+                "B".to_string(),
+                "D".to_string(),
+                "E".to_string(),
+            ]
+        );
+    }
+
+    /// Parity test for capability C021: the 9-entry scan over the old
+    /// list is positional, not count-of-survivors — a duplicate among the
+    /// first 9 old entries shrinks the result below 10 rather than
+    /// reaching into a 10th old entry to backfill it.
+    #[test]
+    fn push_history_ten_entry_cap_does_not_backfill_a_deduped_slot() {
+        let existing: Vec<String> = ('a'..='j').map(|c| c.to_string()).collect(); // 10 entries: a..j
+        let result = push_history(&existing, "e");
+        // new "e" + old entries a,b,c,d,f,g,h,i (9 scanned, "e" dropped as
+        // duplicate, "j" never reached) = 9 entries, not 10.
+        assert_eq!(
+            result,
+            vec!["e", "a", "b", "c", "d", "f", "g", "h", "i"]
+                .into_iter()
+                .map(String::from)
+                .collect::<Vec<_>>()
+        );
+    }
+
+    /// Parity test for capability C021: an empty history list just yields
+    /// the new item alone.
+    #[test]
+    fn push_history_from_empty_history() {
+        assert_eq!(push_history(&[], "A"), vec!["A".to_string()]);
     }
 
     /// Parity test for capability C158: `$OPTION_DELETE` always deletes;
