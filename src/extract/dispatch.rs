@@ -124,6 +124,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::nbh",
     },
     HardcodedCase {
+        type_key: "uha",
+        module: "extract::uharc",
+    },
+    HardcodedCase {
         type_key: "uif",
         module: "extract::uif",
     },

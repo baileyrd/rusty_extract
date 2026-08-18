@@ -45,6 +45,41 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   crate.
 - Parity test: `extract::nbh::tests::matches_source_invocation`.
 
+## C101 — UHARC 3-version fallback chain
+**2026-08-18**
+
+- **Added:** `extract::uharc::uharc_invocation`, `extract::uharc::uharc04_invocation`,
+  `extract::uharc::uharc02_invocation` — build the three `.uha`-archive
+  extraction attempts UniExtract2's `Case $TYPE_UHA` makes in sequence
+  (UniExtract.au3:3154-3159): a first attempt with `UNUHARC06.EXE`, a
+  fallback to the older `UHARC04.EXE` on failure, and a last fallback to
+  `UHARC02.EXE` using 8.3 short-form paths. All three run with the window
+  minimized (`_Run`'s own default for the omitted `$show_flag` argument).
+- **Registered** in `extract::dispatch::HARDCODED_CASES` (`"uha"` →
+  `extract::uharc`).
+- **Behavioral finding — the third attempt is unquoted:** unlike the first
+  two (which quote both the `-t<outdir>` value and the file path), the
+  third attempt's arguments are bare, unquoted 8.3 short-form paths — a
+  real source quirk (short names never contain spaces, so the source skips
+  the quoting it uses everywhere else), preserved as written.
+- **Scope note — not modeled:**
+  - Which attempt actually runs is decided by the caller: the source only
+    tries `UHARC04.EXE`/`UHARC02.EXE` if the previous attempt's
+    `_DirGetSize` check shows the output directory didn't grow — that
+    success/failure evaluation and the resulting fallback decision are
+    runtime orchestration, not part of building any one attempt's
+    invocation, the same "invocation vs. orchestration" boundary every
+    module in this crate already draws.
+  - The third attempt's short-form paths (`FileGetShortName($outdir)`/
+    `FileGetShortName($file)`) are caller-supplied parameters rather than
+    computed here — that Windows 8.3-short-name API is a real OS call this
+    pure function can't perform itself, the same "caller supplies an
+    OS-dependent fact" pattern `outdir::decide_outdir_outcome` already
+    uses for filesystem checks.
+- Parity tests: `extract::uharc::tests::uharc_matches_source_invocation`,
+  `extract::uharc::tests::uharc04_matches_source_invocation`,
+  `extract::uharc::tests::uharc02_matches_source_invocation_and_is_unquoted`.
+
 ## C097 — SQLite database dump extractor integration
 **2026-08-18**
 
