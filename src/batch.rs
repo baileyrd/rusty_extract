@@ -171,10 +171,9 @@ pub fn build_command_line(
 /// $STATUS_SILENT` check (UniExtract.au3:4235) and calls
 /// `BatchQueuePop()` again — so the chain is driven entirely by each
 /// process's own exit, never by a loop inside a single running process.
-/// That process-spawning-and-chaining architecture is this port's own
-/// runtime concern (not yet built) rather than portable pure logic, so
-/// it isn't reproduced by this function — only the queue-array mechanics
-/// are.
+/// That process-spawning-and-chaining architecture is
+/// `batch_runner::pop_and_relaunch_next_batch_item`'s job, layered on
+/// top of this function.
 pub fn pop_batch_queue(queue: &[String]) -> Option<(String, Vec<String>)> {
     let (first, rest) = queue.split_first()?;
     Some((first.clone(), rest.to_vec()))
