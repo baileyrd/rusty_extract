@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C148 — Batch-item-per-process execution model
+**2026-08-18**
+
+- **Added:** `batch::pop_batch_queue` — ports the queue-array mechanics
+  of `BatchQueuePop()` (UniExtract.au3:4444-4462): removes and returns
+  the first queued command line, leaving the rest as the persisted
+  queue, or `None` when the queue is already empty.
+- **Scope note:** this is only the FIFO half of C148's own description.
+  The other half — spawning each queued item as a brand-new process
+  (`Run(@ScriptFullPath & " " & $element)`) rather than looping
+  in-process, with the chain advancing only when *that* new process's
+  own `terminate()` call reaches its `$batchEnabled` check
+  (UniExtract.au3:4235) and pops again — is this port's own runtime
+  concern (process spawning/orchestration, not yet built), not portable
+  pure logic, so it isn't reproduced here.
+- Parity tests: `batch::tests::pop_batch_queue_returns_first_and_rest`,
+  `batch::tests::pop_batch_queue_last_item_leaves_empty_queue`,
+  `batch::tests::pop_batch_queue_empty_queue_returns_none`.
+
 ## C147 — Batch queue file format and duplicate handling
 **2026-08-18**
 

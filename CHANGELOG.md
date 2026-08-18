@@ -70,6 +70,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C144: overwrite message treated as extraction success in output-log evaluation (`log_eval::is_overwrite_success_message`).
 - C145: overwrite/password/no-space/new-filename prompt live-detection (`log_eval::needs_manual_input`).
 - C147: batch queue file format and duplicate/multipart-archive handling (`batch::build_command_line`, `batch::should_add_to_batch`, `batch::is_multipart_archive_already_queued`).
+- C148: batch queue FIFO pop mechanics (`batch::pop_batch_queue`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
