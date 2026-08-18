@@ -138,6 +138,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C159: unicode-relocation reversion decision — given the relocation
   mode a run left behind, decides whether to move the working copy
   back, recycle it, or do nothing (`unicode_relocation`).
+- C156: unconditional temp-outdir cleanup decision — a still-present
+  per-run temp output directory is always removed, success or failure
+  (`outdir::should_remove_temp_outdir`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

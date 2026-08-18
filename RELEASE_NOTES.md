@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C156 — Per-run temp output directory always removed
+**2026-08-18**
+
+- **Added:** `outdir::should_remove_temp_outdir` — ports the temp output
+  directory's cleanup check at the top of `extract()`'s "success
+  evaluation" section (UniExtract.au3:3412): runs before the `$success`
+  `Switch` that decides success/failure/cancellation, so removal is
+  never conditioned on the run's outcome — a still-present temp
+  directory is always removed. Sits alongside C157's
+  `should_remove_empty_created_outdir`, governing the separate
+  `$tempoutdir` staging directory rather than the final `$outdir`
+  destination.
+- Parity tests: `outdir::tests::should_remove_temp_outdir_when_present`,
+  `should_remove_temp_outdir_when_absent`.
+
+---
+
 ## C159 — Unicode-relocation reversion at end of run
 **2026-08-18**
 

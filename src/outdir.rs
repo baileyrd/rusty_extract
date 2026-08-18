@@ -2,8 +2,10 @@
 //! (UniExtract.au3:526-544), `GetLastOutdir()`
 //! (UniExtract.au3:872-878), `CreateOutdir()`
 //! (UniExtract.au3:3968-3978), the empty-outdir cleanup check inside
-//! `terminate()` (UniExtract.au3:4224), and `$initoutdir`'s computation
-//! inside `FilenameParse()` (UniExtract.au3:500-518).
+//! `terminate()` (UniExtract.au3:4224), `$initoutdir`'s computation
+//! inside `FilenameParse()` (UniExtract.au3:500-518), and the per-run
+//! temp output directory's unconditional cleanup at the top of
+//! `extract()`'s success evaluation (UniExtract.au3:3412).
 
 use crate::status::Status;
 
@@ -240,12 +242,29 @@ pub fn should_remove_empty_created_outdir(
     created_dir && status != Status::Success && dir_is_empty
 }
 
+/// C156: ports the per-run temporary output directory's cleanup check at
+/// the top of `extract()`'s "success evaluation" section
+/// (UniExtract.au3:3412: `If FileExists($tempoutdir) Then
+/// DirRemove($tempoutdir)`). `$tempoutdir` is a separate staging
+/// directory from `$outdir` (the final destination
+/// [`should_remove_empty_created_outdir`]/C157 governs) — this check
+/// runs *before* the `$success` `Switch` below it that decides
+/// success/failure/cancellation, so it is never conditioned on the
+/// run's outcome: a still-present temp directory is always removed,
+/// success or failure. The only real condition is existence — matching
+/// `should_remove_empty_created_outdir`'s function-per-boolean shape
+/// even though this one is a direct passthrough.
+pub fn should_remove_temp_outdir(temp_outdir_exists: bool) -> bool {
+    temp_outdir_exists
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         decide_outdir_outcome, default_output_subfolder, get_last_outdir,
         reappend_trailing_backslash_after_extraction, resolve_output_directory,
-        should_remove_empty_created_outdir, strip_trailing_backslash_for_extraction, OutdirOutcome,
+        should_remove_empty_created_outdir, should_remove_temp_outdir,
+        strip_trailing_backslash_for_extraction, OutdirOutcome,
     };
     use crate::status::Status;
 
@@ -479,6 +498,20 @@ mod tests {
             Status::Success,
             true
         ));
+    }
+
+    /// Parity test for capability C156: a still-present temp output
+    /// directory is removed.
+    #[test]
+    fn should_remove_temp_outdir_when_present() {
+        assert!(should_remove_temp_outdir(true));
+    }
+
+    /// Parity test for capability C156: a temp output directory that's
+    /// already gone is left alone (nothing to remove).
+    #[test]
+    fn should_remove_temp_outdir_when_absent() {
+        assert!(!should_remove_temp_outdir(false));
     }
 
     /// Parity test for capability C138: a single-extension file (no
