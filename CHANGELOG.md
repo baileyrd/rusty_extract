@@ -76,6 +76,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `rgss`/`ace` extractors end-to-end (output-directory resolution, dispatch,
   run, log evaluation, exit code) — the first working slice of the
   composition root `ARCHITECTURE.md` describes.
+- C097: SQLite database dump extractor integration (`extract::sqlite`).
 ### Changed
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes

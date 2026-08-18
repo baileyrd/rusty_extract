@@ -50,6 +50,7 @@ pub mod sgb;
 pub mod sim;
 pub mod sit;
 pub mod spoon;
+pub mod sqlite;
 pub mod uif;
 pub mod unreal;
 pub mod unzip;

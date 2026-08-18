@@ -100,6 +100,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::kgb",
     },
     HardcodedCase {
+        type_key: "sqlite",
+        module: "extract::sqlite",
+    },
+    HardcodedCase {
         type_key: "lz",
         module: "extract::lzip",
     },
