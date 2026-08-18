@@ -87,6 +87,19 @@ pub fn resolve_output_directory(
 /// This inconsistency is documented in the source's own `todo.txt` (line
 /// 35) as a known rough edge, preserved here rather than "fixed" into a
 /// single normalized representation used throughout.
+///
+/// **C141 — drive-root consequence:** this is a plain string operation
+/// with no drive-root special case, so a drive-root outdir like `C:\`
+/// strips down to `C:` — which Windows treats as "current directory on
+/// that drive" (a drive-relative reference), not the drive's root. That
+/// ambiguity is exactly what produces `todo.txt`'s documented
+/// "Extracting to C:/ creates file in @ScriptDir" bug: a spawned
+/// extractor given `C:` as its working directory resolves relative
+/// output paths against whatever the process's per-drive current
+/// directory happens to be (often `@ScriptDir`, if the launching process
+/// last set it there), not `C:\`. Preserved here rather than special-cased
+/// away, matching the "known quirk, verify still present" framing of
+/// C141's own manifest description.
 pub fn strip_trailing_backslash_for_extraction(outdir: &str) -> String {
     outdir.strip_suffix('\\').unwrap_or(outdir).to_string()
 }
@@ -229,6 +242,23 @@ mod tests {
         assert_eq!(
             reappend_trailing_backslash_after_extraction(r"C:\downloads\unpacked"),
             r"C:\downloads\unpacked\"
+        );
+    }
+
+    /// Parity test for capability C141: stripping the trailing backslash
+    /// from a drive-root outdir (`C:\`) produces the ambiguous
+    /// drive-relative reference `C:`, not the drive root — the string-level
+    /// cause of `todo.txt`'s documented "Extracting to C:/ creates file in
+    /// @ScriptDir" bug. `strip_trailing_backslash_for_extraction` has no
+    /// drive-root special case, so it reproduces this exactly.
+    #[test]
+    fn strip_trailing_backslash_reproduces_drive_root_ambiguity() {
+        assert_eq!(strip_trailing_backslash_for_extraction(r"C:\"), "C:");
+        // A non-root drive path is unaffected: only the drive-root case
+        // collapses to the ambiguous two-character form.
+        assert_eq!(
+            strip_trailing_backslash_for_extraction(r"C:\downloads\"),
+            r"C:\downloads"
         );
     }
 }

@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C141 — Drive-root output directory behavior
+**2026-08-18**
+
+- **Added:** a dedicated parity test proving `strip_trailing_backslash_for_extraction`
+  (C140) reproduces `todo.txt`'s documented "Extracting to C:/ creates
+  file in @ScriptDir" bug: stripping the trailing backslash from a
+  drive-root outdir (`C:\`) produces the ambiguous drive-relative
+  reference `C:`, not the drive's root, because the function has no
+  drive-root special case. This is a real Windows ambiguity — a process
+  given `C:` as its working directory resolves relative paths against
+  whatever that drive's own current directory happens to be, not `C:\`.
+  Preserved rather than special-cased away, matching C141's "known
+  quirk, verify still present" framing.
+- **Scope note:** no new production code — the transformation was already
+  correctly reproduced by C140's existing
+  `outdir::strip_trailing_backslash_for_extraction`; this closes C141 by
+  making that specific consequence explicit and asserted.
+- Parity test: `outdir::tests::strip_trailing_backslash_reproduces_drive_root_ambiguity`.
+
 ## C140 (continued) — `extract()`'s trailing-backslash strip/reappend cycle
 **2026-08-18**
 
