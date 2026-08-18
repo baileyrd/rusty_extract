@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C076 — IsXunpack extractor integration
+**2026-08-18**
+
+- **Added:** `extract::isxunpack::invocation` — ports `Case
+  $TYPE_ISEXE`'s isxunpack candidate invocation
+  (UniExtract.au3:2711): `IsXunpack.exe "<outdir>\<filenamefull>"`,
+  run in `outdir` with the window shown. This call site uses the raw
+  AutoIt `Run()` built-in directly, not the crate's usual `_Run`
+  wrapper — `Run()`'s own default `$show_flag` is `@SW_SHOWNORMAL`,
+  mapped to `WindowMode::Show`, distinct from `_Run`'s minimized
+  default used everywhere else this omits `$show_flag`.
+- **Scope note:** invocation only. Reached only through
+  `$TYPE_ISEXE`'s GUI candidate list (C053, deferred GUI, D001). The
+  pre-move of the input file into `outdir`, the
+  `WinWait`/`WinActivate`/`Send("{ENTER}")` keypress automation, and
+  the final move back to `filedir` are out of scope.
+- Parity tests: `extract::isxunpack::tests::matches_source_invocation`.
+
+---
+
 ## C073 — helpdeco extractor integration, RTF reconstruction pass
 **2026-08-18**
 
