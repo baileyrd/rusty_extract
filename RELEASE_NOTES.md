@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C138 — Output-subfolder default resolution
+**2026-08-18**
+
+- **Added:** `outdir::default_output_subfolder` — ports `$initoutdir`'s
+  computation inside `FilenameParse()` (UniExtract.au3:500-518), the
+  default `/sub` destination (C004): with an extension, resolves to a
+  same-name subfolder (`filedir\<stem>`) unless the stem itself still
+  has an embedded dot (a multi-extension name, e.g. `"archive.tar"` from
+  `"archive.tar.gz"`) *and* a plain file already exists at that exact
+  path, in which case it falls back to an underscore-replaced name
+  (`archive_tar`); without an extension, appends the (caller-supplied,
+  localization out of scope) `_unpacked`-style suffix.
+- **Scope note:** the collision check is narrowly scoped to
+  multi-extension stems — a single-extension name never triggers it,
+  matching the source's own `StringInStr($filename, ".")` guard exactly
+  rather than generalizing to "retry on any collision."
+- Parity tests: `outdir::tests::default_output_subfolder_single_extension`,
+  `outdir::tests::default_output_subfolder_multi_extension_no_collision`,
+  `outdir::tests::default_output_subfolder_multi_extension_collision_falls_back`,
+  `outdir::tests::default_output_subfolder_no_extension_gets_suffix`.
+
 ## C157 — Empty created-output-directory cleanup on failure
 **2026-08-18**
 

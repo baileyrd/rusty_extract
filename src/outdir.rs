@@ -1,10 +1,50 @@
 //! Output-directory resolution: ports `ValidateOutputDirectory()`
 //! (UniExtract.au3:526-544), `GetLastOutdir()`
 //! (UniExtract.au3:872-878), `CreateOutdir()`
-//! (UniExtract.au3:3968-3978), and the empty-outdir cleanup check inside
-//! `terminate()` (UniExtract.au3:4224).
+//! (UniExtract.au3:3968-3978), the empty-outdir cleanup check inside
+//! `terminate()` (UniExtract.au3:4224), and `$initoutdir`'s computation
+//! inside `FilenameParse()` (UniExtract.au3:500-518).
 
 use crate::status::Status;
+
+/// C138: ports `$initoutdir`'s computation inside `FilenameParse()`
+/// (UniExtract.au3:500-518) — the default `/sub` destination (C004).
+///
+/// `stem` is `$filename` with its final `.`-delimited extension already
+/// trimmed off when `has_extension` is `true` (e.g. `"archive.tar"` for
+/// `"archive.tar.gz"`, since only the *last* extension is stripped), or
+/// the whole filename unchanged when `has_extension` is `false`.
+///
+/// With an extension, the result is `filedir\<stem>` — *unless* `stem`
+/// itself still contains a `.` (a multi-extension name, e.g.
+/// `"archive.tar"`) **and** a plain file (not a directory) already
+/// exists at that exact path (`initoutdir_collision`, standing in for
+/// that filesystem check), in which case the source falls back to
+/// `filedir\<stem with every '.' replaced by '_'>`. This collision check
+/// is narrowly scoped to multi-extension names — a single-extension stem
+/// (no embedded `.`) never triggers it, matching the source exactly.
+///
+/// Without an extension, the result is `filedir\<stem>_<unpacked_suffix>`
+/// — the source's `t('TERM_UNPACKED')` translated term; this port's
+/// localization is out of scope, so the caller supplies the literal
+/// suffix text.
+pub fn default_output_subfolder(
+    filedir: &str,
+    stem: &str,
+    has_extension: bool,
+    initoutdir_collision: bool,
+    unpacked_suffix: &str,
+) -> String {
+    if has_extension {
+        if stem.contains('.') && initoutdir_collision {
+            format!("{filedir}\\{}", stem.replace('.', "_"))
+        } else {
+            format!("{filedir}\\{stem}")
+        }
+    } else {
+        format!("{filedir}\\{stem}_{unpacked_suffix}")
+    }
+}
 
 /// C005: ports `GetLastOutdir()` (UniExtract.au3:872-878) — the most
 /// recently used output directory is the `"Directory History"` section's
@@ -203,9 +243,9 @@ pub fn should_remove_empty_created_outdir(
 #[cfg(test)]
 mod tests {
     use super::{
-        decide_outdir_outcome, get_last_outdir, reappend_trailing_backslash_after_extraction,
-        resolve_output_directory, should_remove_empty_created_outdir,
-        strip_trailing_backslash_for_extraction, OutdirOutcome,
+        decide_outdir_outcome, default_output_subfolder, get_last_outdir,
+        reappend_trailing_backslash_after_extraction, resolve_output_directory,
+        should_remove_empty_created_outdir, strip_trailing_backslash_for_extraction, OutdirOutcome,
     };
     use crate::status::Status;
 
@@ -439,5 +479,53 @@ mod tests {
             Status::Success,
             true
         ));
+    }
+
+    /// Parity test for capability C138: a single-extension file (no
+    /// embedded dot in the stem) resolves to a same-name subfolder,
+    /// regardless of collision — the collision check never triggers for
+    /// a single-extension stem.
+    #[test]
+    fn default_output_subfolder_single_extension() {
+        assert_eq!(
+            default_output_subfolder(r"C:\downloads", "archive", true, false, "unpacked"),
+            r"C:\downloads\archive"
+        );
+        assert_eq!(
+            default_output_subfolder(r"C:\downloads", "archive", true, true, "unpacked"),
+            r"C:\downloads\archive"
+        );
+    }
+
+    /// Parity test for capability C138: a multi-extension stem (e.g.
+    /// "archive.tar" from "archive.tar.gz") resolves to a same-name
+    /// subfolder when there's no collision.
+    #[test]
+    fn default_output_subfolder_multi_extension_no_collision() {
+        assert_eq!(
+            default_output_subfolder(r"C:\downloads", "archive.tar", true, false, "unpacked"),
+            r"C:\downloads\archive.tar"
+        );
+    }
+
+    /// Parity test for capability C138: a multi-extension stem that
+    /// collides with an existing file falls back to an underscore-replaced
+    /// name.
+    #[test]
+    fn default_output_subfolder_multi_extension_collision_falls_back() {
+        assert_eq!(
+            default_output_subfolder(r"C:\downloads", "archive.tar", true, true, "unpacked"),
+            r"C:\downloads\archive_tar"
+        );
+    }
+
+    /// Parity test for capability C138: an extensionless input file gets
+    /// the `_unpacked`-style suffix.
+    #[test]
+    fn default_output_subfolder_no_extension_gets_suffix() {
+        assert_eq!(
+            default_output_subfolder(r"C:\downloads", "archive", false, false, "unpacked"),
+            r"C:\downloads\archive_unpacked"
+        );
     }
 }
