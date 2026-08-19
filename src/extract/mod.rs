@@ -10,41 +10,25 @@
 //! `_Run(...)` call for the same capability, not an actual extraction.
 
 pub mod actual;
-pub mod adf;
-pub mod alz;
-pub mod arc;
-pub mod bitrock;
-pub mod bsa;
 pub mod ci;
 pub mod dispatch;
 pub mod expand;
 pub mod ffmpeg;
 pub mod forge;
 pub mod freearc;
-pub mod godot;
 pub mod helpdeco;
 pub mod inno;
-pub mod lbr;
-pub mod lit;
-pub mod mo;
 pub mod pdf;
-pub mod pex;
 pub mod placeholder;
 pub mod plugin;
 pub mod plugin_config;
-pub mod qm;
+#[cfg(test)]
+mod plugin_defs_test;
 pub mod raiu;
-pub mod rpgmvp;
 pub mod runner;
-pub mod sgb;
-pub mod sim;
-pub mod sit;
-pub mod spoon;
 pub mod table;
 pub mod uharc;
 pub mod unity;
-pub mod utage;
-pub mod uu;
 pub mod visionaire3;
 
 /// A single external helper-binary invocation, corresponding to one
