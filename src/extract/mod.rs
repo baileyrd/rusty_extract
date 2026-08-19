@@ -15,7 +15,6 @@ pub mod dispatch;
 pub mod expand;
 pub mod ffmpeg;
 pub mod forge;
-pub mod freearc;
 pub mod helpdeco;
 pub mod inno;
 pub mod pdf;
@@ -27,7 +26,6 @@ mod plugin_defs_test;
 pub mod raiu;
 pub mod runner;
 pub mod table;
-pub mod uharc;
 pub mod unity;
 pub mod visionaire3;
 
