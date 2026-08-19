@@ -1,4 +1,4 @@
-//! Data-driven table for the ~43 extractor formats that each shell out to
+//! Data-driven table for the extractor formats that each shell out to
 //! one external helper binary with a fixed, non-branching argument pattern
 //! (no fallback logic, no conditionals). Each format used to be its own
 //! file — one `pub fn invocation(...) -> Invocation` plus one parity test —
@@ -241,6 +241,23 @@ fn fead(ctx: &Ctx) -> Invocation {
         ],
         working_dir: ctx.file_dir.to_string(),
         window: WindowMode::Show,
+    }
+}
+
+/// C071 UniExtract.au3:2556-2557 — unarc (FreeArc): `x -dp"<outdir>"
+/// <file>`, in `file_dir`, hidden. `-dp"<outdir>"` is a single token with
+/// the quote characters embedded literally — deliberate, matching the
+/// source's own concatenation, not a typo.
+fn freearc(ctx: &Ctx) -> Invocation {
+    Invocation {
+        program: ctx.program.to_string(),
+        args: vec![
+            "x".to_string(),
+            format!("-dp\"{}\"", ctx.outdir),
+            ctx.file.to_string(),
+        ],
+        working_dir: ctx.file_dir.to_string(),
+        window: WindowMode::Hidden,
     }
 }
 
@@ -555,6 +572,25 @@ fn ttarch(ctx: &Ctx) -> Invocation {
     }
 }
 
+/// C101 UniExtract.au3:3154,3156,3158 — UHARC's 3-binary fallback chain
+/// (`UNUHARC06.EXE`, then `UHARC04.EXE`, then `UHARC02.EXE`): all three
+/// attempts build the identical shape, `x -t<outdir> <file>`, in `outdir`,
+/// minimized — only the `program` binary (and, for the third attempt,
+/// 8.3-short-form `outdir`/`file` strings the caller supplies) differ, so
+/// one builder serves all three `FORMATS` rows.
+fn uharc(ctx: &Ctx) -> Invocation {
+    Invocation {
+        program: ctx.program.to_string(),
+        args: vec![
+            "x".to_string(),
+            format!("-t{}", ctx.outdir),
+            ctx.file.to_string(),
+        ],
+        working_dir: ctx.outdir.to_string(),
+        window: WindowMode::Minimized,
+    }
+}
+
 /// C102 UniExtract.au3:3161-3163 — uif2iso: `<file> <outdir>\<filename>`
 /// (`filename` here is a full `name.ext`, e.g. `image.iso`), in
 /// `file_dir`, shown.
@@ -698,9 +734,11 @@ fn mscf(ctx: &Ctx) -> Invocation {
     }
 }
 
-/// The 43 single-invocation extractor formats, one row per format. See the
-/// module doc comment for what each `Ctx` field means and the per-fn doc
-/// comments above for each format's exact argument shape and citation.
+/// The single-invocation extractor formats, one row per format (`uharc`'s
+/// 3-attempt fallback chain shares one builder across three rows — see
+/// its doc comment). See the module doc comment for what each `Ctx` field
+/// means and the per-fn doc comments above for each format's exact
+/// argument shape and citation.
 pub static FORMATS: &[FormatEntry] = &[
     FormatEntry {
         name: "ace",
@@ -761,6 +799,11 @@ pub static FORMATS: &[FormatEntry] = &[
         name: "fead",
         citation: "C117 UniExtract.au3:2530-2536",
         build: fead,
+    },
+    FormatEntry {
+        name: "freearc",
+        citation: "C071 UniExtract.au3:2556-2557",
+        build: freearc,
     },
     FormatEntry {
         name: "fsb",
@@ -868,6 +911,21 @@ pub static FORMATS: &[FormatEntry] = &[
         build: ttarch,
     },
     FormatEntry {
+        name: "uharc",
+        citation: "C101 UniExtract.au3:3154",
+        build: uharc,
+    },
+    FormatEntry {
+        name: "uharc04",
+        citation: "C101 UniExtract.au3:3156",
+        build: uharc,
+    },
+    FormatEntry {
+        name: "uharc02",
+        citation: "C101 UniExtract.au3:3158",
+        build: uharc,
+    },
+    FormatEntry {
         name: "uif",
         citation: "C102 UniExtract.au3:3161-3163",
         build: uif,
@@ -926,12 +984,12 @@ mod tests {
     /// The table has exactly one row per collapsed format, with unique
     /// names — a cheap sanity net for future edits to `FORMATS`.
     #[test]
-    fn table_has_43_unique_formats() {
-        assert_eq!(FORMATS.len(), 43);
+    fn table_has_47_unique_formats() {
+        assert_eq!(FORMATS.len(), 47);
         let mut names: Vec<&str> = FORMATS.iter().map(|e| e.name).collect();
         names.sort_unstable();
         names.dedup();
-        assert_eq!(names.len(), 43);
+        assert_eq!(names.len(), 47);
     }
 
     /// Parity test for capability C057: matches UniExtract.au3:2346-2349's
@@ -1208,6 +1266,31 @@ mod tests {
         );
         assert_eq!(inv.working_dir, r"C:\downloads");
         assert_eq!(inv.window, WindowMode::Show);
+    }
+
+    /// Parity test for capability C071: matches UniExtract.au3:2556-2557's
+    /// `_Run($freearc & ' x -dp"' & $outdir & '" "' & $file & '"',
+    /// $filedir, @SW_HIDE, True, True, False, False)`.
+    #[test]
+    fn freearc_matches_source_invocation() {
+        let inv = freearc(&Ctx {
+            program: r"C:\UniExtract\bin\unarc.exe",
+            file_dir: r"C:\downloads",
+            file: r"C:\downloads\archive.arc",
+            outdir: r"C:\downloads\archive_unpacked",
+            ..Default::default()
+        });
+        assert_eq!(inv.program, r"C:\UniExtract\bin\unarc.exe");
+        assert_eq!(
+            inv.args,
+            vec![
+                "x".to_string(),
+                r#"-dp"C:\downloads\archive_unpacked""#.to_string(),
+                r"C:\downloads\archive.arc".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\downloads");
+        assert_eq!(inv.window, WindowMode::Hidden);
     }
 
     /// Parity test for capability C072: matches UniExtract.au3:2559-2562's
@@ -1731,6 +1814,77 @@ mod tests {
         );
         assert_eq!(inv.working_dir, r"C:\downloads\archive_unpacked");
         assert_eq!(inv.window, WindowMode::Hidden);
+    }
+
+    /// Parity test for capability C101: the first attempt matches
+    /// UniExtract.au3:3154's `UNUHARC06.EXE x -t"<outdir>" "<file>"`.
+    #[test]
+    fn uharc_matches_source_invocation() {
+        let inv = uharc(&Ctx {
+            program: r"C:\UniExtract\bin\UNUHARC06.EXE",
+            outdir: r"C:\downloads\archive_unpacked",
+            file: r"C:\downloads\archive.uha",
+            ..Default::default()
+        });
+        assert_eq!(inv.program, r"C:\UniExtract\bin\UNUHARC06.EXE");
+        assert_eq!(
+            inv.args,
+            vec![
+                "x".to_string(),
+                r"-tC:\downloads\archive_unpacked".to_string(),
+                r"C:\downloads\archive.uha".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\downloads\archive_unpacked");
+        assert_eq!(inv.window, WindowMode::Minimized);
+    }
+
+    /// Parity test for capability C101: the second fallback attempt
+    /// matches UniExtract.au3:3156 — same shape as the first, a different
+    /// binary.
+    #[test]
+    fn uharc04_matches_source_invocation() {
+        let inv = uharc(&Ctx {
+            program: r"C:\UniExtract\bin\UHARC04.EXE",
+            outdir: r"C:\downloads\archive_unpacked",
+            file: r"C:\downloads\archive.uha",
+            ..Default::default()
+        });
+        assert_eq!(inv.program, r"C:\UniExtract\bin\UHARC04.EXE");
+        assert_eq!(
+            inv.args,
+            vec![
+                "x".to_string(),
+                r"-tC:\downloads\archive_unpacked".to_string(),
+                r"C:\downloads\archive.uha".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\downloads\archive_unpacked");
+        assert_eq!(inv.window, WindowMode::Minimized);
+    }
+
+    /// Parity test for capability C101: the third fallback attempt matches
+    /// UniExtract.au3:3158 — 8.3 short-form paths, passed through the same
+    /// `outdir`/`file` slots as the long-form attempts above.
+    #[test]
+    fn uharc02_matches_source_invocation() {
+        let inv = uharc(&Ctx {
+            program: r"C:\UniExtract\bin\UHARC02.EXE",
+            outdir: r"C:\DOWNLO~1\ARCHIV~1",
+            file: r"C:\DOWNLO~1\ARCHIV~2.UHA",
+            ..Default::default()
+        });
+        assert_eq!(inv.program, r"C:\UniExtract\bin\UHARC02.EXE");
+        assert_eq!(
+            inv.args,
+            vec![
+                "x".to_string(),
+                r"-tC:\DOWNLO~1\ARCHIV~1".to_string(),
+                r"C:\DOWNLO~1\ARCHIV~2.UHA".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\DOWNLO~1\ARCHIV~1");
+        assert_eq!(inv.window, WindowMode::Minimized);
     }
 
     /// Parity test for capability C102: matches UniExtract.au3:3161-3163's
