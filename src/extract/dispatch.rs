@@ -6,17 +6,16 @@
 //! function with a `Switch $arctype` of ~70 `Case`s, falling through to
 //! `pluginExtract($arctype, ...)` (`Case Else`, ported separately as C050)
 //! for any type string not hardcoded. This module ports the *routing
-//! decision*, not the invocation-building call: each extractor case takes
-//! different explicit inputs (compare `extract::rgss::invocation`'s
-//! `(program, file, outdir)` against `extract::rpa::invocation`'s
-//! `(program, script_dir, file, outdir)`, which needs one more parameter
-//! the source reads from its `@ScriptDir` global) — the source hides that
-//! divergence behind global variables every `Case` reads from directly;
-//! this port keeps every function's inputs explicit instead (see
-//! `ARCHITECTURE.md`), so there is no single uniform call signature to
+//! decision*, not the invocation-building call: each extractor case reads
+//! different explicit inputs out of `extract::table::Ctx` (compare `rgss`'s
+//! `program`/`file`/`outdir` against `rpa`'s use of `script_dir` too, one
+//! more field standing in for the source's `@ScriptDir` global) — the
+//! source hides that divergence behind global variables every `Case` reads
+//! from directly; this port keeps every format's inputs explicit instead
+//! (see `ARCHITECTURE.md`), so there is no single uniform call signature to
 //! dispatch to yet. Wiring a resolved [`HardcodedCase`] to its actual
-//! invocation call is left to a future integration point once enough
-//! extractors exist to know what that call site should look like.
+//! `extract::table::build` call is left to a future integration point once
+//! enough extractors exist to know what that call site should look like.
 //!
 //! [`HARDCODED_CASES`] is a hand-maintained list, not reflection or
 //! auto-registration — each extractor-integration capability's own PR adds
