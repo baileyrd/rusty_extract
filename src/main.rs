@@ -21,7 +21,7 @@
 
 use rusty_extract::extract::dispatch::{dispatch, DispatchTarget};
 use rusty_extract::extract::runner::{CommandExtractorRunner, ExtractorRunner, RunOutcome};
-use rusty_extract::extract::{ace, rgss};
+use rusty_extract::extract::table::{self, Ctx};
 use rusty_extract::log_eval::is_overwrite_success_message;
 use rusty_extract::outdir::{
     decide_outdir_outcome, default_output_subfolder, reappend_trailing_backslash_after_extraction,
@@ -129,11 +129,21 @@ fn run_extraction(
 
     let stripped_outdir = strip_trailing_backslash_for_extraction(outdir);
 
-    let invocation = match case.module {
-        "extract::rgss" => rgss::invocation(program, file, &stripped_outdir),
-        "extract::ace" => ace::invocation(program, &stripped_outdir, file),
+    let format_name = match case.module {
+        "extract::rgss" => "rgss",
+        "extract::ace" => "ace",
         _ => unreachable!("filtered to rgss/ace above"),
     };
+    let invocation = table::build(
+        format_name,
+        &Ctx {
+            program,
+            file,
+            outdir: &stripped_outdir,
+            ..Default::default()
+        },
+    )
+    .unwrap_or_else(|| unreachable!("'{format_name}' is a row in extract::table::FORMATS"));
 
     let outcome = runner.run(&invocation);
     let final_outdir = reappend_trailing_backslash_after_extraction(&stripped_outdir);
