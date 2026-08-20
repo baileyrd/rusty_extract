@@ -149,6 +149,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C076: IsXunpack extractor integration (`extract::isxunpack`).
 - C091: RAIU extractor integration (`extract::raiu`).
 - C074: innounp/innoextract primary/fallback pair (`extract::inno`).
+- C001: positional file argument resolution and existence validation
+  (`file_arg::resolve_file_argument_path`, `file_arg::validate_file_argument`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

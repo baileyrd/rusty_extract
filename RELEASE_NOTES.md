@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C001 — Positional file argument resolution
+**2026-08-20**
+
+- **Added:** `file_arg::resolve_file_argument_path`,
+  `file_arg::validate_file_argument` — port the file-argument half of
+  `ParseCommandLine()` (UniExtract.au3:625-628): resolve `$cmdline[1]`
+  to a full path (drive-absolute/UNC pass through, else joined onto
+  `cwd`), then map a missing file to `Status::InvalidFile` (exit code
+  5).
+- **Scope note:** the same documented `_PathFull` segment-normalization
+  gap already noted for `outdir::resolve_output_directory` (C139) and
+  `prefs::resolve_batchqueue_path`/`resolve_filescanlogfile_path`
+  (C018/C019) — not modeled, `_PathFull` isn't defined in this port's
+  source checkout. Not yet wired into `main.rs`; full CLI argument
+  wiring is deferred to C006's `/type` override work, per `main.rs`'s
+  own scope note.
+- Parity tests: `file_arg::tests::*` (2 tests).
+- PR [#364](https://github.com/baileyrd/rusty_extract/pull/364).
+
+---
+
 ## Refactor — Fold `freearc`/`uharc` into the extractor table
 **2026-08-19**
 
