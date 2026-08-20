@@ -23,6 +23,63 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## Correction — retract PR #365's "corrected citations" claim
+**2026-08-20**
+
+- **Fixed:** PR #365 claimed to have "verified against the live source"
+  and corrected C002/C003's AutoIt line citations from `643-649`/`640-642`
+  to `635-646`/`635-639`. That verification used `WebFetch`'s reported
+  line numbers on `UniExtract.au3` (a large file) as ground truth. A
+  follow-up fetch for an unrelated, easily string-matched block (the
+  `/type` override, C006) came back reported at line ~1272 — nowhere near
+  the manifest's own `652-682` citation for that same block, and nowhere
+  near where the earlier fetch had placed nearby content. That's not
+  citation drift; it means the tool's line-counting on this file isn't
+  reliable ground truth at all, so the earlier "correction" wasn't
+  actually verified to the standard it claimed.
+- `capability-manifest.md` and `dest_arg.rs`'s doc comment: reverted to
+  the original `643-649`/`640-642` citations. The *behavior* ported in
+  #365 is unaffected — it was implemented from the manifest's textual
+  description, which this doesn't call into question, only the specific
+  replacement line numbers.
+- **Going forward:** citations in this repo trust the manifest's/issue's
+  own pre-given line numbers rather than attempting to re-derive or
+  "correct" them via `WebFetch`, which isn't reliable for pinpoint line
+  numbers on a large file — only for confirming behavior via exact-string
+  search, where a match is either found verbatim or not found at all.
+- Bundled into the next capability's PR rather than a standalone one —
+  C006, PR [#366](https://github.com/baileyrd/rusty_extract/pull/366).
+
+---
+
+## C006 — `/type[=value]` override routing
+**2026-08-20**
+
+- **Added:** `type_override::parse_type_override` — ports
+  `ParseCommandLine()`'s `$cmdline[3]`-driven `/type` block
+  (UniExtract.au3:652-682,420): no third argument, or one that doesn't
+  start with `/type` → `None`; bare `/type` (nothing after `=`) →
+  `PromptForType` (routes to the GUI candidate list, deferred subsystem
+  D001); a recognized type name, or an unrecognized one with no trailing
+  digits → `ArcType(value)` unchanged; an unrecognized value with a
+  trailing digit run → `ArcTypeWithMethodSelect { arctype, method_select }`,
+  the digits peeled off as a method-select index for C053's
+  disambiguation.
+- **Deliberately preserved quirk:** the peeled `arctype` prefix is never
+  re-validated against the known-types list — `/type=kgb2` peels to
+  `arctype: "kgb"` unconditionally, even though the source only checked
+  whether the *whole* `"kgb2"` string was recognized, not the remainder.
+  Not "fixed" into a re-validating version.
+- **Scope note:** routing/parsing only. Building the candidate type-name
+  list is real filesystem I/O (`_FileListToArray($defdir, "*.ini", ...)`),
+  so it's caller-supplied (`known_types: &[&str]`), matching the seam
+  `plugin::resolve_plugin_ini_with` uses for its own existence check. The
+  GUI candidate-list prompt itself is out of scope (D001).
+- Parity tests: `type_override::tests::*` (6 tests).
+- PR [#366](https://github.com/baileyrd/rusty_extract/pull/366).
+
+---
+
 ## C002, C003 — Destination-argument routing and scan-only mode
 **2026-08-20**
 
@@ -35,12 +92,12 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
   `_PathFull` logic the file argument uses (C001,
   `file_arg::resolve_file_argument_path`) before that function ever sees
   it.
-- **Corrected citations:** while implementing this, verified both
-  capabilities' AutoIt source-line citations against the live source —
-  C002's prior `643-649` and C003's prior `640-642` both pointed a few
-  lines off (at the `/type=arctype` block and the outdir branch,
-  respectively, not the block these capabilities actually describe).
-  Manifest rows updated to the verified `635-646`/`635-639` ranges.
+- ~~**Corrected citations:** ... verified both capabilities' AutoIt
+  source-line citations against the live source ... Manifest rows updated
+  to the verified `635-646`/`635-639` ranges.~~ **Retracted** — see the
+  entry below. That "verification" trusted `WebFetch`'s line numbers on a
+  large file, which turned out not to be trustworthy; the original
+  `643-649`/`640-642` citations were restored.
 - **Scope note:** C003 here covers only the mode-routing decision and its
   two flags — the "detect and report file type" half is C037-046
   (detection engine, not yet wired into this phase's `main.rs`) plus
