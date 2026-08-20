@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C017 — `language` preference resolution
+**2026-08-20**
+
+- **Added:** `prefs::resolve_language` — ports the fallback chain after
+  `LoadPref("language", $language, False)`:
+  ```autoit
+  If Not HasTranslation($language) Then
+      $language = _WinAPI_GetLocaleInfo(_WinAPI_GetSystemDefaultUILanguage(), $LOCALE_SENGLANGUAGE)
+      If Not HasTranslation($language) Then $language = _GetOSLanguage()
+      If Not HasTranslation($language) Then $language = "English"
+      SavePref('language', $language)
+  EndIf
+  ```
+  A stored value with an installed translation is kept; otherwise falls
+  through two OS-locale candidates in order, then `"English"`.
+- **Scope note:** `has_translation`, the OS UI-language candidate, and
+  the second OS-locale candidate are all caller-supplied (real
+  filesystem/OS calls). Full translation catalogs beyond a default
+  English set are out of scope (manifest row D006). Persisting the
+  resolved value (`SavePref`) is the caller's job — this function only
+  decides what the value should be.
+- Parity tests: `prefs::tests::resolve_language_*` (4 tests).
+- PR [#369](https://github.com/baileyrd/rusty_extract/pull/369).
+
+---
+
 ## C014, C015 — Directory-input and second-instance entry gates
 **2026-08-20**
 

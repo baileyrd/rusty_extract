@@ -295,11 +295,52 @@ pub fn resolve_filescanlogfile_path(raw: Option<&str>, settingsdir: &str) -> Str
     }
 }
 
+/// C017: resolves the `language` preference — `LoadPref("language",
+/// $language, False)` followed by:
+/// ```autoit
+/// If Not HasTranslation($language) Then
+///     $language = _WinAPI_GetLocaleInfo(_WinAPI_GetSystemDefaultUILanguage(), $LOCALE_SENGLANGUAGE)
+///     If Not HasTranslation($language) Then $language = _GetOSLanguage()
+///     If Not HasTranslation($language) Then $language = "English"
+///     SavePref('language', $language)
+/// EndIf
+/// ```
+/// `stored` is the already-loaded preference value (`None` when
+/// `LoadPref` reports missing/unreadable, matching every other
+/// `LoadPref`-backed resolver in this module). `has_translation` is
+/// caller-supplied — a real check against installed `lang/*.ini` files;
+/// full translation catalogs beyond a default English set are out of
+/// scope (manifest row D006). `os_ui_language` and `os_language` are the
+/// two OS-locale candidates the source tries in order
+/// (`_WinAPI_GetLocaleInfo(_WinAPI_GetSystemDefaultUILanguage(), ...)`,
+/// then `_GetOSLanguage()`), caller-supplied since both are real OS
+/// calls. Persisting the resolved value (`SavePref`) is the caller's job
+/// — this function only decides what the value should be.
+pub fn resolve_language(
+    stored: Option<&str>,
+    has_translation: impl Fn(&str) -> bool,
+    os_ui_language: &str,
+    os_language: &str,
+) -> String {
+    if let Some(lang) = stored {
+        if has_translation(lang) {
+            return lang.to_string();
+        }
+    }
+    if has_translation(os_ui_language) {
+        return os_ui_language.to_string();
+    }
+    if has_translation(os_language) {
+        return os_language.to_string();
+    }
+    "English".to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         parse_cleanup_option, parse_delete_source_file_option, password_list_path, push_history,
-        resolve_batchqueue_path, resolve_bool_pref, resolve_filescanlogfile_path,
+        resolve_batchqueue_path, resolve_bool_pref, resolve_filescanlogfile_path, resolve_language,
         resolve_timeout_ms, should_delete_source_file, DeleteSourceFileOption, APPENDEXT_DEFAULT,
         BATCHENABLED_DEFAULT, BATCHRECURSE_DEFAULT, EXTRACTVIDEOTRACK_DEFAULT, EXTRACT_DEFAULT,
         FREESPACECHECK_DEFAULT, KEEPOUTPUTDIR_DEFAULT, LOG_DEFAULT, SILENTMODE_DEFAULT,
@@ -553,6 +594,72 @@ mod tests {
         assert_eq!(
             resolve_filescanlogfile_path(Some(r"D:\logs\filescan.txt"), r"C:\settings"),
             r"D:\logs\filescan.txt"
+        );
+    }
+
+    /// Parity test for capability C017: a stored value with an installed
+    /// translation is kept as-is, without consulting either OS-locale
+    /// candidate.
+    #[test]
+    fn resolve_language_keeps_a_valid_stored_value() {
+        let installed = ["German"];
+        assert_eq!(
+            resolve_language(
+                Some("German"),
+                |lang| installed.contains(&lang),
+                "French",
+                "French",
+            ),
+            "German"
+        );
+    }
+
+    /// Parity test for capability C017: a missing or invalid stored value
+    /// falls through to the OS UI-language candidate when it has a
+    /// translation.
+    #[test]
+    fn resolve_language_falls_back_to_os_ui_language() {
+        let installed = ["Spanish"];
+        assert_eq!(
+            resolve_language(None, |lang| installed.contains(&lang), "Spanish", "German",),
+            "Spanish"
+        );
+        assert_eq!(
+            resolve_language(
+                Some("NotARealLanguage"),
+                |lang| installed.contains(&lang),
+                "Spanish",
+                "German",
+            ),
+            "Spanish"
+        );
+    }
+
+    /// Parity test for capability C017: when the OS UI-language candidate
+    /// also has no translation, falls through to the second OS-locale
+    /// candidate.
+    #[test]
+    fn resolve_language_falls_back_to_second_os_language_candidate() {
+        let installed = ["Italian"];
+        assert_eq!(
+            resolve_language(
+                None,
+                |lang| installed.contains(&lang),
+                "NotInstalled",
+                "Italian",
+            ),
+            "Italian"
+        );
+    }
+
+    /// Parity test for capability C017: when nothing matches — stored,
+    /// nor either OS-locale candidate — falls all the way back to the
+    /// literal `"English"` default.
+    #[test]
+    fn resolve_language_defaults_to_english_when_nothing_matches() {
+        assert_eq!(
+            resolve_language(None, |_| false, "NotInstalled", "AlsoNotInstalled"),
+            "English"
         );
     }
 
