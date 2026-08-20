@@ -461,6 +461,22 @@ fn nbh(ctx: &Ctx) -> Invocation {
     }
 }
 
+/// C090 UniExtract.au3:2973 — PeaZip (`pea.exe`): `x -dp"<outdir>"
+/// <file>`, in `file_dir`, hidden. Same argument shape as `freearc`
+/// (C071) — `pea.exe` mirrors the same `x`/`-dp"..."` CLI convention.
+fn pea(ctx: &Ctx) -> Invocation {
+    Invocation {
+        program: ctx.program.to_string(),
+        args: vec![
+            "x".to_string(),
+            format!("-dp\"{}\"", ctx.outdir),
+            ctx.file.to_string(),
+        ],
+        working_dir: ctx.file_dir.to_string(),
+        window: WindowMode::Hidden,
+    }
+}
+
 /// C092 UniExtract.au3:3005 — UnRAR: `x -kb [-p<password>] <file>`, in
 /// `outdir`, shown. `ctx.password` folds into a single `-p<password>`
 /// token when present, matching the source's effective post-quote-parsing
@@ -876,6 +892,11 @@ pub static FORMATS: &[FormatEntry] = &[
         build: nbh,
     },
     FormatEntry {
+        name: "pea",
+        citation: "C090 UniExtract.au3:2973",
+        build: pea,
+    },
+    FormatEntry {
         name: "rar",
         citation: "C092 UniExtract.au3:3005",
         build: rar,
@@ -984,12 +1005,12 @@ mod tests {
     /// The table has exactly one row per collapsed format, with unique
     /// names — a cheap sanity net for future edits to `FORMATS`.
     #[test]
-    fn table_has_47_unique_formats() {
-        assert_eq!(FORMATS.len(), 47);
+    fn table_has_48_unique_formats() {
+        assert_eq!(FORMATS.len(), 48);
         let mut names: Vec<&str> = FORMATS.iter().map(|e| e.name).collect();
         names.sort_unstable();
         names.dedup();
-        assert_eq!(names.len(), 47);
+        assert_eq!(names.len(), 48);
     }
 
     /// Parity test for capability C057: matches UniExtract.au3:2346-2349's
@@ -1623,6 +1644,30 @@ mod tests {
         assert_eq!(inv.args, vec![r"C:\downloads\ROM.nbh".to_string()]);
         assert_eq!(inv.working_dir, r"C:\downloads\ROM_unpacked");
         assert_eq!(inv.window, WindowMode::Show);
+    }
+
+    /// Parity test for capability C090: matches `pea.exe`'s effective
+    /// `x -dp"<outdir>" "<file>"` call — same shape as `freearc` (C071).
+    #[test]
+    fn pea_matches_source_invocation() {
+        let inv = pea(&Ctx {
+            program: r"C:\UniExtract\bin\pea.exe",
+            file_dir: r"C:\downloads",
+            file: r"C:\downloads\archive.pea",
+            outdir: r"C:\downloads\archive_unpacked",
+            ..Default::default()
+        });
+        assert_eq!(inv.program, r"C:\UniExtract\bin\pea.exe");
+        assert_eq!(
+            inv.args,
+            vec![
+                "x".to_string(),
+                r#"-dp"C:\downloads\archive_unpacked""#.to_string(),
+                r"C:\downloads\archive.pea".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\downloads");
+        assert_eq!(inv.window, WindowMode::Hidden);
     }
 
     /// Parity test for capability C092: no password resolved builds

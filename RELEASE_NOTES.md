@@ -23,6 +23,21 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C090 — PeaZip extractor integration
+**2026-08-20**
+
+- **Added:** `extract::table`'s `pea` builder + `FORMATS` row —
+  `pea.exe`'s `x -dp"<outdir>" <file>`, in `file_dir`, hidden. Same
+  argument shape as `freearc` (C071) — `pea.exe` mirrors the same
+  `x`/`-dp"..."` CLI convention. Added directly to the existing table
+  (48 rows now) rather than as a new standalone file, per the note
+  already left on issue #157 when this repeat-of-the-original-pattern
+  risk was first flagged.
+- Parity test: `extract::table::tests::pea_matches_source_invocation`.
+- PR [#370](https://github.com/baileyrd/rusty_extract/pull/370).
+
+---
+
 ## C017 — `language` preference resolution
 **2026-08-20**
 
