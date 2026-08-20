@@ -151,6 +151,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C074: innounp/innoextract primary/fallback pair (`extract::inno`).
 - C001: positional file argument resolution and existence validation
   (`file_arg::resolve_file_argument_path`, `file_arg::validate_file_argument`).
+- C002, C003: destination-argument routing and scan-only mode
+  (`dest_arg::parse_destination_argument`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

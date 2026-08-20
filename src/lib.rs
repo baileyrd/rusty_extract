@@ -5,6 +5,7 @@ pub mod batch;
 pub mod batch_runner;
 pub mod cleanup;
 pub mod cli;
+pub mod dest_arg;
 pub mod detection;
 pub mod extract;
 pub mod file_arg;
