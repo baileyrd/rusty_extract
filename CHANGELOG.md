@@ -159,6 +159,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C014, C015: directory-input and second-instance entry gates
   (`entry_gate::directory_input_gate`, `entry_gate::second_instance_gate`).
 - C017: `language` preference resolution (`prefs::resolve_language`).
+- C090: PeaZip extractor integration, added directly to `extract::table`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
