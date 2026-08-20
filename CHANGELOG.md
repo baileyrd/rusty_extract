@@ -150,6 +150,24 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C091: RAIU extractor integration (`extract::raiu`).
 - C074: innounp/innoextract primary/fallback pair (`extract::inno`).
 ### Changed
+- Collapsed 43 single-invocation extractor modules (`extract::ace`,
+  `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
+  `extract::table` — same `Invocation` output for the same inputs, no
+  behavior change. Module paths named in earlier entries above for the
+  affected capabilities (C057, C058, C062, C063, C065, C067, C068, C070,
+  C072, C076, C078, C079-C088, C092-C097, C100, C102, C103, C107-C113,
+  C115-C118, C120, C146) now live in `extract::table` instead (PR
+  [#360](https://github.com/baileyrd/rusty_extract/pull/360)).
+- Collapsed the 18 `def/*.ini`-only wrapper modules (`extract::alz`,
+  `extract::arc`, `extract::adf`, etc. — capabilities C059, C060,
+  C122-C137) into one table-driven regression test,
+  `extract::plugin_defs_test`; none had production callers of their own
+  (PR [#361](https://github.com/baileyrd/rusty_extract/pull/361)).
+- Folded `extract::freearc` (C071) and `extract::uharc` (C101), missed in
+  the first collapse, into `extract::table` (PR
+  [#362](https://github.com/baileyrd/rusty_extract/pull/362)).
+- `capability-manifest.md`: updated the **Evidence** test-path citation for
+  all 63 capabilities affected by the three consolidations above.
 ### Fixed
 - CI now runs on `windows-latest` (was `ubuntu-latest`) and triggers on pushes
   to this repo's actual default branch — this is a Windows-only parity port

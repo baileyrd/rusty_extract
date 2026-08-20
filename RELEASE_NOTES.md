@@ -23,6 +23,70 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## Refactor — Fold `freearc`/`uharc` into the extractor table
+**2026-08-19**
+
+- **Changed:** `extract::freearc` (C071) and `extract::uharc` (C101) were
+  missed by the collapse below — `freearc` matched the trivial pattern
+  exactly and was dropped transcribing that batch's file list by hand;
+  `uharc`'s 3-binary fallback chain (`UNUHARC06.EXE` → `UHARC04.EXE` →
+  `UHARC02.EXE`) has two functions that were pure delegation and a third
+  that only swaps the caller-supplied strings for 8.3 short paths, not the
+  code shape. Both fold into `extract::table`, which grows from 43 to 47
+  rows. No behavior change — every original assertion is reproduced.
+- Parity tests: `extract::table::tests::freearc_matches_source_invocation`,
+  `uharc_matches_source_invocation`, `uharc04_matches_source_invocation`,
+  `uharc02_matches_source_invocation`.
+- PR [#362](https://github.com/baileyrd/rusty_extract/pull/362).
+
+---
+
+## Refactor — Collapse 18 `def/*.ini`-only wrapper modules
+**2026-08-19**
+
+- **Changed:** `extract::alz`, `extract::arc`, `extract::adf`,
+  `extract::bitrock`, `extract::bsa`, `extract::godot`, `extract::lbr`,
+  `extract::lit`, `extract::mo`, `extract::pex`, `extract::qm`,
+  `extract::rpgmvp`, `extract::sgb`, `extract::sim`, `extract::sit`,
+  `extract::spoon`, `extract::utage`, `extract::uu` (capabilities C059,
+  C060, C122-C137) each existed solely to `include_str!` one bundled
+  `def/*.ini` file and assert it still parses and substitutes into the
+  expected command line — confirmed none of them or their `BUNDLED_INI`
+  consts had any caller outside their own file; the real runtime dispatch
+  path (`extract::plugin::resolve_plugin_ini`) reads `def/*.ini` straight
+  off disk by name at runtime. Collapsed into one table-driven regression
+  test, `extract::plugin_defs_test`.
+- Parity test:
+  `extract::plugin_defs_test::bundled_plugin_only_inis_produce_source_matching_command_lines`
+  (18 cases, one per format).
+- PR [#361](https://github.com/baileyrd/rusty_extract/pull/361).
+
+---
+
+## Refactor — Collapse 43 single-invocation extractor modules
+**2026-08-19**
+
+- **Changed:** 43 of `src/extract/`'s formats (`extract::ace`,
+  `extract::kgb`, `extract::rar`, `extract::unzip`, etc. — capabilities
+  C057, C058, C062, C063, C065, C067, C068, C070, C072, C076, C078,
+  C079-C088, C092-C097, C100, C102, C103, C107-C113, C115-C118, C120,
+  C146) each followed one exact shape: a single
+  `pub fn invocation(...) -> Invocation` shelling out to one helper binary
+  with a fixed, non-branching argument pattern, plus one parity test.
+  Collapsed into one data-driven module, `extract::table` — a shared
+  `Ctx` input struct, one small builder fn per format, and a `FORMATS`
+  table tying a format name to its builder and `UniExtract.au3`
+  provenance. No behavior change: same `Invocation` output for the same
+  inputs.
+- `capability-manifest.md`: updated the **Evidence** test-path citation
+  for every affected capability across all three PRs in this trilogy (63
+  rows total).
+- Parity tests: `extract::table::tests::*` (one per format, plus a
+  table-shape sanity test).
+- PR [#360](https://github.com/baileyrd/rusty_extract/pull/360).
+
+---
+
 ## C074 — innounp/innoextract primary/fallback pair
 **2026-08-18**
 
