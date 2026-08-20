@@ -155,6 +155,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`dest_arg::parse_destination_argument`).
 - C006: `/type[=value]` override routing
   (`type_override::parse_type_override`).
+- C011: `/batch` flag detection (`cli::has_batch_flag`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

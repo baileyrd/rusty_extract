@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C011 — `/batch` flag detection
+**2026-08-20**
+
+- **Added:** `cli::has_batch_flag` — ports `_ArraySearch($cmdline,
+  "/batch") > -1` (UniExtract.au3:687-690): case-insensitive presence
+  check, following the same pattern as every other flag in `cli.rs`.
+  Doesn't false-positive on `/batchclear` — `_ArraySearch` is an exact
+  whole-element match, not a substring search.
+- **Scope note:** flag detection only. The source's branch also calls
+  `AddToBatch()` (real queue-file I/O) then `terminate($STATUS_SILENT)`
+  — adding the queued entry is `batch::build_command_line` (C147,
+  already `DONE`) and the caller's job.
+- **Note on citations:** while tracking down this flag's exact source
+  block (verified via exact-string search, not line-range guessing — see
+  the retraction below), found that `/batch` sits directly adjacent to
+  the `/type` block from C006, which a content-search fetch placed far
+  from where the manifest cites it. The citations for this whole late
+  region of `ParseCommandLine` (`/type`, `/batch`, `/close`, and by
+  extension the already-`DONE` C007-C013 flags in `cli.rs`) may be
+  systematically drifted from wherever they actually live in the current
+  upstream source — worth its own dedicated citation-audit issue rather
+  than folding an uncertain fix into this one. Not acted on further here.
+- Parity test: `cli::tests::batch_flag_detected_case_insensitively`.
+- PR [#367](https://github.com/baileyrd/rusty_extract/pull/367).
+
+---
+
 ## Correction — retract PR #365's "corrected citations" claim
 **2026-08-20**
 

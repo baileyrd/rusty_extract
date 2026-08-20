@@ -57,11 +57,22 @@ pub fn has_close_flag(args: &[String]) -> bool {
     args.iter().any(|a| a.eq_ignore_ascii_case("/close"))
 }
 
+/// C011: `/batch` — ports `_ArraySearch($cmdline, "/batch") > -1`
+/// (UniExtract.au3:687-690): queue the file for later processing instead
+/// of extracting immediately. The source's branch calls `AddToBatch()`
+/// then `terminate($STATUS_SILENT)` — real queue-file I/O and process
+/// exit, so this function covers only the flag detection; adding the
+/// queued entry is `batch::build_command_line` (C147) and the caller's
+/// job.
+pub fn has_batch_flag(args: &[String]) -> bool {
+    args.iter().any(|a| a.eq_ignore_ascii_case("/batch"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        has_close_flag, has_nolog_flag, has_nostats_flag, has_silent_flag, is_batchclear_flag,
-        is_help_flag,
+        has_batch_flag, has_close_flag, has_nolog_flag, has_nostats_flag, has_silent_flag,
+        is_batchclear_flag, is_help_flag,
     };
 
     fn args(items: &[&str]) -> Vec<String> {
@@ -125,5 +136,18 @@ mod tests {
         assert!(has_close_flag(&args(&["/close"])));
         assert!(has_close_flag(&args(&["/CLOSE"])));
         assert!(!has_close_flag(&args(&["/silent"])));
+    }
+
+    /// Parity test for capability C011: `/batch` is detected
+    /// case-insensitively, and doesn't false-positive on `/batchclear`
+    /// (a different, distinct flag, not a substring match).
+    #[test]
+    fn batch_flag_detected_case_insensitively() {
+        assert!(has_batch_flag(&args(&["/batch"])));
+        assert!(has_batch_flag(&args(&["/BATCH"])));
+        assert!(has_batch_flag(&args(&["file.zip", "/Batch"])));
+        assert!(!has_batch_flag(&args(&["/batchclear"])));
+        assert!(!has_batch_flag(&args(&["file.zip"])));
+        assert!(!has_batch_flag(&args(&[])));
     }
 }
