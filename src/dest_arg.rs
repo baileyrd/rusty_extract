@@ -1,5 +1,6 @@
 //! Positional destination-argument routing: ports `ParseCommandLine()`'s
-//! `$iArgs > 1` block (UniExtract.au3:635-646):
+//! `$iArgs > 1` block (C002: UniExtract.au3:643-649, C003:
+//! UniExtract.au3:640-642, per `capability-manifest.md`):
 //!
 //! ```autoit
 //! If $iArgs > 1 Then

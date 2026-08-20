@@ -153,6 +153,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`file_arg::resolve_file_argument_path`, `file_arg::validate_file_argument`).
 - C002, C003: destination-argument routing and scan-only mode
   (`dest_arg::parse_destination_argument`).
+- C006: `/type[=value]` override routing
+  (`type_override::parse_type_override`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
@@ -178,6 +180,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   that needs a Windows runner to build/test at all.
 - `IniFile::parse` reports skipped/malformed lines instead of silently
   dropping them (unix-philosophy audit finding F1).
+- Retracted PR #365's claim of having "verified against the live source"
+  and corrected C002/C003's AutoIt line citations — that verification
+  trusted `WebFetch`'s line-number reporting on a large file, which
+  turned out not to be reliable. Reverted to the original citations; the
+  ported behavior itself was unaffected.
 ### Security
 
 <!-- ## [0.1.0] - YYYY-MM-DD
