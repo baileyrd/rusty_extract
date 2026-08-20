@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C002, C003 — Destination-argument routing and scan-only mode
+**2026-08-20**
+
+- **Added:** `dest_arg::parse_destination_argument` — ports
+  `ParseCommandLine()`'s `$iArgs > 1` block (UniExtract.au3:635-646): no
+  second positional argument at all → `Absent`; `/scan` (case-insensitive)
+  → `ScanOnly { extract: false, create_log: false }` (C003); `/sub`/`/last`
+  pass through unresolved for `outdir::resolve_output_directory`
+  (C004/C005) to handle; anything else is pre-resolved via the same
+  `_PathFull` logic the file argument uses (C001,
+  `file_arg::resolve_file_argument_path`) before that function ever sees
+  it.
+- **Corrected citations:** while implementing this, verified both
+  capabilities' AutoIt source-line citations against the live source —
+  C002's prior `643-649` and C003's prior `640-642` both pointed a few
+  lines off (at the `/type=arctype` block and the outdir branch,
+  respectively, not the block these capabilities actually describe).
+  Manifest rows updated to the verified `635-646`/`635-639` ranges.
+- **Scope note:** C003 here covers only the mode-routing decision and its
+  two flags — the "detect and report file type" half is C037-046
+  (detection engine, not yet wired into this phase's `main.rs`) plus
+  C153/C154 (scan-only output, already `DONE`).
+- Parity tests: `dest_arg::tests::*` (4 tests).
+- PR [#365](https://github.com/baileyrd/rusty_extract/pull/365).
+
+---
+
 ## C001 — Positional file argument resolution
 **2026-08-20**
 
