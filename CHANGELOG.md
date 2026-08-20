@@ -156,6 +156,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C006: `/type[=value]` override routing
   (`type_override::parse_type_override`).
 - C011: `/batch` flag detection (`cli::has_batch_flag`).
+- C014, C015: directory-input and second-instance entry gates
+  (`entry_gate::directory_input_gate`, `entry_gate::second_instance_gate`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

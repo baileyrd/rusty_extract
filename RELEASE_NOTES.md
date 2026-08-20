@@ -23,6 +23,40 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C014, C015 — Directory-input and second-instance entry gates
+**2026-08-20**
+
+- **Added:** `entry_gate::directory_input_gate` (C014) and
+  `entry_gate::second_instance_gate` (C015), ported from the two gates
+  right before/inside `StartExtraction()`:
+  ```autoit
+  $hMutex = _Singleton($name & " " & $sVersion, 1)
+  If $hMutex = 0 And $extract Then
+      AddToBatch()
+      terminate($STATUS_SILENT)
+  EndIf
+  StartExtraction()
+
+  Func StartExtraction()
+      If _IsDirectory($file) Then
+          GUI_Batch_AddDirectory($file)
+          terminate($STATUS_BATCH)
+      EndIf
+      ; ...
+  EndFunc
+  ```
+  Both return the resulting `Status` (C016's contract) rather than just a
+  bool: a directory input → `Status::Batch`; a second instance that would
+  extract → `Status::Silent` — both exit code 0.
+- **Scope note:** routing/status decisions only. `_Singleton`'s OS mutex
+  and `GUI_Batch_AddDirectory`'s per-file enumeration are caller-supplied
+  — the latter's `GUI_` prefix marks it as deferred subsystem work (D001),
+  the same convention already applied to `GUI_MethodSelectList` in C006.
+- Parity tests: `entry_gate::tests::*` (5 tests).
+- PR [#368](https://github.com/baileyrd/rusty_extract/pull/368).
+
+---
+
 ## C011 — `/batch` flag detection
 **2026-08-20**
 
