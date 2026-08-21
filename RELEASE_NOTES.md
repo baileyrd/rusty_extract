@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C036 — Third-party detector tool silencing
+**2026-08-21**
+
+- **Added:** `detector_silence` — decision logic for PEiD/Exeinfo PE
+  registry silencing, ported from `FileScan_Peid`'s and
+  `OpenExeInfo`/`CloseExeInfo`'s identical backup/overwrite/restore-or-delete
+  pattern over `HKCU\Software\PEiD` (3 values) and `HKCU\Software\ExEi-pe`
+  (9 values). `restore_plan` decides `Restore(...)` vs. `Delete` from a
+  caller-supplied backup read — real `RegRead`/`RegWrite`/`RegDelete` is out
+  of scope (this crate has no Win32 registry FFI yet), matching the existing
+  `extract::plugin::resolve_plugin_ini_with` dependency-injection seam.
+- **Preserved quirk:** only the *first* backed-up value's read failure
+  decides whether the key existed at all; any other value's failed read
+  silently restores as `0` (AutoIt's `RegRead` returns `""` on failure,
+  coerced to `0` by a subsequent `REG_DWORD` write) — reproduced exactly
+  rather than "fixed."
+- Parity tests: `detector_silence::tests::silence_value_sets_match_source`,
+  `restore_plan_restores_when_key_existed`,
+  `restore_plan_deletes_when_key_did_not_exist`,
+  `restore_plan_deletes_for_empty_backup`.
+- PR [#375](https://github.com/baileyrd/rusty_extract/pull/375).
+
+---
+
 ## C152 — Scan-only-mode short-circuit
 **2026-08-21**
 
