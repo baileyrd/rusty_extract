@@ -227,6 +227,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   unreachable in practice, shadowed by the earlier `"ar archive"`
   case (a genuine source quirk, preserved rather than fixed).
   Capability marked `DONE`.
+- C039: TrID match dispatch table (`detection::trid_dispatch`, 92
+  `Case` clauses, the largest of the three detector dispatch tables)
+  — preserved the table's one case-sensitive comparison and two
+  dead-code quirks (`"null bytes"` shadowed; the generic `Executable`
+  case correctly never misroutes ELF binaries). Capability marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
