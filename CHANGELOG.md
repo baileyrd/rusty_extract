@@ -205,6 +205,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   InstallExplorer/ISO/TotalObserver probe-then-classify detectors and
   the shared extraction case; `BmsExtract`'s SQLite-backed `.bms`
   lookup stays unmodeled, same ambiguity as C055.
+- C046: extension-based pre-check (`detection::initial_ext_check`,
+  ports `InitialCheckExt`) — every routing target already had a home
+  from earlier capabilities, so this is purely the pre-scan
+  order/grouping decision; preserves the reversed `CheckIso()`/7-Zip
+  probe call order between the two disk-image extension groups.
+  Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
