@@ -169,6 +169,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C152: scan-only-mode short-circuit (`entry_gate::scan_only_gate`).
 - C036: third-party detector tool silencing, PEiD/Exeinfo PE registry
   backup/restore decision logic (`detector_silence::restore_plan`).
+- C099: ThinApp/Thinstall extractor integration (`extract::thinapp`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C099 — ThinApp/Thinstall extractor integration
+**2026-08-21**
+
+- **Added:** `extract::thinapp` — the `Extractor.exe` invocation `Case
+  $TYPE_THINSTALL` makes on a relocated copy of the input:
+  `<program> "<tempoutdir><filename_full>"`, run in `tempoutdir` with the
+  window hidden.
+- **Scope note:** the surrounding relocate-in/collect-out/cleanup steps
+  (`DirCreate`, `_FileMove`, `MoveFiles`, `DirRemove`) are real filesystem
+  I/O, out of scope here — the same split `extract::raiu` already uses for
+  its own temp-directory unwrap step.
+- **Triage correction:** the manifest's own summary calls this
+  "GUI-automated"; direct source verification found a plain `_Run` call,
+  no GUI scripting involved — worth double-checking a manifest summary
+  against real source before assuming its complexity classification (the
+  same lesson C098/swfextract surfaced).
+- Parity tests: `extract::thinapp::tests::matches_source_invocation`,
+  `relocated_file_path_matches_source_shape`.
+- PR [#376](https://github.com/baileyrd/rusty_extract/pull/376).
+
+---
+
 ## C036 — Third-party detector tool silencing
 **2026-08-21**
 

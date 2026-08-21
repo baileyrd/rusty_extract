@@ -26,6 +26,7 @@ mod plugin_defs_test;
 pub mod raiu;
 pub mod runner;
 pub mod table;
+pub mod thinapp;
 pub mod unity;
 pub mod visionaire3;
 
