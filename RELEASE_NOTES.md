@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C054 — Recursive dispatch complete: `$TYPE_UNITYPACKAGE`, all 6 sites covered
+**2026-08-21**
+
+- **Added:** `extract::unity`'s module doc comment now documents `Case
+  $TYPE_UNITYPACKAGE`'s recursive `extract($TYPE_7Z, -1, "gz", True,
+  False)` call (UniExtract.au3:3173), the 6th and final of C054's cited
+  sites. `extract::unity` (C121) was already `DONE` for the invocation
+  and rename-loop halves of this capability — only the recursive
+  dispatch piece was outstanding, matching its own already-honest
+  "not modeled here" note.
+- Shares `extract::forge`'s/`extract::raiu`'s `return_success=true,
+  return_fail=false` shape, including the same `$outdir`-redirect-to-
+  `$tempoutdir` dance `extract::forge` uses for its own recursive call
+  — the primary extraction lands in the scratch directory, restored
+  afterward. A failed recursive extraction terminates the whole
+  process right there, same as `forge`/`raiu`.
+- **C054 status: `DONE`.** All 6 cited call sites now have their
+  recursion piece covered (`extract::actual`, `extract::forge`,
+  `extract::raiu`, `extract::zip`, `extract::mscf`, `extract::unity`).
+  `$TYPE_MSCF`'s own `RipExeInfo` fallback stays out of scope under
+  C069's existing GUI-automation blocker — that's `$TYPE_MSCF`'s own
+  base-extractor behavior, not part of the recursive-dispatch mechanism
+  C054 itself describes.
+- PR [#385](https://github.com/baileyrd/rusty_extract/pull/385).
+
+---
+
 ## C054 — Recursive dispatch: `$TYPE_MSCF`
 **2026-08-21**
 
