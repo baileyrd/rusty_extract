@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C177 — Unicode-move bookkeeping loss on nested re-entry
+**2026-08-21**
+
+- **Verified still present**, against a directly downloaded copy of
+  the raw source: `unpack()`'s post-unpack re-scan
+  (UniExtract.au3:3633-3635 — `$file = $sPath` then a direct call to
+  `StartExtraction()`) re-enters the same function the outer run
+  started in. `StartExtraction()`'s very first statement
+  (UniExtract.au3:378, unconditional on every entry, nested or not) is
+  `$iUnicodeMode = False` — discarding whatever relocation bookkeeping
+  the outer run had already set up, before the inner run does
+  anything else. By the time `terminate()` runs, only the innermost
+  re-entry's state is visible, so the outer run's relocated temp
+  copy/rename is never cleaned up.
+- **Added:** `unicode_relocation::start_extraction_reentry_resets_unicode_mode`
+  — makes this fact explicit and testable rather than working around
+  it. Under this migration's parity contract, a caller composing this
+  port's pieces into a real orchestrator must replicate the reset on
+  every `StartExtraction`-equivalent re-entry point to stay
+  behaviorally faithful; threading the outer `UnicodeMode` through
+  instead would be a silent behavior change, not a bug fix.
+- Parity test: `unicode_relocation::tests::nested_start_extraction_reentry_discards_outer_unicode_mode`.
+- PR [#401](https://github.com/baileyrd/rusty_extract/pull/401).
+
+---
+
 ## C175/C176 — Non-ASCII and UNC-path input relocation
 **2026-08-21**
 

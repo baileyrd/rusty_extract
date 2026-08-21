@@ -1,6 +1,7 @@
-//! Unicode/UNC-path input relocation — C159 (reversal) plus C175/C176
-//! (the forward relocation decision, `MoveInputFileIfNecessary()`,
-//! UniExtract.au3:2218-2266).
+//! Unicode/UNC-path input relocation — C159 (reversal), C175/C176 (the
+//! forward relocation decision, `MoveInputFileIfNecessary()`,
+//! UniExtract.au3:2218-2266), and C177 (a known bookkeeping-loss quirk
+//! on nested re-entry, UniExtract.au3:378,3603-3642,3633-3636).
 //!
 //! ```autoit
 //! Func MoveInputFileIfNecessary()
@@ -360,6 +361,38 @@ pub fn should_reset_outdir(outdir: &str) -> bool {
     !is_allowed_charset(outdir)
 }
 
+/// Capability C177 — a known bookkeeping-loss quirk, confirmed still
+/// present in the current source, not a modeling gap in this port.
+///
+/// `unpack()`'s post-unpack re-scan (UniExtract.au3:3633-3635, inside
+/// UniExtract.au3:3603-3642) re-enters the top level of the extraction
+/// cascade: `$file = $sPath` then a direct call to `StartExtraction()`
+/// — the same function the *original* run started in. `StartExtraction()`'s
+/// very first statement (UniExtract.au3:378, in its "Reset variables"
+/// block) is `$iUnicodeMode = False`, run unconditionally on *every*
+/// entry, nested or not.
+///
+/// So: if the outer run had already relocated its input (`$iUnicodeMode`
+/// set to `Move` or `Copy` by [`plan_relocation`]/[`decide_relocation_mode`]),
+/// and the user then chooses to re-scan the unpacked output, the nested
+/// `StartExtraction()` call discards that bookkeeping before doing
+/// anything else. By the time the process actually reaches `terminate()`,
+/// only the *innermost* re-entry's `$iUnicodeMode` is visible —
+/// [`decide_unicode_reversion`] sees `None` and skips reverting the
+/// outer relocation entirely, silently leaving the outer run's
+/// temp copy/rename uncleaned.
+///
+/// This function exists to make that fact explicit and testable, not
+/// to work around it — under this migration's parity contract, a
+/// caller composing this port's pieces into a real orchestrator must
+/// replicate the reset on every `StartExtraction`-equivalent re-entry
+/// point (discard `outer_mode`, always yield `None`) to stay
+/// behaviorally faithful. Threading `outer_mode` through instead would
+/// be a silent behavior change, not a bug fix.
+pub fn start_extraction_reentry_resets_unicode_mode(_outer_mode: UnicodeMode) -> UnicodeMode {
+    UnicodeMode::None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -674,5 +707,20 @@ mod tests {
     fn outdir_reset_mirrors_the_allowed_charset_check() {
         assert!(!should_reset_outdir(r"C:\output"));
         assert!(should_reset_outdir(r"C:\output_файл"));
+    }
+
+    /// Parity test for capability C177: a nested `StartExtraction()`
+    /// re-entry (via `unpack()`'s post-unpack re-scan) discards
+    /// whatever `UnicodeMode` the outer run had, regardless of what it
+    /// was -- the known bookkeeping-loss quirk, confirmed present in
+    /// the current source.
+    #[test]
+    fn nested_start_extraction_reentry_discards_outer_unicode_mode() {
+        for outer in [UnicodeMode::None, UnicodeMode::Move, UnicodeMode::Copy] {
+            assert_eq!(
+                start_extraction_reentry_resets_unicode_mode(outer),
+                UnicodeMode::None
+            );
+        }
     }
 }
