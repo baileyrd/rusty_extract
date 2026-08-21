@@ -23,6 +23,40 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C054 — Recursive dispatch: `$TYPE_ZIP`
+**2026-08-21**
+
+- **Added:** `extract::zip` — `Case $TYPE_ZIP`'s recursive
+  `extract($TYPE_7Z, -1, $additionalParameters, False, True)` call
+  (UniExtract.au3:3385), the 4th of C054's 6 cited sites to land, and
+  `should_show_extracting_message` (the `$arcdisp > -1` tray-message
+  gate).
+- **A genuine, non-obvious finding:** this call site's exact
+  `(return_success=false, return_fail=true)` arguments mean a
+  *successful* recursive 7-Zip extraction terminates the whole process
+  outright — it never returns control to `Case $TYPE_ZIP` at all — while
+  a *failed* one always returns `false`. So `If Not extract(...) Then`
+  is effectively always true whenever it's reached: the Info-ZIP
+  fallback isn't conditional in any meaningful sense, it runs whenever
+  the recursive extraction fails and the case has already exited the
+  process otherwise. Pinned down directly against
+  `extract::completion::resolve_completion` rather than re-derived by
+  hand.
+- **Reused, not duplicated:** the fallback invocation itself
+  (`_Run($zip & ' -x "' & $file & '"', ...)`) is already `extract::table`'s
+  `unzip` entry, C109 (`DONE`).
+- `extract::dispatch::HARDCODED_CASES` gains a `"zip"` entry routing to
+  the new module.
+- **C054 status:** 4 of 6 cited call sites now covered (`extract::actual`,
+  `extract::forge`, `extract::raiu`, `extract::zip`); manifest row stays
+  `REQUIRED` — `$TYPE_MSCF`/`$TYPE_UNITYPACKAGE` still need their own
+  base extractor modules built first.
+- Parity tests: `extract::zip::tests` (3), plus
+  `extract::dispatch::tests::routes_zip_to_its_own_module`.
+- PR [#383](https://github.com/baileyrd/rusty_extract/pull/383).
+
+---
+
 ## C054/C181 — Recursive dispatch: the completion contract
 **2026-08-21**
 
