@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C040 — Unix `file` tool secondary detector
+**2026-08-21**
+
+- **Added:** `detection::unixfile_scan` — ports `FileScan_UnixFile`'s
+  output cleanup (stripping the tool's own filename echo and CRLF
+  sequences) and its post-scan branch: scan-only mode disables
+  `$appendext` for text-like results (renaming a possibly misdetected
+  text file is deliberately avoided) and returns without dispatching;
+  extract mode hands off entirely to `filecompare`, already ported as
+  `detection::file_dispatch::classify` (C041).
+- **The "run automatically after TrID" half of this capability** is
+  the unconditional call at UniExtract.au3:938, inside `FileScan_Trid`
+  (C038) — not a decision this module makes, so it isn't re-modeled
+  here; the module doc comment points to where it actually lives.
+- **Not modeled:** `FetchStdout(...)`, real process I/O — the same
+  external-process boundary already documented elsewhere in this
+  port.
+- Parity tests: `detection::unixfile_scan::tests` (6).
+- PR [#395](https://github.com/baileyrd/rusty_extract/pull/395).
+
+---
+
 ## C039 — TrID match dispatch table
 **2026-08-21**
 
