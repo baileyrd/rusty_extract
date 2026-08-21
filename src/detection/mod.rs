@@ -6,6 +6,7 @@ pub mod alz_probe;
 pub mod arj_probe;
 pub mod cascade;
 pub mod detector_mapping;
+pub mod exeinfo_dispatch;
 pub mod initial_ext_check;
 pub mod registry;
 pub mod sevenzip_probe;

@@ -217,6 +217,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `IsExe()`, which never returns control in that mode, so none of
   `StartExtraction()`'s other steps ever run for it. Capability marked
   `DONE`.
+- C043: Exeinfo PE match dispatch table (`detection::exeinfo_dispatch`,
+  ~45 cases) — matched top to bottom exactly as the source orders it;
+  every literal needle string verified present in the exact cited
+  source range before writing tests. Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
