@@ -177,6 +177,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C075: InstallShield CAB fallback chain — unshield with `-O` retry,
   then a C053-disambiguated choice of is6comp/is5comp/iscab
   (`extract::iscab`).
+- C150: verified is6comp's blocking-`RunWait`-with-no-crash-guard batch
+  risk is still present, structurally inherent to
+  `extract::runner::CommandExtractorRunner`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

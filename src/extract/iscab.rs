@@ -189,6 +189,18 @@ pub fn should_use_is6comp_extraction(file_count: u32) -> bool {
 /// (`RunWait(_MakeCommand(...), $outdir, @SW_MINIMIZE)` — the
 /// `_MakeCommand` bindir-prefixing isn't modeled, matching
 /// `extract::expand`'s documented precedent for the same helper).
+///
+/// **C150 — no crash guard, verified still present.** This `RunWait`
+/// call (UniExtract.au3:2668-2674) blocks synchronously on `is6comp.exe`
+/// with no timeout or crash guard around it — a documented bug
+/// (`todo.txt:27`): if `is6comp` crashes or hangs, batch processing
+/// stalls with it. This port's own `extract::runner::CommandExtractorRunner`
+/// reproduces the same shape for every invocation it runs
+/// (`Command::output()` always blocks, uncapped) — [`Invocation`]
+/// carries no timeout/watchdog field for any call site to opt into, so
+/// the quirk isn't fixed here; see
+/// `runner::tests::command_runner_blocks_until_exit_with_no_timeout_escape`
+/// for the parity test.
 pub fn is6comp_extract_invocation(program: &str, file: &str, outdir: &str) -> Invocation {
     Invocation {
         program: program.to_string(),
