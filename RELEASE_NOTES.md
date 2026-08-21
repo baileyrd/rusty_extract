@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C043 — Exeinfo PE match dispatch table
+**2026-08-21**
+
+- **Added:** `detection::exeinfo_dispatch` — ports `FileScan_ExeInfo`'s
+  full `Select` (~45 cases), matched top to bottom exactly as the
+  source orders it, including its two explicit ordering comments
+  (`InstallAware` must be checked before `InstallShield`; the `upx`
+  case must be last before `Case Else`). `$TYPE_ISCRIPT` is
+  `"installscript"` and `$TYPE_VSSFX_PATH` is `"vssfxpath"` — both
+  verified against the source's own `Const` block rather than guessed.
+- **Verification:** every one of the 64 literal needle strings this
+  module matches against was checked present, case-insensitively,
+  in the exact cited source range (UniExtract.au3:1141-1278) before
+  writing a single test — catching transcription errors before they
+  could hide behind a passing test suite.
+- **Not modeled:** the exact `t('TERM_X')`-composed display text
+  passed alongside most `extract(...)` calls (translation/formatting
+  only), and the internals of `checkInno`/`checkIE`/`checkNSIS`/
+  `CheckTotalObserver`/`unpack`/`BmsExtract` — each is its own
+  separate capability or mechanism; `Action` only signals which one
+  this dispatch reaches. `Case Else` falls through to
+  `detection::detector_mapping::resolve_exeinfo` (C051), already
+  covered, not duplicated.
+- Parity tests: `detection::exeinfo_dispatch::tests` (13).
+- PR [#392](https://github.com/baileyrd/rusty_extract/pull/392).
+
+---
+
 ## C037 — Top-level detection cascade order (`StartExtraction`)
 **2026-08-21**
 
