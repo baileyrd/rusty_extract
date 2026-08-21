@@ -194,6 +194,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C054: completed `$TYPE_UNITYPACKAGE`'s recursive dispatch
   (`extract::unity`) — all 6 cited call sites now covered, capability
   marked `DONE`.
+- C181: `$TYPE_CTAR`'s same-tool nested-archive loop (`extract::ctar`)
+  — a genuinely different mechanism from `extract()` recursion, capability
+  marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
