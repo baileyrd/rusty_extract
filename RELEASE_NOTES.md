@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C152 — Scan-only-mode short-circuit
+**2026-08-21**
+
+- **Added:** `entry_gate::scan_only_gate` — a third gate from
+  `StartExtraction()`, joining C014/C015: `If Not $extract Then
+  FileScan_MediaInfo(); terminate($STATUS_FILEINFO, $filenamefull,
+  $fileext); EndIf`. Returns whether the gate fires, not the
+  `Status::FileInfo` value itself — that variant also carries
+  `silent_mode`/`filetype_identified` (C153/C154, already `DONE`), which
+  this gate doesn't have.
+- **Scope note:** `FileScan_MediaInfo`'s media-info scan is C045
+  (REQUIRED, separate), out of scope here.
+- Parity tests: `entry_gate::tests::scan_only_gate_fires_when_not_extracting`,
+  `scan_only_gate_does_not_fire_when_extracting`.
+- PR [#374](https://github.com/baileyrd/rusty_extract/pull/374).
+
+---
+
 ## C098 — swfextract extractor integration
 **2026-08-21**
 
