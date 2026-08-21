@@ -237,6 +237,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   — output cleanup and post-scan branch; extract mode hands off
   entirely to `detection::file_dispatch::classify` (C041). Capability
   marked `DONE`.
+- C044 (partial): PEiD match dispatch table (`detection::peid_dispatch`,
+  20 cases) — the actual PEiD scan is real Win32 GUI automation, the
+  same blocker already found for C069/C106/C056's SFX splitter; stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

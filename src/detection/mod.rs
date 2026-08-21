@@ -9,6 +9,7 @@ pub mod detector_mapping;
 pub mod exeinfo_dispatch;
 pub mod file_dispatch;
 pub mod initial_ext_check;
+pub mod peid_dispatch;
 pub mod registry;
 pub mod sevenzip_probe;
 pub mod trid_dispatch;
