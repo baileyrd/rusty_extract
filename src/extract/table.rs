@@ -2170,4 +2170,42 @@ mod tests {
         assert_eq!(build("kgb", &ctx), Some(kgb(&ctx)));
         assert_eq!(build("not-a-real-format", &ctx), None);
     }
+
+    /// Parity test for capability C143: UniExtract2 has no centralized
+    /// overwrite policy (UniExtract.au3:2269-3403, the whole `extract()`
+    /// switch) — overwrite behavior is fully delegated to each helper
+    /// binary's own default, and no format's invocation injects a global
+    /// "overwrite all" flag. **Deliberately preserved as a documented
+    /// gap, not fixed** (`todo.txt:53`): this sweeps every already-ported
+    /// format in one pass so a future builder can't silently start
+    /// injecting one without this test catching it.
+    #[test]
+    fn no_format_injects_a_global_overwrite_flag() {
+        let ctx = Ctx {
+            program: "prog.exe",
+            file: "file",
+            outdir: "outdir",
+            file_dir: "file_dir",
+            tempoutdir: "tempoutdir",
+            filename: "filename",
+            filename_full: "filename.ext",
+            dest_path: "dest_path",
+            script_dir: "script_dir",
+            password: Some("password"),
+            append_ext: true,
+            game_index: 1,
+        };
+        let overwrite_flags = ["-y", "/y", "-o+", "/o+", "-aoa", "--overwrite"];
+        for entry in FORMATS {
+            let inv = (entry.build)(&ctx);
+            for arg in &inv.args {
+                assert!(
+                    !overwrite_flags.iter().any(|f| arg.eq_ignore_ascii_case(f)),
+                    "format {:?} unexpectedly injects overwrite flag {:?}",
+                    entry.name,
+                    arg
+                );
+            }
+        }
+    }
 }
