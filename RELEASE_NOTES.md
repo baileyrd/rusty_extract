@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## Correction — fix `extract::ctar`'s `StringInStr` case-sensitivity claim
+**2026-08-21**
+
+- **Fixed:** PR #386 (`extract::ctar`, C181) documented and implemented
+  `is_nested_archive`'s marker check as case-*sensitive*, citing the
+  source's explicit `StringInStr($return, "Listing archive:", 0)` third
+  argument. That's backwards: `0` is AutoIt's `$STR_NOCASESENSE` — the
+  documented *default* value — so an explicit `0` behaves identically to
+  omitting the argument entirely, i.e. case-*insensitive*, the same as
+  every other bare `StringInStr` call already correctly documented
+  elsewhere in this port. Verified against AutoIt's own `StringInStr`
+  documentation before making this fix, rather than trusting memory a
+  second time.
+- `is_nested_archive` now lowercases both sides before comparing; its
+  test renamed and extended to assert the marker matches regardless of
+  case.
+- No other capability in this port was affected — this is the first
+  place an *explicit* `StringInStr` casesense argument (rather than a
+  bare/omitted one) was encountered and gotten wrong.
+
+---
+
 ## C181 — Complete: `$TYPE_CTAR`'s same-tool nested-archive loop
 **2026-08-21**
 
