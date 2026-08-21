@@ -19,6 +19,7 @@ pub mod forge;
 pub mod helpdeco;
 pub mod inno;
 pub mod iscab;
+pub mod mscf;
 pub mod pdf;
 pub mod placeholder;
 pub mod plugin;

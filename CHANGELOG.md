@@ -188,6 +188,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   piece for `extract::actual`/`extract::forge`/`extract::raiu`.
 - C054 (partial): `$TYPE_ZIP`'s recursive dispatch (`extract::zip`),
   finding its fallback path runs unconditionally whenever reached.
+- C054 (partial): `$TYPE_MSCF`'s recursive dispatch and cab-extraction
+  invocation (`extract::mscf`); its own `RipExeInfo` fallback stays
+  GUI-blocked, same as C069.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
