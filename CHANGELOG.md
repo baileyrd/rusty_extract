@@ -305,6 +305,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   branch's own "reveal window once after 60s of no growth" heuristic;
   preserved the `$bPatternSearch > -1` numeric-comparison quirk. Stays
   `REQUIRED` (process/GUI/file I/O unmodeled).
+- C104: ffmpeg per-stream extraction (`extract::ffmpeg`) — completes
+  the capability's remaining `$TYPE_VIDEO` gap; found the `$iStreams`
+  off-by-one (WMA shortcut fires for up to two real streams) and the
+  dash-stripping asymmetry between `_MakeFFmpegCommand` and the
+  image-sequence branch. Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

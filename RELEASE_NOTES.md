@@ -23,6 +23,45 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C104 — ffmpeg per-stream extraction (completes the capability)
+**2026-08-21**
+
+- **All three cited call sites now covered.** `extract::ffmpeg` already
+  had `Case $TYPE_AUDIO`/`Case $TYPE_VIDEO_CONVERT`/the `$TYPE_VIDEO`
+  probe invocation from an earlier PR. **Added:** `$TYPE_VIDEO`'s
+  per-stream extraction — parsing ffmpeg's raw `-i` stderr, splitting
+  on the literal `"Stream"` token, regex-parsing each segment's header,
+  classifying each stream (image-sequence split, h264-specific
+  extraction, ordinary video/audio extraction, or unrecognized
+  category), and building each extraction's output filename and full
+  invocation.
+- **Two genuine quirks, preserved exactly:**
+  - `$iStreams` (computed as `$aStreams[0] - 2`) under-counts by one
+    relative to the number of segments actually processed — the WMA
+    shortcut check (`$fileext == "wma" And $iStreams < 2`) as a result
+    actually fires for up to *two* real streams, not fewer than two,
+    despite its own name.
+  - `_MakeFFmpegCommand` strips every leading `-` from the output base
+    name — but the gif/apng/webp image-sequence branch bypasses
+    `_MakeFFmpegCommand` entirely, so its output filename is never
+    dash-stripped. A real asymmetry, not an oversight to "fix".
+- **Two different case-sensitivity rules in the same block**: the
+  category check and the gif/apng/webp/h264 exact-codec checks use
+  `==` (case-sensitive); the wmv/mpeg/vp8/flv/wma/vorbis/pcm
+  remapping uses bare `StringInStr` (case-insensitive substring).
+  Preserved exactly, not unified.
+- **One documented, accepted limitation**: the header regex's
+  stream-index group is exactly `\d:\d` — for a real double-digit
+  stream index, PCRE backtracking would still match by truncating the
+  captured index; this port's hand-written parser requires exactly
+  one digit each side and returns `None` instead, rather than
+  hand-replicating PCRE backtracking for an edge case rare enough not
+  to justify the effort.
+- Parity tests: `extract::ffmpeg::tests` (23 total, 20 new).
+- PR [#408](https://github.com/baileyrd/rusty_extract/pull/408).
+
+---
+
 ## C166 (partial) — Teelog dual-output mechanism
 **2026-08-21**
 
