@@ -572,6 +572,24 @@ fn superdat(ctx: &Ctx) -> Invocation {
     }
 }
 
+/// C098 — swfextract (`swfextract.exe`): `-X -D <outdir> <file>`, in
+/// `file_dir`, hidden. `-X -D` extracts every content type (sounds,
+/// images, streams) in one pass — a single invocation, not the
+/// per-target sequence the manifest's own summary might suggest.
+fn swf(ctx: &Ctx) -> Invocation {
+    Invocation {
+        program: ctx.program.to_string(),
+        args: vec![
+            "-X".to_string(),
+            "-D".to_string(),
+            ctx.outdir.to_string(),
+            ctx.file.to_string(),
+        ],
+        working_dir: ctx.file_dir.to_string(),
+        window: WindowMode::Hidden,
+    }
+}
+
 /// C100 UniExtract.au3:3147 — ttarchext (game already selected via GUI):
 /// `-m <game_index> <file> <outdir>`, in `outdir`, hidden.
 fn ttarch(ctx: &Ctx) -> Invocation {
@@ -927,6 +945,11 @@ pub static FORMATS: &[FormatEntry] = &[
         build: superdat,
     },
     FormatEntry {
+        name: "swf",
+        citation: "C098 UniExtract.au3:3045-3098",
+        build: swf,
+    },
+    FormatEntry {
         name: "ttarch",
         citation: "C100 UniExtract.au3:3147",
         build: ttarch,
@@ -1005,12 +1028,12 @@ mod tests {
     /// The table has exactly one row per collapsed format, with unique
     /// names — a cheap sanity net for future edits to `FORMATS`.
     #[test]
-    fn table_has_48_unique_formats() {
-        assert_eq!(FORMATS.len(), 48);
+    fn table_has_49_unique_formats() {
+        assert_eq!(FORMATS.len(), 49);
         let mut names: Vec<&str> = FORMATS.iter().map(|e| e.name).collect();
         names.sort_unstable();
         names.dedup();
-        assert_eq!(names.len(), 48);
+        assert_eq!(names.len(), 49);
     }
 
     /// Parity test for capability C057: matches UniExtract.au3:2346-2349's
@@ -1833,6 +1856,31 @@ mod tests {
         );
         assert_eq!(inv.working_dir, r"C:\downloads\updater_unpacked");
         assert_eq!(inv.window, WindowMode::Show);
+    }
+
+    /// Parity test for capability C098: matches `swfextract.exe`'s
+    /// effective `-X -D "<outdir>" "<file>"` call.
+    #[test]
+    fn swf_matches_source_invocation() {
+        let inv = swf(&Ctx {
+            program: r"C:\UniExtract\bin\swfextract.exe",
+            file_dir: r"C:\downloads",
+            file: r"C:\downloads\movie.swf",
+            outdir: r"C:\downloads\movie_unpacked",
+            ..Default::default()
+        });
+        assert_eq!(inv.program, r"C:\UniExtract\bin\swfextract.exe");
+        assert_eq!(
+            inv.args,
+            vec![
+                "-X".to_string(),
+                "-D".to_string(),
+                r"C:\downloads\movie_unpacked".to_string(),
+                r"C:\downloads\movie.swf".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\downloads");
+        assert_eq!(inv.window, WindowMode::Hidden);
     }
 
     /// Parity test for capability C100: matches UniExtract.au3:3147's
