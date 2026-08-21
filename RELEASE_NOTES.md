@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C181 — Complete: `$TYPE_CTAR`'s same-tool nested-archive loop
+**2026-08-21**
+
+- **Added:** `extract::ctar` — `Case $TYPE_CTAR`'s full sequence
+  (UniExtract.au3:2477-2497): decompress with 7-Zip, then for every
+  newly-created file, probe it with `7z l` and, if 7-Zip recognizes it
+  as a listable archive, extract it too and delete the original.
+- **Not `extract()` recursion.** Unlike C054's six call sites, this
+  loop re-invokes `7z` directly on each newly-discovered file — the
+  same tool, not a dispatched type — so `extract::completion` doesn't
+  apply. It's its own probe-then-classify shape, matching
+  `detection::sevenzip_probe`'s.
+- **Preserved quirk:** the old-files check (`Not StringInStr($oldfiles,
+  $fname)`) is a raw substring search against `ReturnFiles`'s
+  pipe-delimited snapshot string, not an exact-token comparison — a
+  newly-extracted file whose name happens to be a substring of an old
+  file's name (e.g. old `notes.txt.bak`, new `notes.txt`) is
+  incorrectly treated as already existing and skipped. `is_newly_created`
+  reproduces this exactly.
+- `extract::dispatch::HARDCODED_CASES` gains a `"ctar"` entry.
+- **C181 status: `DONE`.** All 3 cited ranges now covered.
+- Parity tests: `extract::ctar::tests` (8), plus
+  `extract::dispatch::tests::routes_ctar_to_its_own_module`.
+- PR [#386](https://github.com/baileyrd/rusty_extract/pull/386).
+
+---
+
 ## C054 — Recursive dispatch complete: `$TYPE_UNITYPACKAGE`, all 6 sites covered
 **2026-08-21**
 

@@ -95,6 +95,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::cic",
     },
     HardcodedCase {
+        type_key: "ctar",
+        module: "extract::ctar",
+    },
+    HardcodedCase {
         type_key: "chd",
         module: "extract::chdman",
     },
@@ -282,6 +286,19 @@ mod tests {
             DispatchTarget::Hardcoded(HardcodedCase {
                 type_key: "mscf",
                 module: "extract::mscf"
+            })
+        );
+    }
+
+    /// Parity test for capability C181: `$TYPE_CTAR`'s same-tool
+    /// nested-archive loop has a real module (`extract::ctar`).
+    #[test]
+    fn routes_ctar_to_its_own_module() {
+        assert_eq!(
+            dispatch("ctar"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "ctar",
+                module: "extract::ctar"
             })
         );
     }
