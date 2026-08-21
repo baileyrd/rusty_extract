@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C106 — Wise Installer 4-method fallback (everything but the MSI rip)
+**2026-08-21**
+
+- **Added:** `extract::wise` — the primary `e_wise_w.exe` invocation, the
+  primary-result routing (fallback disambiguation vs. running the
+  completion BAT), the five-choice `$iChoice` dispatch (reusing C053's
+  `method_select::WISE_CANDIDATES`/`decide_method_selection`, not
+  duplicated), invocation builders for choice 1 (WUN, plus its cleanup
+  patterns), choice 2 (`/x` switch), and choice 4 (unzip with a 7-Zip
+  fallback), plus the completion-BAT invocation.
+- **Scope note:** choice 3 (ripping an embedded MSI via Exeinfo PE)
+  drives real Win32 window/control automation (`RipExeInfo`) — the same
+  deferred-GUI-subsystem blocker already found for C069/C044/C054's
+  `$TYPE_MSCF` fallback/C056's SFX splitter. `WiseChoice::WiseMsi`
+  reports the branch without modeling what happens inside it; its
+  keystroke sequence is pinned as data (`RIP_EXEINFO_KEY_SEQUENCE`).
+  Manifest row stays `REQUIRED`.
+- Tests: `extract::wise::tests` (14), `extract::dispatch::tests::routes_wise_to_its_own_module`.
+
+---
+
 ## C104 — ffmpeg per-stream extraction (completes the capability)
 **2026-08-21**
 

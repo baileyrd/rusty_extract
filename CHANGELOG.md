@@ -310,6 +310,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   off-by-one (WMA shortcut fires for up to two real streams) and the
   dash-stripping asymmetry between `_MakeFFmpegCommand` and the
   image-sequence branch. Capability marked `DONE`.
+- C106 (partial): Wise Installer 4-method fallback (`extract::wise`) —
+  primary invocation, primary-result routing, five-choice dispatch
+  (reusing C053's `method_select::WISE_CANDIDATES`), and invocation
+  builders for choices 1/2/4 plus the completion-BAT path; choice 3's
+  MSI rip stays GUI-blocked (`RipExeInfo`), row stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

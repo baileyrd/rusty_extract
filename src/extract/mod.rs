@@ -35,6 +35,7 @@ pub mod table;
 pub mod thinapp;
 pub mod unity;
 pub mod visionaire3;
+pub mod wise;
 pub mod zip;
 
 /// A single external helper-binary invocation, corresponding to one

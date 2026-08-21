@@ -183,6 +183,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::unreal",
     },
     HardcodedCase {
+        type_key: "wise",
+        module: "extract::wise",
+    },
+    HardcodedCase {
         type_key: "wix",
         module: "extract::wix",
     },
@@ -333,6 +337,19 @@ mod tests {
             DispatchTarget::Hardcoded(HardcodedCase {
                 type_key: "7z",
                 module: "extract::sevenzip"
+            })
+        );
+    }
+
+    /// Parity test for capability C106: `$TYPE_WISE` has a real module
+    /// (`extract::wise`).
+    #[test]
+    fn routes_wise_to_its_own_module() {
+        assert_eq!(
+            dispatch("wise"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "wise",
+                module: "extract::wise"
             })
         );
     }
