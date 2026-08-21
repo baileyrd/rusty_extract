@@ -264,6 +264,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   capabilities: UNC relocation only applies when the unicode check
   didn't already compute a destination. Both capabilities marked
   `DONE`.
+- C177: unicode-move bookkeeping loss on nested re-entry
+  (`unicode_relocation::start_extraction_reentry_resets_unicode_mode`)
+  — verified still present: `unpack()`'s post-unpack re-scan
+  re-enters `StartExtraction()`, whose first statement unconditionally
+  resets `$iUnicodeMode`, discarding the outer run's relocation
+  bookkeeping. Documented and made testable, not fixed. Capability
+  marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
