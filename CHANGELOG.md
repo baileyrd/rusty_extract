@@ -289,6 +289,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   polling loop has no timeout, so an unattended run blocked on a
   detected prompt stalls the whole batch chain indefinitely.
   Capability marked `DONE`.
+- C151: batch-completion summary
+  (`batch_runner::decide_batch_completion_actions`) — the "queue
+  empty" branch `pop_and_relaunch_next_batch_item`'s own doc comment
+  had flagged as missing; documents a real distinction from
+  `terminate()`'s own separate keep-open relaunch condition.
+  Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
