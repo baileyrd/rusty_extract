@@ -10,6 +10,7 @@ pub mod exeinfo_dispatch;
 pub mod exeinfo_scan;
 pub mod file_dispatch;
 pub mod initial_ext_check;
+pub mod mediainfo_scan;
 pub mod peid_dispatch;
 pub mod registry;
 pub mod sevenzip_probe;
