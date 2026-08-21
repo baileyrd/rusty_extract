@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C143 — No centralized overwrite policy
+**2026-08-21**
+
+- **Added:** `extract::table::tests::no_format_injects_a_global_overwrite_flag`
+  — sweeps all 48 already-ported formats in `extract::table`'s `FORMATS`
+  table, asserting none of their built arguments include a general
+  "overwrite all" flag (`-y`, `/y`, `-o+`, `-aoa`, etc.).
+  **Deliberately preserved as a documented gap, not fixed**
+  (`todo.txt:53`, UniExtract.au3:2269-3403 — the whole `extract()`
+  switch): overwrite behavior is fully delegated to each helper binary's
+  own default, matching upstream. This is a regression guard as much as
+  a parity test — it sweeps every format in one pass so a future builder
+  can't silently start injecting an overwrite flag without this test
+  catching it.
+- PR [#372](https://github.com/baileyrd/rusty_extract/pull/372).
+
+---
+
 ## C161 — ACE excluded from the password-list trial
 **2026-08-20**
 

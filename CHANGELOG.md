@@ -162,6 +162,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C090: PeaZip extractor integration, added directly to `extract::table`.
 - C161: ACE excluded from the password-list trial, made explicit
   (`password_search::PASSWORD_TRIAL_EXTRACTOR_TYPES`).
+- C143: no centralized overwrite policy, verified across all 48
+  `extract::table` formats in one sweep.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
