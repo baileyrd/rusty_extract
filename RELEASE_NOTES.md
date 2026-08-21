@@ -23,6 +23,36 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C041 — Unix `file` tool match dispatch table
+**2026-08-21**
+
+- **Added:** `detection::file_dispatch` — ports `filecompare`'s full
+  `Select` (~24 named cases) plus its two trailing not-packed/
+  not-supported checks, matched top to bottom exactly as the source
+  orders it. `classify` and `trailing_termination` are kept as two
+  separate functions: unlike `exeinfo_dispatch` (C043), not every
+  `Select` outcome here is guaranteed to terminate before the trailing
+  checks — `CheckTotalObserver`/`check7z`/`CheckIso` are themselves
+  detection cascades that can fail to dispatch and let control fall
+  through, exactly as the source's straight-line function body does.
+- **Genuine preserved quirk, not a modeling artifact:** `"POSIX tar
+  archive"` (source line 1428) is unreachable in practice — `"tar
+  archive"` always contains the earlier `"ar archive"` case (line
+  1424) as a literal substring, so the more specific, later case never
+  actually matches. Kept in the port (not merged away) to document the
+  source's own dead case rather than silently dropping it.
+- **Verification:** all 66 literal needle strings checked present,
+  case-insensitively, in the exact cited source range before writing
+  tests, the same discipline applied for C043.
+- **Not modeled:** the exact `t('TERM_X')`-composed display text, and
+  the internals of `CheckTotalObserver`/`check7z`/`CheckIso` — each
+  its own separate capability. `Case Else` falls through to
+  `detection::detector_mapping::resolve_file` (C051), already covered.
+- Parity tests: `detection::file_dispatch::tests` (15).
+- PR [#393](https://github.com/baileyrd/rusty_extract/pull/393).
+
+---
+
 ## C043 — Exeinfo PE match dispatch table
 **2026-08-21**
 

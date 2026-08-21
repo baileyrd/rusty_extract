@@ -221,6 +221,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   ~45 cases) — matched top to bottom exactly as the source orders it;
   every literal needle string verified present in the exact cited
   source range before writing tests. Capability marked `DONE`.
+- C041: Unix `file` tool match dispatch table
+  (`detection::file_dispatch`, ~25 cases plus its trailing not-packed/
+  not-supported checks) — found that `"POSIX tar archive"` is
+  unreachable in practice, shadowed by the earlier `"ar archive"`
+  case (a genuine source quirk, preserved rather than fixed).
+  Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
