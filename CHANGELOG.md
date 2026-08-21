@@ -164,6 +164,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`password_search::PASSWORD_TRIAL_EXTRACTOR_TYPES`).
 - C143: no centralized overwrite policy, verified across all 48
   `extract::table` formats in one sweep.
+- C098: swfextract extractor integration, added directly to
+  `extract::table`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

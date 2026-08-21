@@ -23,6 +23,21 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C098 — swfextract extractor integration
+**2026-08-21**
+
+- **Added:** `extract::table`'s `swf` builder + `FORMATS` row —
+  `swfextract.exe`'s `-X -D <outdir> <file>`, in `file_dir`, hidden.
+  Verified via exact-string search against the live source: `-X -D`
+  extracts every content type (sounds, images, streams) in one pass,
+  a single invocation rather than the per-target sequence this row's
+  manifest summary might otherwise suggest — added directly to the
+  existing table (49 rows now).
+- Parity test: `extract::table::tests::swf_matches_source_invocation`.
+- PR [#373](https://github.com/baileyrd/rusty_extract/pull/373).
+
+---
+
 ## C143 — No centralized overwrite policy
 **2026-08-21**
 
