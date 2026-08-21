@@ -29,6 +29,7 @@ pub mod plugin_config;
 mod plugin_defs_test;
 pub mod raiu;
 pub mod runner;
+pub mod sevenzip;
 pub mod table;
 pub mod thinapp;
 pub mod unity;
