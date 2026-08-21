@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C053 — Manual disambiguation
+**2026-08-21**
+
+- **Added:** `method_select` — `GUI_MethodSelect`'s pre-dialog branch
+  selection (an active `$sMethodSelectOverride` wins outright; otherwise
+  silent mode auto-picks choice `1`; otherwise the radio-button dialog),
+  plus the five real candidate lists it dispatches (`$TYPE_ISCAB`,
+  `$TYPE_ISEXE`, the MSI lessmsi-failure fallback, `$TYPE_MSP`, the
+  `$TYPE_WISE` failure fallback) — kept as raw `(radio_label_key,
+  method_key)` data rather than resolved/localized strings.
+- **Scope note:** the GUI dialog itself stays out of scope, deferred
+  under the GUI subsystem (manifest row D001) — this unblocks the
+  several other capabilities documented as "user/caller-selectable per
+  C053" (e.g. C075, C100).
+- Parity tests: `method_select::tests::override_wins_regardless_of_silent_mode`,
+  `silent_mode_without_override_auto_picks_first`,
+  `interactive_mode_without_override_prompts`,
+  `all_zero_override_is_treated_as_unset`, `candidate_lists_match_source`.
+- PR [#378](https://github.com/baileyrd/rusty_extract/pull/378).
+
+---
+
 ## C172 — Undifferentiated failure messaging
 **2026-08-21**
 
