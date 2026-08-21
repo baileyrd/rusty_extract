@@ -245,6 +245,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`detection::exeinfo_scan`) — found the extract-mode scan is a plain
   command-line invocation, not GUI automation; the scan-only-mode GUI
   path and its corrupted-log retry stay unmodeled. Stays `REQUIRED`.
+- C045 (partial): MediaInfo scan formatting
+  (`detection::mediainfo_scan`) — found `StringSplit`'s missing
+  `$STR_ENTIRESPLIT` flag treats `@CRLF` as a character set, roughly
+  doubling the element count the not-a-media-file threshold checks
+  against; reproduced exactly. The `MediaInfo.dll` calls themselves
+  stay unmodeled (missing-FFI blocker, same as C038). Stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

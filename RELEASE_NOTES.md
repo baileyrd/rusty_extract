@@ -23,6 +23,40 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C045 — MediaInfo scan formatting (partial)
+**2026-08-21**
+
+- **Added:** `detection::mediainfo_scan::format_media_info` — ports
+  `FileScan_MediaInfo`'s formatting pass exactly, given
+  `MediaInfo_Inform`'s raw output text as input.
+- **Genuinely easy-to-miss finding**: `StringSplit($x, @CRLF, 2)`
+  omits `$STR_ENTIRESPLIT`, so `@CRLF` is treated as a *set* of
+  individual delimiter characters — splitting at every lone `\r` and
+  every lone `\n` separately, not the two-character `"\r\n"` sequence
+  as one delimiter. A real `\r\n` line ending contains both, so this
+  produces an empty string at every line boundary, roughly doubling
+  the element count the `"< 10 lines"` threshold checks against.
+  Reproduced exactly via `str::split(['\r', '\n'])` rather than the
+  more "obvious" `split("\r\n")`. The spurious empty entries turn out
+  harmless in the *formatted output* — they fail the `" : "` split
+  and are silently skipped the same way genuinely blank lines are —
+  but the threshold check genuinely operates on the doubled count.
+- **Also preserved**: the case-sensitive `"Complete name"` field
+  exclusion (the one exact-case comparison in an otherwise
+  case-insensitive function), and a quiet truncation — a line with
+  more than one `" : "` occurrence keeps only the first two split
+  parts, silently dropping the rest, matching the source's own
+  `$aSplit[1]`-only read.
+- **Scope — the DLL scan itself stays out of this port.**
+  `MediaInfo_New`/`_Open`/`_Inform`/`_Delete` are `DllCall`s into
+  `MediaInfo.dll` — the same missing-FFI-infrastructure blocker
+  already found for C038's TrIDLib. Manifest row C045 stays
+  `REQUIRED`; this PR covers the formatting half only.
+- Parity tests: `detection::mediainfo_scan::tests` (8).
+- PR [#398](https://github.com/baileyrd/rusty_extract/pull/398).
+
+---
+
 ## C042 — Exeinfo PE scan orchestration (partial)
 **2026-08-21**
 
