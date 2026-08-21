@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C174 — Per-extractor timeout handling
+**2026-08-21**
+
+- **Verified**: `$Timeout` is referenced from roughly 15 scattered
+  call sites across the whole ~8200-line source, out of ~70 extractor
+  `Case`s in `extract()`'s dispatch — confirming there is no global,
+  systematic timeout mechanism. Most of those sites just `ExitLoop` a
+  polling loop on expiry without any explicit termination — a
+  genuinely different, non-uniform behavior per site, not something
+  to generalize into one shared mechanism.
+- **Added:** `extractor_timeout::arc_conv_timeout_outcome` — ports the
+  one clean, explicit example the capability's citation names as
+  representative (`$TYPE_ARC_CONV`): `WinWait`'s return value of `0`
+  means the wait timed out, and this case terminates with
+  `$STATUS_TIMEOUT` on that outcome. `WinWait` itself stays out of
+  scope, the same deferred-GUI-subsystem boundary as elsewhere in
+  this port.
+- Parity tests: `extractor_timeout::tests` (3).
+- PR [#406](https://github.com/baileyrd/rusty_extract/pull/406).
+
+---
+
 ## C151 — Batch-completion summary
 **2026-08-21**
 
