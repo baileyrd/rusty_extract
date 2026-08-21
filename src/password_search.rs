@@ -104,9 +104,37 @@ pub fn find_password<'a>(
         .map(String::as_str)
 }
 
+/// C161: the exact set of extractor types `_FindArchivePassword` is
+/// wired into (UniExtract.au3:2290,2501,3004) — 7z, DGCA, RAR, matching
+/// this module's own doc comment. ACE (`extract::table`'s `ace` builder,
+/// C057) is deliberately excluded: its `Case $TYPE_ACE` block
+/// (UniExtract.au3:2347) carries its own `; TODO: _FindArchivePassword`
+/// comment, left unimplemented in the source itself — a wrong or missing
+/// password just fails generically for this one extractor. This isn't a
+/// gap this port fixes: the migration's job is preserving UniExtract2's
+/// observable behavior, not completing its own open TODOs. If ACE
+/// password support is ever added upstream, that's a new capability, not
+/// a change to this one.
+pub const PASSWORD_TRIAL_EXTRACTOR_TYPES: &[&str] = &["7z", "dgca", "rar"];
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Parity test for capability C161: ACE is not among the extractor
+    /// types the password-list trial applies to, matching the source's
+    /// own unimplemented `TODO: _FindArchivePassword` for that case.
+    #[test]
+    fn ace_is_not_in_the_password_trial_set() {
+        assert!(!PASSWORD_TRIAL_EXTRACTOR_TYPES.contains(&"ace"));
+    }
+
+    /// Parity test for capability C160/C161: the trial set is exactly
+    /// 7z, DGCA, and RAR — no more, no fewer.
+    #[test]
+    fn password_trial_set_is_exactly_7z_dgca_and_rar() {
+        assert_eq!(PASSWORD_TRIAL_EXTRACTOR_TYPES, &["7z", "dgca", "rar"]);
+    }
 
     #[test]
     fn nth_line_from_end_minus_one_returns_from_second_to_last_crlf_onward() {

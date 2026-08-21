@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C161 — ACE excluded from the password-list trial
+**2026-08-20**
+
+- **Added:** `password_search::PASSWORD_TRIAL_EXTRACTOR_TYPES` — the
+  exact set of extractor types `_FindArchivePassword` (C160) is wired
+  into: 7z, DGCA, RAR. ACE is deliberately excluded — its `Case
+  $TYPE_ACE` block (UniExtract.au3:2347) carries its own `; TODO:
+  _FindArchivePassword` comment, left unimplemented in the source
+  itself. **Deliberately preserved as a documented gap, not fixed**: a
+  wrong or missing password just fails generically for this one
+  extractor, matching upstream.
+- Turns what was already true by omission (the set only ever named 7z,
+  DGCA, RAR) into an explicit, tested invariant, so adding ACE here
+  later would have to be a conscious decision, not an accident.
+- Parity tests: `password_search::tests::ace_is_not_in_the_password_trial_set`,
+  `password_trial_set_is_exactly_7z_dgca_and_rar`.
+- PR [#371](https://github.com/baileyrd/rusty_extract/pull/371).
+
+---
+
 ## C090 — PeaZip extractor integration
 **2026-08-20**
 
