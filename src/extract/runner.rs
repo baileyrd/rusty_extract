@@ -117,6 +117,36 @@ mod tests {
         assert!(outcome.stdout.contains("hello"));
     }
 
+    /// Parity test for capability C150 ("InstallShield-cab batch crash
+    /// risk" — is6comp.exe's blocking `RunWait` call,
+    /// `extract::iscab::is6comp_extract_invocation`,
+    /// UniExtract.au3:2668-2674): `run()` blocks until the child process
+    /// actually exits and returns its real exit code — there's no
+    /// timeout parameter anywhere in this port's execution model for a
+    /// caller to opt into. A crashed or hung extractor (is6comp
+    /// included) would stall this port's own call the same way the
+    /// source's blocking `RunWait` with no crash guard stalls its batch
+    /// chain — a documented bug (`todo.txt:27`), reproduced here rather
+    /// than fixed.
+    #[test]
+    fn command_runner_blocks_until_exit_with_no_timeout_escape() {
+        let (program, args) = if cfg!(windows) {
+            ("cmd", vec!["/C".to_string(), "exit 7".to_string()])
+        } else {
+            ("sh", vec!["-c".to_string(), "exit 7".to_string()])
+        };
+        let invocation = Invocation {
+            program: program.to_string(),
+            args,
+            working_dir: std::env::temp_dir().to_string_lossy().into_owned(),
+            window: WindowMode::Hidden,
+        };
+
+        let outcome = CommandExtractorRunner.run(&invocation);
+
+        assert_eq!(outcome.exit_status, Some(7));
+    }
+
     /// The real adapter reports a non-existent program as a captured
     /// failure (`exit_status: None`, the launch error in `stderr`) rather
     /// than panicking.

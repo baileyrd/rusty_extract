@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C150 — InstallShield-cab batch crash risk
+**2026-08-21**
+
+- **Verified, still present:** `is6comp.exe`'s extraction call
+  (`extract::iscab::is6comp_extract_invocation`, UniExtract.au3:2668-2674)
+  runs via a blocking `RunWait` with no crash guard or timeout —
+  `todo.txt:27`'s documented "might crash, stopping batch processing"
+  bug. This port's own `extract::runner::CommandExtractorRunner` blocks
+  unconditionally on every invocation it runs (`Command::output()`,
+  uncapped) — `Invocation` carries no timeout/watchdog field for any
+  call site to opt into, so the quirk isn't fixed, matching the source.
+- Parity test: `extract::runner::tests::command_runner_blocks_until_exit_with_no_timeout_escape`
+  demonstrates `run()` blocks until the child process actually exits and
+  surfaces its real exit code, with no timeout escape hatch.
+- PR [#380](https://github.com/baileyrd/rusty_extract/pull/380).
+
+---
+
 ## C075 — InstallShield CAB fallback chain
 **2026-08-21**
 
