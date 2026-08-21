@@ -7,6 +7,7 @@ pub mod cleanup;
 pub mod cli;
 pub mod dest_arg;
 pub mod detection;
+pub mod detector_silence;
 pub mod entry_gate;
 pub mod extract;
 pub mod file_arg;
