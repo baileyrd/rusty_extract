@@ -197,6 +197,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C181: `$TYPE_CTAR`'s same-tool nested-archive loop (`extract::ctar`)
   — a genuinely different mechanism from `extract()` recursion, capability
   marked `DONE`.
+- C056 (partial): 7-Zip integration (`extract::sevenzip`) — main
+  extraction, error/password classification, and the full RPM/Debian/
+  gzip-family post-extraction branch tree; SFX-splitter branch stays
+  GUI-blocked, same as C069/C106.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

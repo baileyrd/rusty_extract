@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C056 — 7-Zip integration (everything but the SFX splitter)
+**2026-08-21**
+
+- **Added:** `extract::sevenzip` — `Case $TYPE_7Z`'s main extraction
+  invocation (password-conditional, reusing `password_search`'s
+  already-`DONE` C160/C161 mechanism rather than duplicating it), the
+  `@error`/`@extended` classification into `Status::MissingPart`/
+  `Status::Password`, and the full RPM/Debian/gzip-family
+  post-extraction branch tree.
+- **Operator precision:** this one `Case` block mixes three different
+  AutoIt case-sensitivity rules — bare `StringInStr` and
+  `StringInStr(..., 0)` (both case-insensitive; `0` is the documented
+  default), single-`=` string comparison (also case-insensitive, per
+  this script's default `StringCompareMode`), and double-`==` (always
+  case-sensitive, unconditionally). Verified each against AutoIt's own
+  operator documentation before writing this module, given the
+  `StringInStr` mistake just corrected in `extract::ctar`.
+- `extract::dispatch::HARDCODED_CASES` gains a `"7z"` entry.
+- **Scope — the SFX-splitter branch is genuinely GUI-blocked, manifest
+  row stays `REQUIRED`.** When the file type mentions "SFX" but not
+  "CAB", the source drives `7ZSplit.exe` via real Win32 window/control
+  automation (`WinWait`/`ControlClick`) — the same blocker already
+  found for C069/C106/C054's `$TYPE_MSCF`.
+- Parity tests: `extract::sevenzip::tests` (17), plus
+  `extract::dispatch::tests::routes_7z_to_its_own_module`.
+- PR [#388](https://github.com/baileyrd/rusty_extract/pull/388).
+
+---
+
 ## Correction — fix `extract::ctar`'s `StringInStr` case-sensitivity claim
 **2026-08-21**
 
