@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C046 — Extension-based pre-check (`InitialCheckExt`)
+**2026-08-21**
+
+- **Added:** `detection::initial_ext_check` — ports `InitialCheckExt`'s
+  `Switch $fileext`, the pre-scan routing for extensions whose file
+  magic is unreliable on its own (split-archive first parts, compound
+  tar variants, disk images). Every routing target already has a home
+  elsewhere in this port: the blind 7-Zip probe
+  (`detection::sevenzip_probe`, C048), `extract::qbms`'s ISO detector
+  (C077), and `extract::ctar`/`extract::sevenzip`/`extract::unity`
+  (C181/C056/C054) — so this capability is purely the *order and
+  grouping* the source's `Switch` decides, not new extraction logic.
+- **Preserved quirk:** `{bin, cdi, mdf}` calls `CheckIso()` then the
+  blind 7-Zip probe; `{cue, gdi, iso, mds}` calls them in the reverse
+  order. Modeled as two distinct `Routing` variants
+  (`DiskImageIsoThenCheck7z`/`Check7zThenDiskImageIso`) rather than one
+  shared "disk image" outcome, so the order can't be silently lost.
+- Parity tests: `detection::initial_ext_check::tests` (7).
+- PR [#390](https://github.com/baileyrd/rusty_extract/pull/390).
+
+---
+
 ## C077 — QuickBMS + WCX plugin fan-out (4 of 6 sites)
 **2026-08-21**
 

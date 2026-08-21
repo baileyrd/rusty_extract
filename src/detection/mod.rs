@@ -5,5 +5,6 @@
 pub mod alz_probe;
 pub mod arj_probe;
 pub mod detector_mapping;
+pub mod initial_ext_check;
 pub mod registry;
 pub mod sevenzip_probe;
