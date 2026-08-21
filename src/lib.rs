@@ -24,5 +24,6 @@ pub mod prefs;
 pub mod result_heuristic;
 pub mod run_log;
 pub mod status;
+pub mod teelog;
 pub mod type_override;
 pub mod unicode_relocation;

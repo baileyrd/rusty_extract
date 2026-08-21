@@ -300,6 +300,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `$Timeout` sites out of ~70 extractor cases); ported the one clean
   representative example (`$TYPE_ARC_CONV`). Capability marked
   `DONE`.
+- C166 (partial): teelog dual-output mechanism (`teelog`) — tee-pipe
+  command composition, the fold-into-run-log gate, and the no-tee
+  branch's own "reveal window once after 60s of no growth" heuristic;
+  preserved the `$bPatternSearch > -1` numeric-comparison quirk. Stays
+  `REQUIRED` (process/GUI/file I/O unmodeled).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

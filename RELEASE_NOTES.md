@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C166 (partial) — Teelog dual-output mechanism
+**2026-08-21**
+
+- **Added:** `teelog::build_run_command` — the tee-pipe command
+  composition (`_MakeCommand`'s result piped through `2>&1 | <tee>
+  "<logfile>"`, only when tee output is enabled);
+  `should_log_teelog_output` — the fold-into-run-log gate (only
+  non-empty captured output is worth logging); `decide_size_poll_action`
+  — the no-tee branch's own separate mechanism, a "reveal the
+  previously-hidden window once, after 60 seconds of no output-folder
+  growth" heuristic.
+- **Preserved quirk**: `$bPatternSearch > -1` is a numeric comparison
+  in the source, not a boolean check — `0` (`False`) and `1` (`True`)
+  both satisfy it the same way; only an explicit `-1` disables it.
+  Modeled as `pattern_search: i32` rather than "cleaned up" into a
+  `bool`.
+- **Already covered elsewhere, not duplicated**: the live "needs user
+  input" text scan inside the tee branch's polling loop is
+  `batch::needs_user_input` (C149); the captured output's own
+  classification is `log_eval::evaluate_log` (C167 family).
+- **Scope — still `REQUIRED`.** Process spawning, all `Win*`/
+  `Process*`/`Timer*`/`Sleep` calls, and the teelog file's own
+  open/read/close/delete are real process/GUI/filesystem work, out of
+  scope under the same boundary as elsewhere in this port.
+- Parity tests: `teelog::tests` (8).
+- PR [#407](https://github.com/baileyrd/rusty_extract/pull/407).
+
+---
+
 ## C174 — Per-extractor timeout handling
 **2026-08-21**
 
