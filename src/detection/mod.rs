@@ -12,3 +12,4 @@ pub mod initial_ext_check;
 pub mod registry;
 pub mod sevenzip_probe;
 pub mod trid_dispatch;
+pub mod unixfile_scan;

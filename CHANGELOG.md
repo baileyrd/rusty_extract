@@ -233,6 +233,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   dead-code quirks (`"null bytes"` shadowed; the generic `Executable`
   case correctly never misroutes ELF binaries). Capability marked
   `DONE`.
+- C040: Unix `file` tool secondary detector (`detection::unixfile_scan`)
+  — output cleanup and post-scan branch; extract mode hands off
+  entirely to `detection::file_dispatch::classify` (C041). Capability
+  marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
