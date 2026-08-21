@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C044 — PEiD match dispatch table (partial)
+**2026-08-21**
+
+- **Added:** `detection::peid_dispatch` — ports `FileScan_Peid`'s full
+  `Select` (20 cases), matched top to bottom exactly as the source
+  orders it, including its one case-sensitive comparison
+  (`StringInStr($sFileType, "PEtite", 1)`, unique among this table's
+  otherwise case-insensitive `Case`s).
+- **A structural difference from the other three dispatch tables**:
+  this `Select` has no `Case Else` — an unrecognized scan result takes
+  no action at all, rather than falling through to a registry-mapping
+  lookup. `Action::NoMatch` models that directly.
+- **Scope — the actual scan stays out of this port.** `FileScan_Peid`
+  drives PEiD through real Win32 GUI automation (`Run`/
+  `WinWait("PEiD v")`/`ControlGetText`/`WinClose`, plus backing up and
+  restoring three registry values around the call) — the same
+  deferred-GUI-subsystem blocker already found for C069/C106/C054's
+  `$TYPE_MSCF` fallback/C056's SFX splitter. Manifest row C044 stays
+  `REQUIRED`; this PR covers the dispatch-table half only, the same
+  partial-coverage shape as C056/C077.
+- Parity tests: `detection::peid_dispatch::tests` (8).
+- PR [#396](https://github.com/baileyrd/rusty_extract/pull/396).
+
+---
+
 ## C040 — Unix `file` tool secondary detector
 **2026-08-21**
 
