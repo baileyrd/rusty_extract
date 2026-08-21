@@ -226,10 +226,52 @@ pub fn should_continue_batch(batch_enabled: bool, status: crate::status::Status)
     batch_enabled && status != crate::status::Status::Silent
 }
 
+/// C149: the other half of `should_continue_batch`'s own documented
+/// gap — "whether an extraction *hangs or crashes* instead of exiting
+/// cleanly". Ports the "needs user input" text match from the tee-log
+/// polling loop (UniExtract.au3:4930-4933): while an extractor
+/// subprocess runs, its live output is scanned for any of these
+/// substrings, and if one appears the source shows the previously
+/// hidden console window and waits for the user, rather than
+/// proceeding.
+///
+/// **Verified still present, and genuinely relevant to C149's "stalls
+/// indefinitely" framing**: the polling loop itself
+/// (`While ProcessExists($run) ... WEnd`, UniExtract.au3:4925-4958) has
+/// no timeout or give-up condition anywhere in it — it keeps polling
+/// every ~100ms for as long as the subprocess is alive, however long
+/// that is. If the subprocess is blocked on exactly the kind of modal
+/// prompt this function detects and nobody is present to dismiss it
+/// (an unattended/batch run), the loop — and with it the whole batch
+/// chain, since [`should_continue_batch`]'s `BatchQueuePop()` call only
+/// happens after the current item's `terminate()` — never proceeds.
+/// This function doesn't fix that; it exists to make the detection
+/// trigger itself explicit and testable, the same "known quirk,
+/// verify still present" treatment already applied to C177/C178.
+///
+/// Every `StringInStr` here is bare (case-insensitive, the documented
+/// default) — including `" replace"`, which has a leading space in the
+/// source itself, preserved exactly rather than trimmed.
+pub fn needs_user_input(tee_log_text: &str) -> bool {
+    let s = tee_log_text.to_lowercase();
+    [
+        "already exist",
+        "overwrite",
+        " replace",
+        "password",
+        "not enough free space available",
+        "you must choose a new filename",
+        "insert disk with",
+        "[r]etry",
+    ]
+    .iter()
+    .any(|needle| s.contains(needle))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        build_command_line, is_multipart_archive_already_queued, pop_batch_queue,
+        build_command_line, is_multipart_archive_already_queued, needs_user_input, pop_batch_queue,
         should_add_to_batch, should_continue_batch,
     };
     use crate::status::Status;
@@ -367,5 +409,45 @@ mod tests {
     fn should_continue_batch_stops_when_batch_disabled() {
         assert!(!should_continue_batch(false, Status::Failed));
         assert!(!should_continue_batch(false, Status::Success));
+    }
+
+    #[test]
+    fn needs_user_input_matches_any_listed_signal() {
+        for sample in [
+            "output.txt already exists, overwrite?",
+            "(Y)es (N)o (A)ll: overwrite existing file?",
+            "would you like to replace it?",
+            "enter password:",
+            "Not enough free space available on the destination drive",
+            "the destination file exists, you must choose a new filename",
+            "Insert disk with volume label SETUP",
+            "Continue? [Y]es [N]o [A]ll [R]etry",
+        ] {
+            assert!(needs_user_input(sample), "expected match: {sample}");
+        }
+    }
+
+    #[test]
+    fn needs_user_input_is_case_insensitive() {
+        assert!(needs_user_input("PASSWORD REQUIRED"));
+        assert!(needs_user_input("ALREADY EXISTS"));
+    }
+
+    /// Parity test for capability C149: the `" replace"` needle has a
+    /// leading space in the source, preserved exactly rather than
+    /// trimmed -- a bare "replace" with no preceding space still
+    /// matches here only because it happens to contain the substring
+    /// with a space before it in this sample; a genuinely
+    /// space-less "replace" at the very start of the line would not.
+    #[test]
+    fn needs_user_input_replace_needle_requires_leading_space() {
+        assert!(needs_user_input("do you want to replace this file?"));
+        assert!(!needs_user_input("replace"));
+    }
+
+    #[test]
+    fn needs_user_input_false_for_ordinary_progress_output() {
+        assert!(!needs_user_input("Extracting file 3 of 10..."));
+        assert!(!needs_user_input(""));
     }
 }

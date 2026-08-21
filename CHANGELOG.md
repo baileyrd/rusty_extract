@@ -284,6 +284,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   coverage; still `REQUIRED` (the `MsgBox` call itself is unmodeled).
   Also backfilled `capability-manifest.md`'s C179 row, which had gone
   unupdated since PR #318.
+- C149: batch stall on blocking user-input prompts
+  (`batch::needs_user_input`) — verified still present: the tee-log
+  polling loop has no timeout, so an unattended run blocked on a
+  detected prompt stalls the whole batch chain indefinitely.
+  Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

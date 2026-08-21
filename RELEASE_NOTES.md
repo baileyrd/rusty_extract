@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C149 — Batch stall on blocking user-input prompts
+**2026-08-21**
+
+- **Verified still present.** `batch::should_continue_batch` (earlier
+  work) already covered this capability's `UniExtract.au3:4235-4237`
+  citation — the `BatchQueuePop()` continuation gate. **Added:**
+  `batch::needs_user_input` — ports the "needs user input" text match
+  from the tee-log polling loop (`UniExtract.au3:4930-4933`), the
+  remaining `4925-4958` half of this capability's citation.
+- **Confirmed the no-timeout structure**: the polling loop itself
+  (`While ProcessExists($run) ... WEnd`) has no timeout or give-up
+  condition anywhere in it — it polls every ~100ms for as long as the
+  subprocess is alive, however long that is. An unattended run blocked
+  on exactly the kind of prompt `needs_user_input` detects stalls the
+  whole batch chain indefinitely, matching the documented bug. Not
+  fixed — verified and made testable, the same "known quirk" treatment
+  already applied to C177/C178.
+- **Verification**: all 8 literal needle strings checked present,
+  case-insensitively, in the exact cited source range before writing
+  tests — including `" replace"`'s leading space, preserved exactly
+  rather than trimmed.
+- Parity tests: 5 new in `batch::tests`.
+- PR [#404](https://github.com/baileyrd/rusty_extract/pull/404).
+
+---
+
 ## C179 (partial) — Free-space prompt response handling
 **2026-08-21**
 
