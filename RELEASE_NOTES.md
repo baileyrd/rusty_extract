@@ -23,6 +23,49 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C039 — TrID match dispatch table
+**2026-08-21**
+
+- **Added:** `detection::trid_dispatch` — ports `tridcompare`'s full
+  `Select` (92 `Case` clauses, the largest of the three detector
+  dispatch tables), matched top to bottom exactly as the source orders
+  it.
+- **The one case-sensitive comparison in the whole table:**
+  `StringInStr($sFileType, '(.EXE)', 1)` passes AutoIt's explicit
+  case-sensitive mode — unique among ~90 otherwise case-insensitive
+  `Case`s in this function. Preserved exactly: this one comparison
+  skips the shared lowercased matching closure every other needle
+  goes through.
+- **Two genuine dead-code quirks, preserved rather than fixed:**
+  `"null bytes"` appears both in the disk-image group (checked first)
+  and again in the "Not packed" group — the second mention never
+  fires. Separately, `"Executable"` is a literal substring of `"ELF
+  Executable and Linkable format"`, but that's harmless: the "Not
+  packed" case containing it is checked well before the final generic
+  executable case, so ELF binaries are correctly classified as
+  not-packed rather than misrouted to `IsExe()`.
+- **Also modeled**, not dropped as display text: the two-step
+  "Windows Help File" case (`extract($TYPE_HLP, ..., "", False,
+  True)` — `returnFail = True` returns `false` on failure rather than
+  terminating, per `extract::completion::resolve_completion`
+  (C054/C181) — falling through to `extract($TYPE_CHM, ...)`); the
+  `CheckGame(False, False)` explicit-non-default-args case for
+  "Broken Age package"; and the conditional
+  `CreateRenamedCopy("z")`-then-`CheckTotalObserver` "InstallShield Z
+  archive" case.
+- **Verification:** all 134 literal needle strings checked present,
+  case-insensitively, in the exact cited source range before writing
+  tests — the same discipline applied for C041/C043.
+- **Not modeled:** the exact `t('TERM_X')`-composed display text, and
+  the internals of `CheckAlz`/`checkIE`/`CheckTotalObserver`/
+  `CheckGame`/`CheckGarbro`/`check7z`/`IsExe` — each its own separate
+  capability. `Case Else` falls through to
+  `detection::detector_mapping::resolve_trid` (C051), already covered.
+- Parity tests: `detection::trid_dispatch::tests` (16).
+- PR [#394](https://github.com/baileyrd/rusty_extract/pull/394).
+
+---
+
 ## C041 — Unix `file` tool match dispatch table
 **2026-08-21**
 
