@@ -179,6 +179,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::wolf",
     },
     HardcodedCase {
+        type_key: "zip",
+        module: "extract::zip",
+    },
+    HardcodedCase {
         type_key: "zoo",
         module: "extract::zoo",
     },
@@ -247,6 +251,20 @@ mod tests {
             DispatchTarget::Hardcoded(HardcodedCase {
                 type_key: "ace",
                 module: "extract::ace"
+            })
+        );
+    }
+
+    /// Parity test for capabilities C054/C181: `$TYPE_ZIP`'s recursive
+    /// call site now has a real module (`extract::zip`), not just a
+    /// bundled table entry.
+    #[test]
+    fn routes_zip_to_its_own_module() {
+        assert_eq!(
+            dispatch("zip"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "zip",
+                module: "extract::zip"
             })
         );
     }

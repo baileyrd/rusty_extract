@@ -31,6 +31,7 @@ pub mod table;
 pub mod thinapp;
 pub mod unity;
 pub mod visionaire3;
+pub mod zip;
 
 /// A single external helper-binary invocation, corresponding to one
 /// UniExtract2 `_Run(...)`/`_RunInTempOutdir(...)` call: the command line

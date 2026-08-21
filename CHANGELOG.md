@@ -186,6 +186,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C054/C181 (partial): recursive-dispatch completion contract
   (`extract::completion::resolve_completion`), completing the recursion
   piece for `extract::actual`/`extract::forge`/`extract::raiu`.
+- C054 (partial): `$TYPE_ZIP`'s recursive dispatch (`extract::zip`),
+  finding its fallback path runs unconditionally whenever reached.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
