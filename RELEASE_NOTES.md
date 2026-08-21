@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C077 — QuickBMS + WCX plugin fan-out (4 of 6 sites)
+**2026-08-21**
+
+- **Added:** `extract::qbms` — the three probe-then-classify detectors
+  that each wrap a different WCX plugin around `quickbms.exe`
+  (InstallExplorer, ISO/CD-DVD image, TotalObserver), plus the shared
+  `Case $TYPE_QBMS` extraction invocation and its plugin-path
+  resolution (`resolve_plugin_path`: a non-empty selector resolves
+  against `bindir`, an empty one falls back to the dynamically-written
+  `.bms` script path) and InstallExplorer-specific cleanup targets.
+- **Not modeled:** `BmsExtract` and `CheckGame`'s GAUP probe (already
+  backed off for C055/C180) — both load a game-specific `.bms` script
+  via `_SQLite_GetTable`, the same array-indexing semantics already
+  found genuinely ambiguous for C055. Guessing at its exact shape risks
+  silently-wrong parity rather than an honest gap.
+- Parity tests: `extract::qbms::tests` (9), plus
+  `extract::dispatch::tests::routes_qbms_to_its_own_module`.
+- PR [#389](https://github.com/baileyrd/rusty_extract/pull/389).
+
+---
+
 ## C056 — 7-Zip integration (everything but the SFX splitter)
 **2026-08-21**
 

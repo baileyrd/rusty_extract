@@ -27,6 +27,7 @@ pub mod plugin;
 pub mod plugin_config;
 #[cfg(test)]
 mod plugin_defs_test;
+pub mod qbms;
 pub mod raiu;
 pub mod runner;
 pub mod sevenzip;

@@ -201,6 +201,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   extraction, error/password classification, and the full RPM/Debian/
   gzip-family post-extraction branch tree; SFX-splitter branch stays
   GUI-blocked, same as C069/C106.
+- C077 (partial): QuickBMS + WCX plugin fan-out (`extract::qbms`) —
+  InstallExplorer/ISO/TotalObserver probe-then-classify detectors and
+  the shared extraction case; `BmsExtract`'s SQLite-backed `.bms`
+  lookup stays unmodeled, same ambiguity as C055.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

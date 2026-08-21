@@ -167,6 +167,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::nbh",
     },
     HardcodedCase {
+        type_key: "qbms",
+        module: "extract::qbms",
+    },
+    HardcodedCase {
         type_key: "uha",
         module: "extract::uharc",
     },
@@ -303,6 +307,19 @@ mod tests {
             DispatchTarget::Hardcoded(HardcodedCase {
                 type_key: "ctar",
                 module: "extract::ctar"
+            })
+        );
+    }
+
+    /// Parity test for capability C077: `$TYPE_QBMS` has a real module
+    /// (`extract::qbms`).
+    #[test]
+    fn routes_qbms_to_its_own_module() {
+        assert_eq!(
+            dispatch("qbms"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "qbms",
+                module: "extract::qbms"
             })
         );
     }
