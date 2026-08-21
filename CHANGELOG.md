@@ -170,6 +170,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C036: third-party detector tool silencing, PEiD/Exeinfo PE registry
   backup/restore decision logic (`detector_silence::restore_plan`).
 - C099: ThinApp/Thinstall extractor integration (`extract::thinapp`).
+- C172: undifferentiated failure messaging, pinned down as a documented
+  quirk (`failure_message::FAILURE_MESSAGE_KEY`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

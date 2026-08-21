@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C172 — Undifferentiated failure messaging
+**2026-08-21**
+
+- **Added:** `failure_message` — pins down `terminate()`'s `Case
+  $STATUS_FAILED` quirk: `FAILURE_MESSAGE_KEY` is the single,
+  unconditional `'EXTRACT_FAILED'` key every failure outcome shows,
+  regardless of total vs. partial failure (there's no such distinction
+  anywhere upstream of this branch — a documented open TODO,
+  `todo.txt:48`); `failure_prompt_should_fire` ports the `Not
+  $silentmode` half of `If Not $silentmode And Prompt(...) Then`.
+- **Scope note:** `Prompt(...)`'s own `MsgBox` GUI dialog, and the
+  save-log branch its return value governs (`ShellExecute(SaveLog(...))`),
+  are out of scope — deferred under the GUI subsystem (manifest row
+  D001), the same boundary `free_space::FreeSpaceOutcome::PromptInteractive`
+  already documents.
+- Parity tests: `failure_message::tests::failure_message_key_matches_source_literal`,
+  `failure_prompt_fires_when_not_silent`, `failure_prompt_suppressed_in_silent_mode`.
+- PR [#377](https://github.com/baileyrd/rusty_extract/pull/377).
+
+**Tooling note:** this and the following entries were verified against a
+directly downloaded copy of the raw source
+(`raw.githubusercontent.com/.../UniExtract.au3`) rather than the
+`WebFetch` tool, which truncates and occasionally reconstructs-rather-
+than-quotes past a certain point in this ~8,200-line file — a more
+reliable verification path discovered mid-loop, going forward from here.
+
+---
+
 ## C099 — ThinApp/Thinstall extractor integration
 **2026-08-21**
 
