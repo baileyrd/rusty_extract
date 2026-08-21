@@ -11,6 +11,7 @@
 
 pub mod actual;
 pub mod ci;
+pub mod completion;
 pub mod dispatch;
 pub mod expand;
 pub mod ffmpeg;

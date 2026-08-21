@@ -23,6 +23,46 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C054/C181 — Recursive dispatch: the completion contract
+**2026-08-21**
+
+- **Added:** `extract::completion` — the completion contract every
+  `extract()` call in the source goes through (UniExtract.au3:3408-3441),
+  the piece that makes a recursive `extract($otherType, ...)` call
+  return a plain boolean to its caller instead of terminating the whole
+  process. `resolve_completion(result, return_success, return_fail)`
+  decides `Terminate(Status)` vs. `Return(bool)`, composing directly
+  with `result_heuristic::resolve_unknown_result` (C171) for the
+  `$RESULT_UNKNOWN` case.
+- **Preserved quirks:** `$RESULT_CANCELED` silently takes the exact same
+  path as `$RESULT_SUCCESS` (the source's `Case $RESULT_CANCELED` is
+  empty); `$RESULT_NOFREESPACE` always terminates regardless of
+  `return_success`/`return_fail`, since its `terminate()` call sits
+  inside the `Switch $success` block itself, before the return-flag
+  gating is even reached.
+- **Completed with the new mechanism:** `extract::actual` (`$TYPE_ACTUAL`,
+  UniExtract.au3:2362) now ports its post-recursion branch decision
+  (`decide_post_recursion_action`) in full; `extract::forge`
+  (`$TYPE_FORGE`, :2543) and `extract::raiu` (`$TYPE_RAI`, :2999) now
+  document their exact `return_success`/`return_fail` arguments and the
+  real consequence of `return_fail = false` — a failed recursive call
+  terminates the whole process, so their trailing cleanup/rename steps
+  are not unconditional the way the source's linear layout might
+  suggest.
+- **Scope — genuinely partial, both rows stay REQUIRED.** C054 cites 6
+  call sites; 3 (`$TYPE_MSCF`, `$TYPE_UNITYPACKAGE`, `$TYPE_ZIP`) have no
+  base extractor module in this port yet, so their recursion piece can't
+  be completed until that separate, not-yet-tracked work lands. C181's
+  third citation (`$TYPE_CTAR`) turned out to be a different mechanism
+  entirely — it loops re-invoking `7z` directly on newly-discovered
+  nested archives, never calling `extract()` recursively — so
+  `extract::completion` doesn't cover it at all.
+- Parity tests: 5 in `extract::completion::tests`, 3 new in
+  `extract::actual::tests` (`post_recursion_*`).
+- PR [#382](https://github.com/baileyrd/rusty_extract/pull/382).
+
+---
+
 ## C155 — Generic post-extraction cleanup utility
 **2026-08-21**
 

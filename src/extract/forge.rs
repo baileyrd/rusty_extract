@@ -1,4 +1,36 @@
 //! InstallForge (wraps `7z.exe` + base64 path-rename logic).
+//!
+//! ```autoit
+//! Case $TYPE_FORGE
+//!     DirCreate($tempoutdir)
+//!     $oldoutdir = $outdir
+//!     $outdir = $tempoutdir
+//!
+//!     extract($TYPE_7Z, -1, "", True, False)
+//!     Local $tmp = $tempoutdir & $filename
+//!     If FileExists($tmp) Then
+//!         _Run($7z & ' x "' & $tmp & '"', $tempoutdir, @SW_HIDE, True, True, True, False)
+//!         _FileDelete($tmp)
+//!     EndIf
+//!
+//!     $outdir = $oldoutdir
+//!     RenameBase64PathNames($tempoutdir)
+//!     MoveFiles($tempoutdir, $outdir, False, "", True, True)
+//! ```
+//!
+//! The primary extraction is a recursive `extract($TYPE_7Z, -1, "", True,
+//! False)` call (UniExtract.au3:2543) — `return_success = true,
+//! return_fail = false`, `$arcdisp = -1` suppresses its own tray
+//! progress box, and `$outdir` is redirected to `$tempoutdir` first so
+//! it extracts into the scratch directory rather than the real output.
+//! Per `extract::completion` (C054/C181), a `return_fail = false` call
+//! still terminates the whole process on failure — so, like
+//! `extract::raiu`'s `Case $TYPE_RAI`, everything after this call
+//! (the conditional inner-archive unpack, the `$outdir` restore, the
+//! base64 rename, `MoveFiles`) is **not** unconditional: a failed
+//! primary extraction terminates right there. This call site's own
+//! return value (`1` on success) is otherwise unused, the same as
+//! `extract::raiu`'s.
 
 use super::{Invocation, WindowMode};
 
@@ -9,8 +41,7 @@ use super::{Invocation, WindowMode};
 /// run in `tempoutdir` with the window hidden.
 ///
 /// **Not modeled here:** the recursive `extract($TYPE_7Z, -1, "", True,
-/// False)` dispatch that runs first (UniExtract.au3:2543) — composite/
-/// recursive dispatch, capability C054, not yet ported — nor the
+/// False)` dispatch that runs first (see module doc comment), nor the
 /// `FileExists`/`_FileDelete` staging around this call, nor the trailing
 /// `RenameBase64PathNames`/`MoveFiles` steps (see [`decide_rename`] for
 /// the base64-rename half of this capability). All separate runtime

@@ -1,5 +1,24 @@
 //! Actual Installer inner-blob handling (reuses `unzip.exe` + `7z.exe`,
 //! plus embedded `aisetup.ini` rename manifest).
+//!
+//! ```autoit
+//! If Not extract($TYPE_7Z, -1, "", True, True) Then
+//!     Cout("Failed to extract files")
+//!     $success = $RESULT_FAILED
+//! ElseIf Not IsArray($aFiles) Then
+//!     Cout("Failed to read file names")
+//! Else
+//!     ; ... rename loop, see sanitize_destination_filename/resolve_rename ...
+//! EndIf
+//! ```
+//!
+//! The payload extraction is a **fully recursive** `extract()` call
+//! (`return_success = true, return_fail = true`, `$arcdisp = -1`
+//! suppresses its own tray progress box) — per `extract::completion`
+//! (C054/C181), it always returns a plain boolean rather than
+//! terminating, which [`decide_post_recursion_action`] then branches on
+//! exactly as the source's `If Not extract(...) Then ... ElseIf ...`
+//! does.
 
 use super::{Invocation, WindowMode};
 
@@ -8,9 +27,8 @@ use super::{Invocation, WindowMode};
 /// in `tempoutdir` with the window minimized (`@SW_MINIMIZE`, explicit).
 /// This pulls out `aisetup.ini`, the rename manifest
 /// [`sanitize_destination_filename`]/[`resolve_rename`] consume — not the
-/// actual installer payload, which a second, recursive `extract($TYPE_7Z,
-/// ...)` dispatch handles (composite/recursive dispatch, capability C054,
-/// not yet ported, and not modeled here).
+/// actual installer payload, which the recursive `extract($TYPE_7Z, -1,
+/// "", True, True)` dispatch handles (see module doc comment).
 ///
 /// **Not modeled here:** the preceding `DirCreate($tempoutdir)`; reading
 /// `aisetup.ini`'s `[Files]` section and the `Cleanup($tempoutdir & "*")`
@@ -22,6 +40,41 @@ pub fn meta_invocation(program: &str, file: &str, tempoutdir: &str) -> Invocatio
         args: vec![file.to_string()],
         working_dir: tempoutdir.to_string(),
         window: WindowMode::Minimized,
+    }
+}
+
+/// What `Case $TYPE_ACTUAL` does once the recursive `extract($TYPE_7Z,
+/// -1, "", True, True)` call has returned (UniExtract.au3:2362-2382).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PostRecursionAction {
+    /// The recursive extraction returned `false` — this case's own
+    /// `$success` is set to `$RESULT_FAILED`.
+    MarkFailed,
+    /// It returned `true`, but `aisetup.ini`'s `[Files]` section didn't
+    /// parse as an array — nothing to rename, `$success` is left
+    /// untouched.
+    SkipRename,
+    /// It returned `true` and the files array is valid — run the rename
+    /// loop ([`resolve_rename`]/[`sanitize_destination_filename`], one
+    /// call per entry).
+    RunRenameLoop,
+}
+
+/// Ports the branch selection quoted in the module doc comment. `succeeded`
+/// is the recursive `extract($TYPE_7Z, ...)` call's own return value —
+/// per `extract::completion::resolve_completion`, always a `Return`
+/// (never a `Terminate`) since this call site uses `return_success =
+/// true, return_fail = true`.
+pub fn decide_post_recursion_action(
+    succeeded: bool,
+    files_array_is_valid: bool,
+) -> PostRecursionAction {
+    if !succeeded {
+        PostRecursionAction::MarkFailed
+    } else if !files_array_is_valid {
+        PostRecursionAction::SkipRename
+    } else {
+        PostRecursionAction::RunRenameLoop
     }
 }
 
@@ -114,5 +167,41 @@ mod tests {
         let (source, destination) = resolve_rename(r"C:\downloads\unpacked", "0001", "readme.txt");
         assert_eq!(source, r"C:\downloads\unpacked\0001");
         assert_eq!(destination, r"C:\downloads\unpacked\readme.tx");
+    }
+
+    /// Parity test for capabilities C054/C114/C181: the recursive
+    /// extraction failing marks this case's own result failed, regardless
+    /// of the files array.
+    #[test]
+    fn post_recursion_marks_failed_when_recursive_extraction_failed() {
+        assert_eq!(
+            decide_post_recursion_action(false, true),
+            PostRecursionAction::MarkFailed
+        );
+        assert_eq!(
+            decide_post_recursion_action(false, false),
+            PostRecursionAction::MarkFailed
+        );
+    }
+
+    /// Parity test for capabilities C054/C114/C181: a succeeded recursive
+    /// extraction with no valid files array skips the rename loop without
+    /// marking failure.
+    #[test]
+    fn post_recursion_skips_rename_when_files_array_invalid() {
+        assert_eq!(
+            decide_post_recursion_action(true, false),
+            PostRecursionAction::SkipRename
+        );
+    }
+
+    /// Parity test for capabilities C054/C114/C181: a succeeded recursive
+    /// extraction with a valid files array runs the rename loop.
+    #[test]
+    fn post_recursion_runs_rename_loop_when_files_array_valid() {
+        assert_eq!(
+            decide_post_recursion_action(true, true),
+            PostRecursionAction::RunRenameLoop
+        );
     }
 }
