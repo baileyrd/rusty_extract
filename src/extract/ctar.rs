@@ -86,10 +86,12 @@ pub fn listing_probe_invocation(program: &str, outdir: &str, fname: &str) -> Inv
 
 /// Ports the classification of the listing probe's captured output
 /// (UniExtract.au3:2492): `StringInStr($return, "Listing archive:", 0)`
-/// — case-sensitive, per the explicit `0` third argument — whether
-/// 7-Zip recognized the file as a listable archive at all.
+/// — case-insensitive: AutoIt's `casesense` parameter treats `0` the
+/// same as omitting it (`0` is the documented default), so this is no
+/// different from every other bare `StringInStr` call in this port —
+/// whether 7-Zip recognized the file as a listable archive at all.
 pub fn is_nested_archive(listing_output: &str) -> bool {
-    listing_output.contains("Listing archive:")
+    listing_output.to_lowercase().contains("listing archive:")
 }
 
 /// Builds the nested-archive extraction invocation (UniExtract.au3:2494):
@@ -167,15 +169,16 @@ mod tests {
     }
 
     /// Parity test for capability C181: 7-Zip's listing output is
-    /// classified by the exact literal "Listing archive:", matched
-    /// case-sensitively.
+    /// classified by the literal "Listing archive:", matched
+    /// case-insensitively — AutoIt's explicit `0` casesense argument is
+    /// the same as its default.
     #[test]
-    fn is_nested_archive_requires_exact_case_sensitive_marker() {
+    fn is_nested_archive_matches_marker_case_insensitively() {
         assert!(is_nested_archive(
             "7-Zip [64] ...\nListing archive: data1.bin\n\n..."
         ));
+        assert!(is_nested_archive("listing archive: data1.bin"));
         assert!(!is_nested_archive("Error: cannot open file as archive"));
-        assert!(!is_nested_archive("listing archive: data1.bin"));
     }
 
     #[test]
