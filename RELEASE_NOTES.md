@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C075 — InstallShield CAB fallback chain
+**2026-08-21**
+
+- **Added:** `extract::iscab` — `Case $TYPE_ISCAB`'s full fallback
+  chain: try `unshield` (retrying once with `-O` if it asks for
+  `unshield_file_save_old()`), and on failure route through C053's
+  `ISCAB_CANDIDATES` disambiguation to a choice of `is6comp` (with its
+  own listing-count probe and unshield fallback), `is5comp`, or `iscab`
+  (list-then-extract, two invocations).
+- **Preserved quirk:** choice 1's `is6comp`-listing-failed fallback to
+  `unshield` is *not* a repeat of the initial attempt — it drops `-D 2`
+  and uses the raw (non-UNIX-style) file path, reproduced as two
+  distinct invocation builders rather than one reused across both call
+  sites.
+- **Scope note:** `HasPlugin` preconditions, `FileDelete`, and the
+  final `Cleanup(...)` call on the success path are real filesystem
+  I/O, out of scope — the two literal cleanup-target wildcards are
+  pinned down as data (`SUCCESS_CLEANUP_TARGETS`) without re-implementing
+  `cleanup`'s classification/expansion machinery.
+- 14 parity tests in `extract::iscab::tests`, including a hand-rolled
+  reproduction of `_StringBetween`/`StringStripWS(mode=8)`/`Number(...)`
+  for `is6comp`'s file-count listing parse.
+- PR [#379](https://github.com/baileyrd/rusty_extract/pull/379).
+
+---
+
 ## C053 — Manual disambiguation
 **2026-08-21**
 
