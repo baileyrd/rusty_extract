@@ -252,6 +252,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   against; reproduced exactly. The `MediaInfo.dll` calls themselves
   stay unmodeled (missing-FFI blocker, same as C038). Stays
   `REQUIRED`.
+- C038 (partial): TrID scan orchestration (`detection::trid_scan`) —
+  found extract mode is the DLL-blocked path here while scan-only
+  mode is the portable command-line path, the reverse of C042's
+  split. `TridLib_Analyse`/`TridLib_GetType` and `FetchStdout` itself
+  stay unmodeled. Stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

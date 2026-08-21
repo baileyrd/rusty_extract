@@ -23,6 +23,36 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C038 — TrID scan orchestration (partial)
+**2026-08-21**
+
+- **Added:** `detection::trid_scan` — covers everything around
+  `tridcompare` (already ported separately as C039): the
+  scan-only-mode command-line invocation (`scan_invocation`,
+  including the conditional `-v` verbose flag), the extract-mode
+  per-result decision (`extract_result_action` — rename-on-extension
+  only for the first result, dispatch to `tridcompare` capped at the
+  first 3 candidates regardless of how many TrID actually returned),
+  and the scan-only-mode output-line filter
+  (`should_keep_scan_only_line`).
+- **A reversal from C042's split, worth flagging explicitly**: there,
+  extract mode was the portable command-line path and scan-only mode
+  was GUI-blocked. Here it's the opposite — extract mode calls the
+  blocked `TrIDLib.dll` functions directly (`TridLib_Analyse`/
+  `TridLib_GetType`), while scan-only mode shells out to `trid.exe`
+  via `FetchStdout`, whose command-line construction is fully
+  portable.
+- **Scope — the DLL calls and process execution stay out of this
+  port.** `TridLib_Analyse`/`TridLib_GetType` are the same
+  missing-FFI-infrastructure blocker already found for C045's
+  MediaInfo calls; `FetchStdout` itself is real process execution.
+  Manifest row C038 stays `REQUIRED`; this PR covers the decision
+  logic and invocation-building around both paths.
+- Parity tests: `detection::trid_scan::tests` (8).
+- PR [#399](https://github.com/baileyrd/rusty_extract/pull/399).
+
+---
+
 ## C045 — MediaInfo scan formatting (partial)
 **2026-08-21**
 
