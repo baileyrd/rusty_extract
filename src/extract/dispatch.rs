@@ -155,6 +155,10 @@ pub const HARDCODED_CASES: &[HardcodedCase] = &[
         module: "extract::mole",
     },
     HardcodedCase {
+        type_key: "mscf",
+        module: "extract::mscf",
+    },
+    HardcodedCase {
         type_key: "nbh",
         module: "extract::nbh",
     },
@@ -265,6 +269,19 @@ mod tests {
             DispatchTarget::Hardcoded(HardcodedCase {
                 type_key: "zip",
                 module: "extract::zip"
+            })
+        );
+    }
+
+    /// Parity test for capabilities C054/C181: `$TYPE_MSCF`'s recursive
+    /// call site now has a real module (`extract::mscf`).
+    #[test]
+    fn routes_mscf_to_its_own_module() {
+        assert_eq!(
+            dispatch("mscf"),
+            DispatchTarget::Hardcoded(HardcodedCase {
+                type_key: "mscf",
+                module: "extract::mscf"
             })
         );
     }

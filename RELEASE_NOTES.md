@@ -23,6 +23,41 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C054 — Recursive dispatch: `$TYPE_MSCF`
+**2026-08-21**
+
+- **Added:** `extract::mscf` — `Case $TYPE_MSCF`'s recursive
+  `extract($TYPE_7Z, -1, "", False, True)` call (UniExtract.au3:2816),
+  the 5th of C054's 6 cited sites. Shares `extract::zip`'s exact
+  `return_success=false, return_fail=true` shape, so a successful
+  recursive extraction terminates the process outright and everything
+  after it in the `Case` only ever runs on failure — even more starkly
+  than `$TYPE_ZIP`, since this `Case` doesn't even bother with an
+  explicit `If` around the return value the way `$TYPE_ZIP` does; the
+  termination side effect alone guarantees it. Matches the source's own
+  comment: "If 7z fails, remove useless files and extract cab files
+  from installer."
+- Also ports `cab_extract_invocation` (the per-`.cab`-file extraction
+  loop's `7z x` call), `RIP_EXEINFO_KEY_SEQUENCE` (the literal keystroke
+  string this call site sends `RipExeInfo`), and
+  `SUCCESS_CLEANUP_TARGETS`.
+- **Scope — genuinely GUI-blocked, manifest row stays `REQUIRED`.**
+  `RipExeInfo` drives Exeinfo PE via real Win32 window/control
+  automation (`WinWait`/`ControlClick`/`ControlSend`, the same blocker
+  already found for C069) — whether `$TYPE_MSCF`'s fallback path even
+  finds an MSI to rip can't be determined in this port. Real filesystem
+  I/O (`ReturnFiles`, `MoveFiles`, `DirRemove`, `_FileListToArrayRec`,
+  `Cleanup`) stays out of scope too.
+- `extract::dispatch::HARDCODED_CASES` gains an `"mscf"` entry.
+- **C054 status:** 5 of 6 cited call sites now have their recursion
+  piece covered. Only `$TYPE_UNITYPACKAGE` remains — no base extractor
+  module exists for it yet.
+- Parity tests: `extract::mscf::tests` (4), plus
+  `extract::dispatch::tests::routes_mscf_to_its_own_module`.
+- PR [#384](https://github.com/baileyrd/rusty_extract/pull/384).
+
+---
+
 ## C054 — Recursive dispatch: `$TYPE_ZIP`
 **2026-08-21**
 
