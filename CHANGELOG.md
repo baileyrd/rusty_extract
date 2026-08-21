@@ -166,6 +166,7 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `extract::table` formats in one sweep.
 - C098: swfextract extractor integration, added directly to
   `extract::table`.
+- C152: scan-only-mode short-circuit (`entry_gate::scan_only_gate`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

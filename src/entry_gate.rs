@@ -1,6 +1,6 @@
-//! Pre-extraction entry gates: two early checks that short-circuit
-//! straight to the batch queue and a specific termination status before
-//! any real extraction work starts.
+//! Pre-extraction entry gates: three early checks that short-circuit
+//! straight to a batch queue, a scan-only report, or a specific
+//! termination status before any real extraction work starts.
 //!
 //! ```autoit
 //! ; Prevent multiple instances to avoid errors
@@ -17,23 +17,32 @@
 //!         GUI_Batch_AddDirectory($file)
 //!         terminate($STATUS_BATCH)
 //!     EndIf
+//!
+//!     ; Display file information and terminate if scan only mode
+//!     If Not $extract Then
+//!         FileScan_MediaInfo()
+//!         terminate($STATUS_FILEINFO, $filenamefull, $fileext)
+//!     EndIf
+//!
 //!     FilenameParse($file)
 //!     ValidateOutputDirectory()
 //!     ; ...
 //! EndFunc
 //! ```
 //!
-//! Both gates decide *whether* to route to the batch queue and *which*
-//! exit status that produces (C016's contract, already `DONE`) — the
-//! real work each branch performs (`_Singleton`'s OS mutex,
-//! `GUI_Batch_AddDirectory`'s per-file enumeration, `AddToBatch`'s
-//! queue-file write) is out of scope here, matching the codebase's usual
-//! caller-supplied-boolean seam (e.g. `plugin::resolve_plugin_ini_with`).
-//! `GUI_Batch_AddDirectory`'s `GUI_` prefix marks it as deferred-GUI-
-//! subsystem work (manifest row D001), the same convention
-//! `type_override::TypeOverride::PromptForType` already follows for
-//! `GUI_MethodSelectList`; the underlying queuing mechanism it would use
-//! is `batch::build_command_line` (C147, already `DONE`).
+//! All three gates decide *whether* to short-circuit and, where the
+//! result is a single fixed status, *which* exit status that produces
+//! (C016's contract, already `DONE`) — the real work each branch
+//! performs (`_Singleton`'s OS mutex, `GUI_Batch_AddDirectory`'s
+//! per-file enumeration, `AddToBatch`'s queue-file write,
+//! `FileScan_MediaInfo`'s scan, C045) is out of scope here, matching the
+//! codebase's usual caller-supplied-boolean seam (e.g.
+//! `plugin::resolve_plugin_ini_with`). `GUI_Batch_AddDirectory`'s `GUI_`
+//! prefix marks it as deferred-GUI-subsystem work (manifest row D001),
+//! the same convention `type_override::TypeOverride::PromptForType`
+//! already follows for `GUI_MethodSelectList`; the underlying queuing
+//! mechanism it would use is `batch::build_command_line` (C147, already
+//! `DONE`).
 
 use crate::status::Status;
 
@@ -68,6 +77,21 @@ pub fn directory_input_gate(is_directory: bool) -> Option<Status> {
     } else {
         None
     }
+}
+
+/// C152: whether scan-only mode short-circuits straight to a file-info
+/// report instead of reaching the extraction dispatcher, ported from
+/// `StartExtraction()`'s `If Not $extract Then FileScan_MediaInfo();
+/// terminate($STATUS_FILEINFO, $filenamefull, $fileext); EndIf`.
+/// `will_extract` is `$extract` (C003's scan-only mode leaves this
+/// `false`). Returns whether the gate fires, not the `Status::FileInfo`
+/// value itself — that variant also carries `silent_mode` and
+/// `filetype_identified` (C153/C154, already `DONE`), which this gate
+/// doesn't have; the caller builds the actual status once it knows
+/// those. `FileScan_MediaInfo`'s media-info scan is C045 (REQUIRED,
+/// separate), out of scope here.
+pub fn scan_only_gate(will_extract: bool) -> bool {
+    !will_extract
 }
 
 #[cfg(test)]
@@ -111,5 +135,19 @@ mod tests {
     #[test]
     fn directory_input_gate_does_not_fire_for_a_file() {
         assert_eq!(directory_input_gate(false), None);
+    }
+
+    /// Parity test for capability C152: scan-only mode (`$extract =
+    /// False`) fires this gate.
+    #[test]
+    fn scan_only_gate_fires_when_not_extracting() {
+        assert!(scan_only_gate(false));
+    }
+
+    /// Parity test for capability C152: a normal extraction run doesn't
+    /// trigger this gate.
+    #[test]
+    fn scan_only_gate_does_not_fire_when_extracting() {
+        assert!(!scan_only_gate(true));
     }
 }
