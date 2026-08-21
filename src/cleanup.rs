@@ -1,17 +1,18 @@
-//! Post-extraction cleanup: ports pieces of `Cleanup()`
-//! (UniExtract.au3:3645-3703) — capability C155, **partial**. Each
-//! extractor case that leaves behind installer cruft (readme files,
-//! uninstallers, `.ini` config it wrote) calls this per output item to
-//! either delete it or move it into an "additional files" subfolder.
+//! Post-extraction cleanup: ports `Cleanup()`'s decision logic
+//! (UniExtract.au3:3645-3703) — capability C155. Each extractor case
+//! that leaves behind installer cruft (readme files, uninstallers,
+//! `.ini` config it wrote) calls this per output item to either delete
+//! it or move it into an "additional files" subfolder.
 //!
-//! **Scope — partial, manifest row stays REQUIRED.** Ported: the
-//! mode-gating (`$iCleanup`/`$iMode` disables the whole call when
-//! `$OPTION_KEEP`), the per-item delete-vs-move/folder-vs-file action
-//! selection, the `$outdir`-prefixing path resolution, and wildcard
-//! *classification*. **Not ported:** actually expanding a wildcard
-//! target into the files it matches (`_FileListToArray`, real
-//! filesystem I/O) and the actual `DirRemove`/`FileDelete`/`_DirMove`/
-//! `_FileMove` calls themselves, real I/O the caller performs.
+//! **Scope — every decision, no real I/O.** Ported: the mode-gating
+//! (`$iCleanup`/`$iMode` disables the whole call when `$OPTION_KEEP`),
+//! the per-item delete-vs-move/folder-vs-file action selection, the
+//! `$outdir`-prefixing path resolution, wildcard classification, and
+//! (as of C155) the directory/pattern split a wildcard target's
+//! expansion is driven by. **Not ported, real I/O left to the
+//! caller:** actually listing a directory for the files a wildcard
+//! pattern matches (`_FileListToArray`) and the actual
+//! `DirRemove`/`FileDelete`/`_DirMove`/`_FileMove` calls themselves.
 
 use crate::prefs::DeleteSourceFileOption;
 
@@ -76,6 +77,24 @@ pub fn should_expand_wildcard(kind: TargetKind) -> bool {
     kind == TargetKind::Wildcard
 }
 
+/// Splits a [`TargetKind::Wildcard`] target into the `(directory,
+/// pattern)` pair `_FileListToArray($sDir, $sFile, $FLTA_FILESFOLDERS,
+/// True)` (UniExtract.au3:3669-3673) is called with: `StringInStr($sFile,
+/// "\", 0, -1)` finds the *last* backslash; everything up to and
+/// including it becomes `directory`, everything after becomes `pattern`.
+/// Returns `None` when there's no backslash with at least one character
+/// before it (`$iPos > 1`) — matching the source's own guard, under
+/// which the expansion (and the append to `$aFiles`) simply doesn't
+/// happen at all for that target. The actual directory listing
+/// (`_FileListToArray`) is real filesystem I/O, left to the caller.
+pub fn split_wildcard_target(file: &str) -> Option<(String, String)> {
+    let pos = file.rfind('\\')?;
+    if pos == 0 {
+        return None;
+    }
+    Some((file[..=pos].to_string(), file[pos + 1..].to_string()))
+}
+
 /// What one cleanup target's delete-or-move call should be, given the
 /// resolved mode and whether the target is a folder — ports the nested
 /// `If $iMode = $OPTION_DELETE Then ... Else ...` /
@@ -122,7 +141,7 @@ pub fn decide_cleanup_action(
 mod tests {
     use super::{
         classify_target, decide_cleanup_action, resolve_target_path, should_expand_wildcard,
-        CleanupItemAction, TargetKind,
+        split_wildcard_target, CleanupItemAction, TargetKind,
     };
     use crate::prefs::DeleteSourceFileOption;
 
@@ -219,5 +238,30 @@ mod tests {
             decide_cleanup_action(DeleteSourceFileOption::Ask, false),
             Some(CleanupItemAction::MoveFile)
         );
+    }
+
+    /// Parity test for capability C155: a wildcard target splits at its
+    /// *last* backslash into `(directory, pattern)`.
+    #[test]
+    fn split_wildcard_target_splits_at_last_backslash() {
+        assert_eq!(
+            split_wildcard_target(r"C:\out\extras\*.log"),
+            Some((r"C:\out\extras\".to_string(), "*.log".to_string()))
+        );
+    }
+
+    /// Parity test for capability C155: no backslash at all means no
+    /// split — matching `$iPos > 1`'s guard failing when `StringInStr`
+    /// returns `0`.
+    #[test]
+    fn split_wildcard_target_is_none_with_no_backslash() {
+        assert_eq!(split_wildcard_target("*.log"), None);
+    }
+
+    /// Parity test for capability C155: a backslash as the very first
+    /// character (`$iPos == 1`) also fails the `> 1` guard.
+    #[test]
+    fn split_wildcard_target_is_none_when_backslash_is_first_character() {
+        assert_eq!(split_wildcard_target(r"\*.log"), None);
     }
 }

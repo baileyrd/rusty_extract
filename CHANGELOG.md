@@ -180,6 +180,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C150: verified is6comp's blocking-`RunWait`-with-no-crash-guard batch
   risk is still present, structurally inherent to
   `extract::runner::CommandExtractorRunner`.
+- C155: completed post-extraction cleanup's wildcard-expansion decision
+  logic (`cleanup::split_wildcard_target`), closing the module's last
+  documented gap.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

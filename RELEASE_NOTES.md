@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C155 — Generic post-extraction cleanup utility
+**2026-08-21**
+
+- **Added:** `cleanup::split_wildcard_target` — the last remaining
+  decision-logic gap in `Cleanup()`'s wildcard-expansion path
+  (UniExtract.au3:3669-3673): splits a wildcard target at its *last*
+  backslash into `(directory, pattern)`, the pair `_FileListToArray`
+  is called with. `None` when there's no backslash with at least one
+  character before it, matching the source's own `$iPos > 1` guard —
+  under which the expansion, and the append to the working array,
+  simply doesn't happen for that target.
+- **Status change:** this closes the gap a prior pass on this module
+  left documented as "not ported" (real filesystem I/O only remains:
+  `_FileListToArray`'s actual directory listing, and the
+  `DirRemove`/`FileDelete`/`_DirMove`/`_FileMove` calls) — every
+  decision `Cleanup()` makes is now covered, so the manifest row moves
+  REQUIRED → DONE rather than staying partial.
+- 3 new parity tests in `cleanup::tests`, joining the module's existing
+  11.
+- PR [#381](https://github.com/baileyrd/rusty_extract/pull/381).
+
+---
+
 ## C150 — InstallShield-cab batch crash risk
 **2026-08-21**
 
