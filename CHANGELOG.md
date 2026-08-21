@@ -295,6 +295,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   had flagged as missing; documents a real distinction from
   `terminate()`'s own separate keep-open relaunch condition.
   Capability marked `DONE`.
+- C174: per-extractor timeout handling (`extractor_timeout`) —
+  verified no global timeout mechanism exists (~15 scattered
+  `$Timeout` sites out of ~70 extractor cases); ported the one clean
+  representative example (`$TYPE_ARC_CONV`). Capability marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

@@ -10,6 +10,7 @@ pub mod detection;
 pub mod detector_silence;
 pub mod entry_gate;
 pub mod extract;
+pub mod extractor_timeout;
 pub mod failure_message;
 pub mod file_arg;
 pub mod filetype_report;
