@@ -241,6 +241,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   20 cases) — the actual PEiD scan is real Win32 GUI automation, the
   same blocker already found for C069/C106/C056's SFX splitter; stays
   `REQUIRED`.
+- C042 (partial): Exeinfo PE scan orchestration
+  (`detection::exeinfo_scan`) — found the extract-mode scan is a plain
+  command-line invocation, not GUI automation; the scan-only-mode GUI
+  path and its corrupted-log retry stay unmodeled. Stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

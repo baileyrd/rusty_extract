@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C042 — Exeinfo PE scan orchestration (partial)
+**2026-08-21**
+
+- **Added:** `detection::exeinfo_scan` — ports everything in
+  `FileScan_ExeInfo` around its dispatch `Select` (already ported
+  separately as C043): the extract-mode scan invocation, the
+  corrupted/too-big/not-exe-or-dll/scan-only-mode branches, and the
+  filename-echo strip.
+- **Non-obvious finding**: `$bUseCmd` defaults to `$extract`, so in
+  *extract mode* this scan is a plain command-line invocation
+  (`RunWait` + reading a log file) — not GUI automation. Only the
+  scan-only-mode path, and the corrupted/buffer-error retry back into
+  it, drive PEiD-style GUI automation.
+- **Scope — the GUI path stays out of this port.** The
+  scan-only-mode branch (`OpenExeInfo`/`ControlGetText`/
+  `CloseExeInfo`) and the corrupted-log retry into it are the same
+  deferred-GUI-subsystem blocker already found for C044/C069/C106/
+  C056's SFX splitter. Manifest row C042 stays `REQUIRED`; this PR
+  covers the portable scan-orchestration half only.
+- Parity tests: `detection::exeinfo_scan::tests` (10).
+- PR [#397](https://github.com/baileyrd/rusty_extract/pull/397).
+
+---
+
 ## C044 — PEiD match dispatch table (partial)
 **2026-08-21**
 
