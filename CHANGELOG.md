@@ -257,6 +257,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   mode is the portable command-line path, the reverse of C042's
   split. `TridLib_Analyse`/`TridLib_GetType` and `FetchStdout` itself
   stay unmodeled. Stays `REQUIRED`.
+- C175/C176: non-ASCII and UNC-path input relocation
+  (`unicode_relocation::plan_relocation`) — verified `$sRegExAscii`
+  precisely (whitelists 20 accented Western-European letters, not
+  just ASCII) and preserved a real interaction between the two
+  capabilities: UNC relocation only applies when the unicode check
+  didn't already compute a destination. Both capabilities marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
