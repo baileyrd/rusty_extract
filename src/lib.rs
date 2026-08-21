@@ -16,6 +16,7 @@ pub mod filetype_report;
 pub mod free_space;
 pub mod ini;
 pub mod log_eval;
+pub mod method_select;
 pub mod outdir;
 pub mod password_search;
 pub mod prefs;

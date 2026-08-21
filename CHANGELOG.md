@@ -172,6 +172,8 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C099: ThinApp/Thinstall extractor integration (`extract::thinapp`).
 - C172: undifferentiated failure messaging, pinned down as a documented
   quirk (`failure_message::FAILURE_MESSAGE_KEY`).
+- C053: manual disambiguation selection policy and the five real
+  candidate lists it dispatches (`method_select`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
