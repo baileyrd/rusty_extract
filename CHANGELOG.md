@@ -211,6 +211,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   order/grouping decision; preserves the reversed `CheckIso()`/7-Zip
   probe call order between the two disk-image extension groups.
   Capability marked `DONE`.
+- C037: top-level detection cascade order (`detection::cascade`, ports
+  `StartExtraction()`'s step order after `InitialCheckExt`) — found
+  that an exe/dll file in extract mode is delegated entirely to
+  `IsExe()`, which never returns control in that mode, so none of
+  `StartExtraction()`'s other steps ever run for it. Capability marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

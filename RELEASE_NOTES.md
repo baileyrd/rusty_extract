@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C037 — Top-level detection cascade order (`StartExtraction`)
+**2026-08-21**
+
+- **Added:** `detection::cascade` — ports `StartExtraction()`'s step
+  order right after `InitialCheckExt()` (C046), gated on file
+  extension and extract-vs-scan-only mode. Every named step
+  (`IsExe`/`FileScan_Trid`/`FileScan_ExeInfo`/`FileScan_MediaInfo`/
+  `CheckIso`/`CheckGame`/`CheckTotalObserver`/`CheckExt`/`check7z`) is
+  its own separately-tracked capability — this is purely the order and
+  gating decision between them, matching the source comment's own
+  framing ("order itself is behavior-significant").
+- **Non-obvious finding:** in extract mode, an `.exe`/`.dll` file is
+  delegated entirely to `IsExe()`, which — by the shape of its own
+  body — never returns control back to `StartExtraction()` in that
+  mode; it always terminates internally, one way or another. So none
+  of `StartExtraction()`'s other steps ever run for such a file; only
+  a *non*-exe file in extract mode reaches the full remaining cascade
+  (`TridScan` → `ExeInfoScan` → `CheckIso` → `CheckGame` →
+  `CheckTotalObserver` → `CheckExt` → `check7z` →
+  `terminate($STATUS_UNKNOWNEXT)`).
+- Parity tests: `detection::cascade::tests` (4), one per
+  (exe-extension, extract-mode) combination.
+- PR [#391](https://github.com/baileyrd/rusty_extract/pull/391).
+
+---
+
 ## C046 — Extension-based pre-check (`InitialCheckExt`)
 **2026-08-21**
 
