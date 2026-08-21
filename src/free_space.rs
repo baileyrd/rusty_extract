@@ -14,10 +14,16 @@
 //! _IsDirectory($sPath)` loop before ever calling `DriveSpaceFree` — is
 //! real filesystem I/O entangled with path manipulation and isn't ported
 //! here; the caller is expected to resolve a real, existing directory
-//! path before calling [`measure_free_space`]. Because the interactive
-//! prompt (retry/abort/ignore) isn't implemented, this capability's
-//! manifest row stays `REQUIRED`, not `DONE` — only the silent-mode path
-//! is fully covered.
+//! path before calling [`measure_free_space`]. The `MsgBox` call itself
+//! (`$iTopmost + $MB_ICONWARNING + $MB_ABORTRETRYIGNORE`) is real GUI,
+//! deferred under manifest row D001 — but [`decide_prompt_action`] now
+//! covers what happens *once a response is obtained*, including a
+//! genuinely easy-to-miss finding: the source's own `Switch` has no
+//! `Case` for Ignore (or any unexpected `MsgBox` return value), so
+//! choosing Ignore silently falls through with no action at all,
+//! letting extraction continue despite the insufficient-space warning.
+//! Because producing the response is still unmodeled, this capability's
+//! manifest row stays `REQUIRED`, not `DONE`.
 
 /// One free-space measurement, already rounded the way the source
 /// rounds it: `Round(DriveSpaceFree($sPath), 2)` for `free_space_mb`,
@@ -106,10 +112,61 @@ pub fn decide_free_space_outcome(
     }
 }
 
+/// One of the `$MB_ABORTRETRYIGNORE` `MsgBox`'s three offered choices —
+/// or any other value it could return, which the source's own `Switch`
+/// (UniExtract.au3:3800-3806) has no explicit `Case` for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PromptResponse {
+    /// `$IDRETRY`.
+    Retry,
+    /// `$IDABORT`.
+    Abort,
+    /// `$IDIGNORE`, or any other value — the source's `Switch` handles
+    /// neither, so both fall through identically.
+    Other,
+}
+
+/// What `HasFreeSpace()` does once it has a prompt response in hand
+/// (UniExtract.au3:3800-3806).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PromptAction {
+    /// `Return HasFreeSpace($sPath, $fModifier)` — re-run the check
+    /// from scratch.
+    RetryCheck,
+    /// `If $createdir Then DirRemove($outdir, 0)` then
+    /// `terminate($STATUS_SILENT)` — remove the output directory only
+    /// if this run created it, then terminate silently either way.
+    AbortAndTerminateSilently { remove_created_outdir: bool },
+    /// Neither `Case` matched: the source's `Switch` falls through with
+    /// no action at all, and the function returns without terminating
+    /// or retrying — extraction simply continues despite the
+    /// insufficient-space warning. This is the "ignore" behavior, not
+    /// modeled as its own explicit branch in the source.
+    ContinueWithoutAction,
+}
+
+/// Ports `HasFreeSpace()`'s response-handling `Switch`
+/// (UniExtract.au3:3800-3806). `created_outdir_this_run` is `$createdir`
+/// — whether the current run's own output directory didn't exist before
+/// and was created for it.
+pub fn decide_prompt_action(
+    response: PromptResponse,
+    created_outdir_this_run: bool,
+) -> PromptAction {
+    match response {
+        PromptResponse::Retry => PromptAction::RetryCheck,
+        PromptResponse::Abort => PromptAction::AbortAndTerminateSilently {
+            remove_created_outdir: created_outdir_this_run,
+        },
+        PromptResponse::Other => PromptAction::ContinueWithoutAction,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        decide_free_space_outcome, has_enough_free_space, measure_free_space, FreeSpaceOutcome,
+        decide_free_space_outcome, decide_prompt_action, has_enough_free_space, measure_free_space,
+        FreeSpaceOutcome, PromptAction, PromptResponse,
     };
 
     /// Parity test for capability C179: the megabyte conversion rounds
@@ -181,6 +238,51 @@ mod tests {
         assert_eq!(
             decide_free_space_outcome(true, false, false),
             FreeSpaceOutcome::PromptInteractive
+        );
+    }
+
+    #[test]
+    fn retry_response_re_runs_the_check() {
+        assert_eq!(
+            decide_prompt_action(PromptResponse::Retry, true),
+            PromptAction::RetryCheck
+        );
+        assert_eq!(
+            decide_prompt_action(PromptResponse::Retry, false),
+            PromptAction::RetryCheck
+        );
+    }
+
+    /// Parity test for capability C179: abort only removes the output
+    /// directory if this run actually created it.
+    #[test]
+    fn abort_response_removes_outdir_only_if_created_this_run() {
+        assert_eq!(
+            decide_prompt_action(PromptResponse::Abort, true),
+            PromptAction::AbortAndTerminateSilently {
+                remove_created_outdir: true
+            }
+        );
+        assert_eq!(
+            decide_prompt_action(PromptResponse::Abort, false),
+            PromptAction::AbortAndTerminateSilently {
+                remove_created_outdir: false
+            }
+        );
+    }
+
+    /// Parity test for capability C179: the source's own `Switch` has
+    /// no `Case` for Ignore -- it falls through with no action,
+    /// silently continuing extraction despite insufficient space.
+    #[test]
+    fn ignore_response_takes_no_action_and_continues() {
+        assert_eq!(
+            decide_prompt_action(PromptResponse::Other, true),
+            PromptAction::ContinueWithoutAction
+        );
+        assert_eq!(
+            decide_prompt_action(PromptResponse::Other, false),
+            PromptAction::ContinueWithoutAction
         );
     }
 }

@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C179 (partial) — Free-space prompt response handling
+**2026-08-21**
+
+- **Added:** `free_space::decide_prompt_action` — extends the
+  existing partial C179 coverage (arithmetic + silent-mode decision,
+  PR #318) with what `HasFreeSpace()` does once a response to its
+  abort/retry/ignore `MsgBox` is obtained: Retry re-runs the check,
+  Abort removes the output directory only if this run created it
+  then terminates silently.
+- **Finding:** the source's own `Switch` has no `Case` for Ignore —
+  or any unexpected `MsgBox` return value — so choosing it silently
+  falls through with no action at all, letting extraction continue
+  despite the insufficient-space warning.
+- **Note:** `capability-manifest.md`'s C179 row had gone unupdated
+  since PR #318 landed its partial coverage — backfilled alongside
+  this addition.
+- **Scope — still `REQUIRED`.** The `MsgBox` call itself remains
+  real GUI, deferred under manifest row D001.
+- Parity tests: 3 new in `free_space::tests` (13 total).
+- PR [#403](https://github.com/baileyrd/rusty_extract/pull/403).
+
+---
+
 ## C178 — TrID UNC-path detection reliability
 **2026-08-21**
 

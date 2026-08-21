@@ -277,6 +277,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   marshalled as ANSI ("str"), never wide ("wstr"), consistent with
   the documented UNC-path detection-failure report. Capability marked
   `DONE`.
+- C179 (partial): free-space prompt response handling
+  (`free_space::decide_prompt_action`) — found the source's own
+  `Switch` has no `Case` for Ignore, silently continuing extraction
+  despite insufficient space. Extends PR #318's arithmetic/silent-mode
+  coverage; still `REQUIRED` (the `MsgBox` call itself is unmodeled).
+  Also backfilled `capability-manifest.md`'s C179 row, which had gone
+  unupdated since PR #318.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
