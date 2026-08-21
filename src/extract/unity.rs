@@ -1,5 +1,41 @@
 //! Unity `.unitypackage` decoder (wraps `7z.exe` + custom
 //! path-remapping logic).
+//!
+//! ```autoit
+//! Case $TYPE_UNITYPACKAGE
+//!     ; Unitypackages are tar.gz files with a specific internal structure. First, extract them normally.
+//!     Local $oldoutdir = $outdir
+//!     $outdir = $tempoutdir
+//!
+//!     extract($TYPE_7Z, -1, "gz", True, False)
+//!
+//!     ; Newer files contain 'archtemp.tar', old version are standard tar.gz archives
+//!     Local $sFile = $tempoutdir & "archtemp.tar"
+//!     If FileExists($sFile) Then
+//!         _Run($7z & ' x "' & $sFile & '"', $tempoutdir)
+//!         FileDelete($sFile)
+//!     EndIf
+//!
+//!     $outdir = $oldoutdir
+//!     ; ... per-asset rename/restructure loop, see resolve_asset_destination/
+//!     ; is_destination_within_outdir ...
+//! ```
+//!
+//! The primary extraction is a recursive `extract($TYPE_7Z, -1, "gz",
+//! True, False)` call (UniExtract.au3:3173) — `return_success = true,
+//! return_fail = false`, the same shape `extract::forge`'s and
+//! `extract::raiu`'s recursive calls use. `$outdir` is redirected to
+//! `$tempoutdir` first (the same dance `extract::forge` documents for
+//! its own recursive call) so the primary extraction lands in the
+//! scratch directory rather than the real output, and is restored
+//! afterward. Per `extract::completion` (C054/C181), a `return_fail =
+//! false` call still terminates the whole process on failure — so,
+//! like `extract::forge`/`extract::raiu`, everything after this call
+//! (the conditional inner-tar unpack, the `$outdir` restore, the
+//! per-asset rename loop) is **not** unconditional: a failed primary
+//! extraction terminates right there. This call site's own return
+//! value (`1` on success) is otherwise unused, the same as
+//! `extract::forge`'s/`extract::raiu`'s.
 
 use super::{Invocation, WindowMode};
 use crate::prefs::resolve_relative_path;
@@ -12,11 +48,11 @@ use crate::prefs::resolve_relative_path;
 /// argument).
 ///
 /// **Not modeled here:** the recursive `extract($TYPE_7Z, -1, "gz", True,
-/// False)` dispatch that runs first (composite/recursive dispatch,
-/// capability C054, not yet ported); the `FileExists`/`FileDelete`
-/// staging around this call; the per-asset rename/restructure loop that
-/// follows (see [`resolve_asset_destination`]/[`is_destination_within_outdir`]
-/// for that half of this capability). All separate runtime behavior, not
+/// False)` dispatch that runs first (see module doc comment); the
+/// `FileExists`/`FileDelete` staging around this call; the per-asset
+/// rename/restructure loop that follows (see
+/// [`resolve_asset_destination`]/[`is_destination_within_outdir`] for
+/// that half of this capability). All separate runtime behavior, not
 /// part of building this one invocation.
 pub fn inner_tar_invocation(program: &str, tar_file: &str, tempoutdir: &str) -> Invocation {
     Invocation {

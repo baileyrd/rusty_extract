@@ -191,6 +191,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C054 (partial): `$TYPE_MSCF`'s recursive dispatch and cab-extraction
   invocation (`extract::mscf`); its own `RipExeInfo` fallback stays
   GUI-blocked, same as C069.
+- C054: completed `$TYPE_UNITYPACKAGE`'s recursive dispatch
+  (`extract::unity`) — all 6 cited call sites now covered, capability
+  marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
