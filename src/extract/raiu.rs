@@ -1,12 +1,33 @@
 //! RAIU (`RAIU.exe`) — Reflexive Arcade Installer wrapper, chains into
 //! Inno Setup extraction (C074).
 //!
+//! ```autoit
+//! Case $TYPE_RAI
+//!     DirCreate($tempoutdir)
+//!     Local $tmp = $tempoutdir & $filename & '_' & t('TERM_UNPACKED') & '.exe'
+//!     _Run($rai & ' "' & $file & '" "' & $tmp & '"', $filedir)
+//!     $file = $tmp
+//!     extract($TYPE_INNO, $arcdisp, "", True)
+//!     Cleanup($tmp)
+//!     DirRemove($tempoutdir)
+//! ```
+//!
 //! **Scope — invocation only.** After this invocation unwraps the RAIU
 //! shell, `Case $TYPE_RAI` recursively re-invokes `extract($TYPE_INNO,
-//! ...)` on the unwrapped file (UniExtract.au3:2999) — the recursive
-//! dispatch mechanism itself is C181, out of scope here — and then
-//! cleans up the temp file and directory (`Cleanup`, `DirRemove`), real
-//! filesystem I/O left to the caller.
+//! $arcdisp, "", True)` on the unwrapped file (UniExtract.au3:2999) —
+//! `return_success = true, return_fail = false` (the default), passing
+//! the *outer* call's own `$arcdisp` through rather than suppressing it
+//! with `-1` the way `extract::actual`/`extract::forge`'s recursive
+//! calls do. Per `extract::completion` (C054/C181), a `return_fail =
+//! false` call still terminates the whole process on failure — so the
+//! trailing `Cleanup($tmp)`/`DirRemove($tempoutdir)` are **not**
+//! unconditional the way the source's linear layout might suggest: a
+//! failed inner Inno extraction terminates right there and neither step
+//! is ever reached. This call site's own return value (`1` on success)
+//! is otherwise unused — the case proceeds to cleanup unconditionally on
+//! success, not branching on it the way `extract::actual`'s `Case
+//! $TYPE_ACTUAL` does. Real filesystem I/O (`Cleanup`, `DirRemove`)
+//! stays out of scope, left to the caller.
 
 use super::{Invocation, WindowMode};
 

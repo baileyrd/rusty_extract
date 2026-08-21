@@ -183,6 +183,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C155: completed post-extraction cleanup's wildcard-expansion decision
   logic (`cleanup::split_wildcard_target`), closing the module's last
   documented gap.
+- C054/C181 (partial): recursive-dispatch completion contract
+  (`extract::completion::resolve_completion`), completing the recursion
+  piece for `extract::actual`/`extract::forge`/`extract::raiu`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
