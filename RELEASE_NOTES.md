@@ -23,6 +23,48 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C175/C176 — Non-ASCII and UNC-path input relocation
+**2026-08-21**
+
+- **Added:** `unicode_relocation::plan_relocation` — ports
+  `MoveInputFileIfNecessary`'s full destination decision (UniExtract.au3:2218-2245):
+  rename-in-place for a non-ASCII-directory unicode filename,
+  relocate-to-`@TempDir` (keeping the name if only the directory was
+  the problem, generating a fresh one otherwise) for a non-ASCII
+  directory, abort with a warning if `@TempDir` itself is non-ASCII,
+  and unconditional relocation for a UNC-reached file with no unicode
+  involved at all. Also adds `decide_relocation_mode` (the Move-vs-Copy
+  drive-letter check) and `should_reset_outdir` (the trailing
+  output-directory check), completing the state machine that
+  `unicode_relocation`'s existing `decide_unicode_reversion` (C159)
+  already consumes.
+- **`$sRegExAscii` is a misnomer, verified precisely.** Besides ASCII
+  letters/digits/underscore and ordinary ASCII punctuation, it
+  explicitly whitelists 20 accented Western-European Latin letters
+  (both cases) plus `ß`/`°`/`²`/`³` — extracted programmatically from
+  the source's own `\Q...\E` literal block (not retyped by hand) to
+  rule out transcription error. A French or German filename passes
+  outright; Cyrillic, CJK, or Greek does not. `ß`'s uppercase form
+  (`ẞ`, U+1E9E) is deliberately left as a documented, unresolved
+  minor uncertainty rather than guessed at.
+- **A real interaction between C175 and C176, preserved exactly**:
+  UNC-path relocation only ever supplies its own destination when the
+  unicode check didn't already compute one — a file that's both
+  unicode-named and UNC-reached uses the unicode branch's destination;
+  UNC-ness contributes nothing extra in that case.
+- **The multipart exemption** (`.*part\d+\.rar` / a 3+-digit run in
+  the extension) applies after a destination is already computed,
+  from either branch — reimplemented as manual character-scanning
+  helpers rather than adding a `regex` crate dependency, consistent
+  with this port's existing precedent (`batch.rs`).
+- **Not modeled**: `_WinAPI_PathIsUNC`, `_TempFile` (real filesystem
+  I/O generating a random unique name), `HasFreeSpace`, the actual
+  `_FileMove`/`FileCopy` call, and `FilenameParse`.
+- Parity tests: `unicode_relocation::tests` (20 new, 23 total).
+- PR [#400](https://github.com/baileyrd/rusty_extract/pull/400).
+
+---
+
 ## C038 — TrID scan orchestration (partial)
 **2026-08-21**
 
