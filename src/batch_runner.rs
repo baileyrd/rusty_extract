@@ -135,6 +135,46 @@ pub fn pop_and_relaunch_next_batch_item(
     Some(rest)
 }
 
+/// What `BatchQueuePop()`'s "queue empty" branch does once the batch
+/// queue is exhausted (UniExtract.au3:4448-4454) — capability C151.
+/// The branch this doc comment on [`pop_and_relaunch_next_batch_item`]
+/// flagged as still missing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BatchCompletionActions {
+    /// `If FileExists($fileScanLogFile) Then ShellExecute($fileScanLogFile)`
+    /// (line 4451) — open the accumulated scan-results log, but only if
+    /// scan-only mode ever actually wrote one.
+    pub open_scan_log: bool,
+    /// `If $return <> "" Then MsgBox(...)` (line 4453) — show the
+    /// error-log summary dialog, but only if `errorlog.txt` actually
+    /// has content.
+    pub show_error_summary: bool,
+    /// `If $bOptKeepOpen Then Run(@ScriptFullPath)` (line 4454) —
+    /// relaunch the app with no arguments. Gated on `$bOptKeepOpen`
+    /// alone here, **not** the same condition as `terminate()`'s own
+    /// (unrelated) keep-open relaunch at UniExtract.au3:4238, which
+    /// also requires `$cmdline[0] = 0` and a non-`$STATUS_SILENT`
+    /// status — the two call sites are easy to conflate but genuinely
+    /// distinct.
+    pub relaunch_self: bool,
+}
+
+/// Ports `BatchQueuePop()`'s "queue empty" branch decision
+/// (UniExtract.au3:4448-4454), given the real-I/O facts the caller has
+/// already gathered: whether `$fileScanLogFile` exists, and
+/// `errorlog.txt`'s content (empty means "nothing to summarize").
+pub fn decide_batch_completion_actions(
+    scan_log_exists: bool,
+    error_log_content: &str,
+    keep_open: bool,
+) -> BatchCompletionActions {
+    BatchCompletionActions {
+        open_scan_log: scan_log_exists,
+        show_error_summary: !error_log_content.is_empty(),
+        relaunch_self: keep_open,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -233,5 +273,38 @@ mod tests {
     fn real_launcher_reports_launch_failure() {
         let launcher = RealBatchProcessLauncher;
         assert!(!launcher.launch("definitely-not-a-real-program-xyz", &[]));
+    }
+
+    #[test]
+    fn completion_opens_scan_log_only_when_it_exists() {
+        assert!(decide_batch_completion_actions(true, "", false).open_scan_log);
+        assert!(!decide_batch_completion_actions(false, "", false).open_scan_log);
+    }
+
+    /// Parity test for capability C151: the error summary only shows
+    /// when `errorlog.txt` actually has content.
+    #[test]
+    fn completion_shows_error_summary_only_when_log_has_content() {
+        assert!(decide_batch_completion_actions(false, "3 files failed", false).show_error_summary);
+        assert!(!decide_batch_completion_actions(false, "", false).show_error_summary);
+    }
+
+    #[test]
+    fn completion_relaunches_only_when_keep_open_is_set() {
+        assert!(decide_batch_completion_actions(false, "", true).relaunch_self);
+        assert!(!decide_batch_completion_actions(false, "", false).relaunch_self);
+    }
+
+    #[test]
+    fn completion_actions_are_independent_of_each_other() {
+        let actions = decide_batch_completion_actions(true, "some error", true);
+        assert_eq!(
+            actions,
+            BatchCompletionActions {
+                open_scan_log: true,
+                show_error_summary: true,
+                relaunch_self: true,
+            }
+        );
     }
 }

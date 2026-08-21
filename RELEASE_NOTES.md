@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C151 — Batch-completion summary
+**2026-08-21**
+
+- **Added:** `batch_runner::decide_batch_completion_actions` — ports
+  `BatchQueuePop()`'s "queue empty" branch: open the accumulated
+  scan-results log only if one exists, show the error-log summary
+  dialog only if `errorlog.txt` has content, and relaunch the app
+  only if the keep-open option is set. This was the sibling
+  `pop_and_relaunch_next_batch_item`'s own doc comment had already
+  flagged as the still-missing half of `BatchQueuePop()`.
+- **A real, easy-to-conflate distinction, documented**: this branch's
+  keep-open relaunch is gated on `$bOptKeepOpen` alone — a different,
+  simpler condition from `terminate()`'s own unrelated keep-open
+  relaunch (UniExtract.au3:4238), which also requires `$cmdline[0] =
+  0` and a non-`$STATUS_SILENT` status. The two call sites read
+  almost identically at a glance but aren't the same check.
+- Parity tests: 4 new in `batch_runner::tests`.
+- PR [#405](https://github.com/baileyrd/rusty_extract/pull/405).
+
+---
+
 ## C149 — Batch stall on blocking user-input prompts
 **2026-08-21**
 
