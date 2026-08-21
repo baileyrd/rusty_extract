@@ -17,6 +17,7 @@ pub mod ffmpeg;
 pub mod forge;
 pub mod helpdeco;
 pub mod inno;
+pub mod iscab;
 pub mod pdf;
 pub mod placeholder;
 pub mod plugin;

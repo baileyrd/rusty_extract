@@ -174,6 +174,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   quirk (`failure_message::FAILURE_MESSAGE_KEY`).
 - C053: manual disambiguation selection policy and the five real
   candidate lists it dispatches (`method_select`).
+- C075: InstallShield CAB fallback chain — unshield with `-O` retry,
+  then a C053-disambiguated choice of is6comp/is5comp/iscab
+  (`extract::iscab`).
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
