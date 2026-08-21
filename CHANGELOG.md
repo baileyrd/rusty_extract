@@ -271,6 +271,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   resets `$iUnicodeMode`, discarding the outer run's relocation
   bookkeeping. Documented and made testable, not fixed. Capability
   marked `DONE`.
+- C178: TrID UNC-path detection reliability
+  (`detection::trid_scan::trid_dll_string_marshalling`) — verified
+  still present: every string parameter into `TrIDLib.dll` is
+  marshalled as ANSI ("str"), never wide ("wstr"), consistent with
+  the documented UNC-path detection-failure report. Capability marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

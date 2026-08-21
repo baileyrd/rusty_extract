@@ -64,8 +64,47 @@
 //! as part of C040's own module doc comment; and a state update with no
 //! further decision attached. None of the three need a dedicated
 //! function here.
+//!
+//! **Capability C178 — verified still present.** `TridLib_Load`'s
+//! `TrID_LoadDefsPack` call (UniExtract.au3:949,
+//! `DllCall($hTridDll, "int", "TrID_LoadDefsPack", "str", $bindir)`)
+//! marshals its directory argument as `"str"` — AutoIt's ANSI
+//! (single-byte, current-codepage) string type, not `"wstr"` (UTF-16).
+//! `TridLib_Analyse`'s own `TrID_SubmitFileA` call (UniExtract.au3:964
+//! — the "A" suffix is itself the Win32 ANSI-variant naming
+//! convention) marshals the *scanned file's own path* the same way.
+//! Every other string parameter into `TrIDLib.dll` across this whole
+//! wrapper (`TridLib_GetType`/`TridLib_GetExtension`'s output buffers
+//! included) is `"str"` too — there is no `"wstr"` call site anywhere
+//! in the wrapper. This is consistent with the documented UNC-path
+//! TrID-detection-failure report: a UNC path, or any path containing a
+//! character outside the process's current ANSI codepage, can be
+//! silently corrupted by this narrowing conversion before `TrIDLib.dll`
+//! ever sees it. [`trid_dll_string_marshalling`] makes the finding
+//! explicit and testable — the real `DllCall`s themselves stay out of
+//! scope (missing-FFI blocker, same as the rest of this module).
 
 use crate::extract::{Invocation, WindowMode};
+
+/// AutoIt `DllCall` string-parameter marshalling mode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StringMarshalling {
+    /// `"str"` — ANSI, single-byte, current codepage.
+    Ansi,
+    /// `"wstr"` — wide, UTF-16.
+    Wide,
+}
+
+/// Capability C178: every string parameter `TrIDLib.dll`'s wrapper
+/// functions pass — the directory in `TrID_LoadDefsPack`
+/// (UniExtract.au3:949) and the scanned file's own path in
+/// `TrID_SubmitFileA` (UniExtract.au3:964) alike — is marshalled as
+/// [`StringMarshalling::Ansi`]. See the module doc comment for why
+/// this is the documented root cause of TrID's UNC-path detection
+/// unreliability.
+pub fn trid_dll_string_marshalling() -> StringMarshalling {
+    StringMarshalling::Ansi
+}
 
 /// Builds the scan-only-mode invocation `FileScan_Trid` makes
 /// (UniExtract.au3:922): `<trid> "<file>"`, with a trailing `-v` token
@@ -220,5 +259,14 @@ mod tests {
     fn line_filter_is_case_insensitive() {
         assert!(should_keep_scan_only_line("RELATED URL: x", false));
         assert!(should_keep_scan_only_line("REMARKS: x", false));
+    }
+
+    /// Parity test for capability C178: verified still present -- the
+    /// TrIDLib.dll wrapper marshals every string argument as ANSI
+    /// ("str"), never wide ("wstr"), consistent with the documented
+    /// UNC-path detection-failure report.
+    #[test]
+    fn trid_dll_calls_use_ansi_not_wide_string_marshalling() {
+        assert_eq!(trid_dll_string_marshalling(), StringMarshalling::Ansi);
     }
 }

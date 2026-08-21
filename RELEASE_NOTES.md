@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C178 — TrID UNC-path detection reliability
+**2026-08-21**
+
+- **Verified still present**: `TridLib_Load`'s `TrID_LoadDefsPack`
+  call (UniExtract.au3:949) marshals its directory argument as
+  `"str"` — AutoIt's ANSI (single-byte, current-codepage) string
+  type, not `"wstr"` (UTF-16). `TridLib_Analyse`'s own
+  `TrID_SubmitFileA` call (UniExtract.au3:964 — the "A" suffix is
+  itself the Win32 ANSI-variant naming convention) marshals the
+  *scanned file's own path* the same way, and every other string
+  parameter into `TrIDLib.dll` across the whole wrapper is `"str"`
+  too — confirmed no `"wstr"` call site exists anywhere in it. This
+  is consistent with the documented UNC-path TrID-detection-failure
+  report: a UNC path, or any path containing a character outside the
+  process's current ANSI codepage, can be silently corrupted by this
+  narrowing conversion before `TrIDLib.dll` ever sees it.
+- **Added:** `detection::trid_scan::trid_dll_string_marshalling` —
+  makes the finding explicit and testable. The real `DllCall`s
+  themselves stay out of scope, the same missing-FFI blocker as the
+  rest of this module.
+- Parity test: `detection::trid_scan::tests::trid_dll_calls_use_ansi_not_wide_string_marshalling`.
+- PR [#402](https://github.com/baileyrd/rusty_extract/pull/402).
+
+---
+
 ## C177 — Unicode-move bookkeeping loss on nested re-entry
 **2026-08-21**
 
