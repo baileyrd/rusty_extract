@@ -341,6 +341,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`detection::exeinfo_scan::scan_via_gui`), built on C069's new
   automation infrastructure — the last unported piece of this
   capability. Capability marked `DONE`.
+- C044: completed the PEiD scan (`detection::peid_scan::peid_scan`),
+  built on C069's automation infrastructure; found and preserved a
+  genuine hang-risk quirk (`WinWait("PEiD v")` has no timeout, unlike
+  every other `WinWait` call this port has ported so far). Capability
+  marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
