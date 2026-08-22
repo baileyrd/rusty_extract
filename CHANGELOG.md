@@ -337,6 +337,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   real Win32 backend drives an actual Exeinfo PE window, since no live
   Windows desktop with the real tool exists in this environment or on
   CI. Capability marked `DONE` on that basis.
+- C042: completed the scan-only-mode GUI path
+  (`detection::exeinfo_scan::scan_via_gui`), built on C069's new
+  automation infrastructure — the last unported piece of this
+  capability. Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

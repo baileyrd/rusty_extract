@@ -43,12 +43,11 @@
 //! (`RunWait` + reading a log file) — **not** GUI automation. Only the
 //! scan-only-mode path (`Else`), and the corrupted/buffer-error retry
 //! (`Return FileScan_ExeInfo(False)`), drive PEiD-style GUI automation
-//! (`OpenExeInfo`/`ControlGetText`/`CloseExeInfo`) — the same deferred
-//! GUI subsystem blocker as elsewhere in this port (manifest row D001).
-//! [`scan_invocation`] covers the portable command-line path only; the
-//! GUI path and the retry-on-corruption fallback into it are the reason
-//! manifest row C042 stays `REQUIRED` (partial coverage, same shape as
-//! C044).
+//! (`OpenExeInfo`/`ControlGetText`/`CloseExeInfo`) — now ported as
+//! [`scan_via_gui`] against `automation::GuiAutomation` (C069's new
+//! infrastructure), the same "decision logic proven, real Win32 backend
+//! unverified against a live window" caveat `automation`'s own module
+//! doc comment documents applies here too.
 //!
 //! `StringInStr` calls here are all bare (no explicit casesense
 //! argument) — case-insensitive, the documented default. `StringReplace`
@@ -56,6 +55,7 @@
 //! AutoIt, so [`strip_filename_prefix`]'s containment check and
 //! replacement are both modeled case-insensitively too.
 
+use crate::automation::{close_exeinfo, open_exeinfo, GuiAutomation};
 use crate::extract::{Invocation, WindowMode};
 
 /// Builds the command-line scan invocation `FileScan_ExeInfo` makes in
@@ -89,6 +89,50 @@ pub fn should_retry_as_gui(log_output: &str) -> bool {
         .to_lowercase()
         .contains("file corrupted or buffer error")
         || log_output.trim().is_empty()
+}
+
+/// Text `TEdit6` shows while Exeinfo PE is still working — polling stops
+/// once it shows anything else, or `timeout_ms` elapses (UniExtract.au3:
+/// 1112-1113). All three checks are bare `StringInStr` (case-insensitive),
+/// same as everywhere else in this module.
+fn is_scan_placeholder(text: &str) -> bool {
+    let lower = text.to_lowercase();
+    text.is_empty()
+        || lower.contains("file too big")
+        || lower.contains("antivirus may slow")
+        || lower.contains("file corrupted or buffer error")
+}
+
+/// Ports the scan-only-mode GUI path (UniExtract.au3:1108-1121):
+/// `OpenExeInfo()`, then poll the `TEdit6` control until it stops
+/// showing a "not ready yet" placeholder ([`is_scan_placeholder`]) or
+/// `timeout_ms` elapses — a `While` loop whose condition starts
+/// trivially true (`$sFileType` is seeded `""`), so it always polls at
+/// least once, reproduced here as a `loop` rather than a pre-checked
+/// `while`. Once the loop ends, `TEdit5`'s text is appended
+/// (UniExtract.au3:1121: `$sFileType &= @CRLF & @CRLF & ControlGetText
+/// (...)`) before closing Exeinfo PE.
+pub fn scan_via_gui<A: GuiAutomation>(
+    automation: &mut A,
+    exeinfope: &str,
+    file: &str,
+    bindir: &str,
+    timeout_ms: u64,
+) -> String {
+    let handle = open_exeinfo(automation, exeinfope, file, bindir, timeout_ms);
+    let timer = automation.timer_init();
+    let mut file_type;
+    loop {
+        automation.sleep(200);
+        file_type = automation.control_get_text(handle.window, "TEdit6");
+        if !is_scan_placeholder(&file_type) || automation.elapsed_ms(timer) > timeout_ms {
+            break;
+        }
+    }
+    file_type.push_str("\r\n\r\n");
+    file_type.push_str(&automation.control_get_text(handle.window, "TEdit5"));
+    close_exeinfo(automation, &handle);
+    file_type
 }
 
 /// Ports the filename-echo strip (UniExtract.au3:1119): when the scanned
@@ -151,6 +195,62 @@ pub fn classify_scan_result(cleaned: &str, extract: bool) -> ScanResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::automation::fake::FakeGuiAutomation;
+    use crate::automation::WindowHandle;
+
+    #[test]
+    fn scan_placeholder_matches_every_source_marker_case_insensitively() {
+        assert!(is_scan_placeholder(""));
+        assert!(is_scan_placeholder("FILE TOO BIG"));
+        assert!(is_scan_placeholder("Antivirus may slow things down"));
+        assert!(is_scan_placeholder("file corrupted or buffer error"));
+        assert!(!is_scan_placeholder("Inno Setup installer"));
+    }
+
+    #[test]
+    fn scan_via_gui_polls_until_a_real_result_appears() {
+        let mut fake = FakeGuiAutomation::new();
+        fake.script_win_wait("Exeinfo PE", Some(WindowHandle(1)));
+        fake.script_control_text(WindowHandle(1), "TEdit6", "Inno Setup installer");
+        fake.script_control_text(WindowHandle(1), "TEdit5", "extra detail");
+
+        let result = scan_via_gui(
+            &mut fake,
+            "exeinfope.exe",
+            r"C:\downloads\setup.exe",
+            "C:\\bin",
+            5_000,
+        );
+
+        assert_eq!(result, "Inno Setup installer\r\n\r\nextra detail");
+    }
+
+    #[test]
+    fn scan_via_gui_gives_up_after_timeout_on_a_persistent_placeholder() {
+        let mut fake = FakeGuiAutomation::new();
+        fake.script_win_wait("Exeinfo PE", Some(WindowHandle(1)));
+        fake.script_control_text(WindowHandle(1), "TEdit6", "File too big");
+        fake.script_control_text(WindowHandle(1), "TEdit5", "");
+
+        let result = scan_via_gui(
+            &mut fake,
+            "exeinfope.exe",
+            r"C:\downloads\setup.exe",
+            "C:\\bin",
+            1_000,
+        );
+
+        assert_eq!(result, "File too big\r\n\r\n");
+        let sleeps = fake
+            .calls()
+            .iter()
+            .filter(|c| matches!(c, crate::automation::fake::Call::Sleep(_)))
+            .count();
+        assert!(
+            sleeps >= 5,
+            "expected several polling iterations before timeout, got {sleeps}"
+        );
+    }
 
     #[test]
     fn scan_invocation_matches_source_shape() {

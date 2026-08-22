@@ -23,6 +23,24 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C042 — Exeinfo PE scan-only-mode GUI path (completes the capability)
+**2026-08-22**
+
+- **Added:** `detection::exeinfo_scan::scan_via_gui`, built on C069's new
+  `automation::GuiAutomation` infrastructure: reproduces `OpenExeInfo()`,
+  the `TEdit6`-polling loop (`is_scan_placeholder` checks the three
+  "not ready yet" markers — empty, "File too big", "Antivirus may
+  slow", "File corrupted or Buffer Error" — always polling at least
+  once since the source's loop condition starts trivially true),
+  appending `TEdit5`'s text, then `CloseExeInfo()`.
+- This was the last unported piece of C042 — capability marked `DONE`.
+  Carries the same honesty caveat as C069: fake-backed tests prove the
+  decision logic against the source, not that the real Win32 backend
+  drives an actual Exeinfo PE window.
+- Tests: `detection::exeinfo_scan::tests` (13, up from 10).
+
+---
+
 ## C069 — GUI-automation infrastructure + Exeinfo PE resource ripping
 **2026-08-22**
 
