@@ -327,6 +327,16 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`CheckGame`'s GAUP probe, `BmsExtract`) now that C055/C180 resolved
   the `_SQLite_GetTable` blocker; all 6 sites covered. Capability marked
   `DONE`.
+- C069: new `automation` module — a `GuiAutomation` trait (mirroring
+  `extract::runner::ExtractorRunner`'s real/fake split) covering the
+  Win32 primitives `OpenExeInfo`/`RipExeInfo`/`CloseExeInfo` need, a
+  real `Win32GuiAutomation` backend (new `windows` crate dependency,
+  scoped to `cfg(windows)` only), a `FakeGuiAutomation` test double, and
+  the ported orchestration functions themselves. Explicitly documented:
+  fake-backed tests verify the decision logic but nothing proves the
+  real Win32 backend drives an actual Exeinfo PE window, since no live
+  Windows desktop with the real tool exists in this environment or on
+  CI. Capability marked `DONE` on that basis.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
