@@ -350,6 +350,9 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (`extract::sevenzip::sfx_splitter_extract`), built on C069's
   automation infrastructure; added `win_close_by_title`/`file_exists`
   to `GuiAutomation` for it. Capability marked `DONE`.
+- C106: completed choice 3's MSI rip (`extract::wise::wise_msi_rip`), a
+  thin wrapper over C069's `automation::rip_exeinfo`. Capability marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

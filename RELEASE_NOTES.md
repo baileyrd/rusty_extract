@@ -23,6 +23,20 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C106 — Wise MSI rip (completes the capability)
+**2026-08-22**
+
+- **Added:** `extract::wise::wise_msi_rip`, a thin wrapper over C069's
+  `automation::rip_exeinfo` with `RIP_EXEINFO_KEY_SEQUENCE` — choice 3
+  of the Wise Installer disambiguation, the last unported piece of this
+  capability.
+- Capability marked `DONE`. Carries the same honesty caveat as C069:
+  fake-backed tests prove the delegation and its arguments are right,
+  not that the real Win32 backend actually finds an MSI to rip.
+- Tests: `extract::wise::tests` (16, up from 14).
+
+---
+
 ## C056 — 7z SFX-splitter branch (completes the capability)
 **2026-08-22**
 

@@ -45,24 +45,26 @@
 //!     EndIf
 //! ```
 //!
-//! **Scope — invocations and routing decisions only, choice 3 excepted.**
-//! `Cleanup`, `MoveFiles`, and `FileDelete` are real filesystem I/O, out
-//! of scope everywhere in this crate. The disambiguation candidate list
-//! is C053's own `method_select::WISE_CANDIDATES`, and which choice gets
-//! picked at all is `method_select::decide_method_selection` — both
-//! reused here, not duplicated. `Warn_Execute`'s "you're about to run an
-//! executable, continue?" confirmation gate (choice 2) isn't modeled,
-//! matching `extract::expand`'s own note about the same function —
+//! **Scope — invocations and routing decisions, plus choice 3's own
+//! automation.** `Cleanup`, `MoveFiles`, and `FileDelete` are real
+//! filesystem I/O, out of scope everywhere in this crate. The
+//! disambiguation candidate list is C053's own
+//! `method_select::WISE_CANDIDATES`, and which choice gets picked at all
+//! is `method_select::decide_method_selection` — both reused here, not
+//! duplicated. `Warn_Execute`'s "you're about to run an executable,
+//! continue?" confirmation gate (choice 2) isn't modeled, matching
+//! `extract::expand`'s own note about the same function —
 //! [`switch_invocation`] reproduces only the command it passes through.
 //!
-//! **Choice 3 is genuinely GUI-blocked.** `RipExeInfo`
-//! (UniExtract.au3:1861-1896, already investigated for C069) drives
-//! Exeinfo PE via real Win32 window/control automation — this crate has
-//! no Win32 GUI-automation FFI, so whether it even finds an MSI to rip
-//! can't be determined here. [`RIP_EXEINFO_KEY_SEQUENCE`] pins down the
-//! literal keystroke sequence this call site sends it, the same
-//! "pin the data, defer the automation" split `extract::mscf` already
-//! uses for its own `RipExeInfo` call site.
+//! **Choice 3 now drives Exeinfo PE for real**, PR [#415](https://github.com/baileyrd/rusty_extract/pull/415),
+//! built on C069's `automation::GuiAutomation` infrastructure:
+//! [`wise_msi_rip`] wraps `automation::rip_exeinfo` with
+//! [`RIP_EXEINFO_KEY_SEQUENCE`], the literal keystroke sequence this call
+//! site sends it. Carries the same honesty caveat as C069: fake-backed
+//! tests prove [`wise_msi_rip`] delegates with the right arguments, not
+//! that the real Win32 backend actually finds an MSI to rip. The
+//! `MoveFiles` this choice runs on success stays out of scope, same as
+//! everywhere else.
 //!
 //! **The `$cmd &` prefix on the completion-BAT invocation isn't modeled
 //! as a literal string.** Same as `extract::expand`'s own note: `$cmd &
@@ -78,6 +80,7 @@
 //! variant so a caller can tell the two apart.
 
 use super::{Invocation, WindowMode};
+use crate::automation::GuiAutomation;
 
 /// Builds the primary `e_wise_w.exe` invocation (UniExtract.au3:3333):
 /// `<program> "<file>" "<outdir>"`, run in `filedir`. No `$show_flag`
@@ -122,8 +125,8 @@ pub enum WiseChoice {
     WunUnpacker,
     /// Choice 2: extract using the `/x` switch.
     InstallerSwitch,
-    /// Choice 3: attempt to rip the MSI via Exeinfo PE — genuinely
-    /// GUI-blocked, see module doc comment.
+    /// Choice 3: attempt to rip the MSI via Exeinfo PE — drive
+    /// [`wise_msi_rip`].
     WiseMsi,
     /// Choice 4: extract using unzip, falling back to 7-Zip.
     Unzip,
@@ -200,10 +203,30 @@ pub fn switch_invocation(file: &str, outdir: &str, filedir: &str) -> Invocation 
 /// The literal keystroke sequence choice 3 sends `RipExeInfo`
 /// (UniExtract.au3:3358) — three Down-arrow presses, the keyboard
 /// navigation Exeinfo PE's UI needs to reach its MSI-rip command for a
-/// Wise installer's dialog layout. Pinned down as data even though
-/// `RipExeInfo` itself (real Win32 GUI automation, C069) isn't
-/// implemented here.
+/// Wise installer's dialog layout.
 pub const RIP_EXEINFO_KEY_SEQUENCE: &str = "{DOWN}{DOWN}{DOWN}";
+
+/// Ports choice 3 itself (UniExtract.au3:3358): `RipExeInfo($tempoutdir,
+/// "{DOWN}{DOWN}{DOWN}")`, a thin wrapper over `automation::rip_exeinfo`
+/// with [`RIP_EXEINFO_KEY_SEQUENCE`]. Returns whether Exeinfo PE found an
+/// MSI to rip; the source's own `MoveFiles($tempoutdir, $outdir, ...)` on
+/// success is real filesystem I/O, left to the caller.
+pub fn wise_msi_rip<A: GuiAutomation>(
+    automation: &mut A,
+    exeinfope: &str,
+    tempoutdir_file: &str,
+    bindir: &str,
+    timeout_ms: u64,
+) -> bool {
+    crate::automation::rip_exeinfo(
+        automation,
+        exeinfope,
+        tempoutdir_file,
+        bindir,
+        RIP_EXEINFO_KEY_SEQUENCE,
+        timeout_ms,
+    )
+}
 
 /// Builds choice 4's `unzip` invocation (UniExtract.au3:3364): `<program>
 /// -x "<file>"`, run in `outdir`. No `$show_flag` argument is passed at
@@ -345,6 +368,33 @@ mod tests {
     #[test]
     fn rip_exeinfo_key_sequence_matches_source() {
         assert_eq!(RIP_EXEINFO_KEY_SEQUENCE, "{DOWN}{DOWN}{DOWN}");
+    }
+
+    /// Parity test for capability C106: choice 3 delegates to
+    /// `automation::rip_exeinfo` with the pinned key sequence -- this
+    /// only proves the delegation and its arguments are right (the same
+    /// confidence every other parity test in this crate has), not that
+    /// the real Win32 backend actually finds an MSI to rip.
+    #[test]
+    fn wise_msi_rip_delegates_to_automation_rip_exeinfo() {
+        use crate::automation::fake::{Call, FakeGuiAutomation};
+        use crate::automation::WindowHandle;
+
+        let mut fake = FakeGuiAutomation::new();
+        fake.script_win_wait("Exeinfo PE", Some(WindowHandle(1)));
+
+        wise_msi_rip(
+            &mut fake,
+            r"C:\bin\exeinfope.exe",
+            r"C:\downloads\temp7\setup.exe",
+            r"C:\bin",
+            5_000,
+        );
+
+        assert!(fake.calls().iter().any(|c| matches!(
+            c,
+            Call::ControlSend(_, _, keys) if keys == "{DOWN}{DOWN}{DOWN}{ENTER}"
+        )));
     }
 
     #[test]
