@@ -23,6 +23,32 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C044 — PEiD scan (completes the capability)
+**2026-08-22**
+
+- **Added:** `detection::peid_scan::peid_scan`, built on C069's
+  `automation::GuiAutomation` infrastructure: reproduces `Run`/
+  `WinWait("PEiD v")`/the `Edit2`-polling loop (`is_scan_placeholder`
+  checks empty or `"Scanning..."`, case-insensitively)/`WinClose`,
+  reusing `detector_silence::PEID_KEY`/`PEID_SILENCE_VALUES`/
+  `restore_plan` (C036) for the registry backup/restore.
+- **A genuine, preserved hang-risk quirk**: unlike `OpenExeInfo`'s/
+  `RipExeInfo`'s own `WinWait` calls, PEiD's own `WinWait("PEiD v")`
+  passes no timeout argument at all — AutoIt's documented default (`0`)
+  waits indefinitely, so a PEiD window that never appears hangs the
+  source forever right there, before the polling loop (which *does*
+  respect `$Timeout`) is ever reached. Modeled as `u64::MAX` rather than
+  the caller's `timeout_ms` — the closest a concrete-`u64` API can get
+  to "no timeout" — not "fixed" into a bounded wait.
+- This was the last unported piece of C044 (the dispatch table was
+  already `DONE`) — capability marked `DONE`. Carries the same honesty
+  caveat as C069: fake-backed tests prove the decision logic against
+  the source, not that the real Win32 backend drives an actual PEiD
+  window.
+- Tests: `detection::peid_scan::tests` (5).
+
+---
+
 ## C042 — Exeinfo PE scan-only-mode GUI path (completes the capability)
 **2026-08-22**
 

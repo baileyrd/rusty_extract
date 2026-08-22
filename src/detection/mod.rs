@@ -12,6 +12,7 @@ pub mod file_dispatch;
 pub mod initial_ext_check;
 pub mod mediainfo_scan;
 pub mod peid_dispatch;
+pub mod peid_scan;
 pub mod registry;
 pub mod sevenzip_probe;
 pub mod trid_dispatch;
