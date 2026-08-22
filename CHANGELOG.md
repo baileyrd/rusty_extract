@@ -323,6 +323,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `BmsExtract`'s script-test classification. C180's "hang risk" resolves
   to the already-`DONE` C026/C150 findings, not a new mechanism. Both
   capabilities marked `DONE`.
+- C077: completed QuickBMS + WCX plugin fan-out's remaining two sites
+  (`CheckGame`'s GAUP probe, `BmsExtract`) now that C055/C180 resolved
+  the `_SQLite_GetTable` blocker; all 6 sites covered. Capability marked
+  `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
