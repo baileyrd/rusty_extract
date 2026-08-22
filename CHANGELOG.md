@@ -346,6 +346,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   genuine hang-risk quirk (`WinWait("PEiD v")` has no timeout, unlike
   every other `WinWait` call this port has ported so far). Capability
   marked `DONE`.
+- C056: completed the 7z SFX-splitter branch
+  (`extract::sevenzip::sfx_splitter_extract`), built on C069's
+  automation infrastructure; added `win_close_by_title`/`file_exists`
+  to `GuiAutomation` for it. Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

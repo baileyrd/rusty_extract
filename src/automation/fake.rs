@@ -24,6 +24,7 @@ pub enum Call {
     WinWait(String, u64),
     WinSetState(WindowHandle, WindowMode),
     WinClose(WindowHandle),
+    WinCloseByTitle(String),
     WinExists(String),
     ControlClick(WindowHandle, String),
     ControlSend(WindowHandle, String, String),
@@ -35,6 +36,7 @@ pub enum Call {
     TimerInit,
     ElapsedMs(TimerHandle),
     ProcessClose(String),
+    FileExists(String),
 }
 
 #[derive(Default)]
@@ -46,6 +48,8 @@ pub struct FakeGuiAutomation {
     control_get_handle_results: HashMap<(WindowHandle, String), Option<ControlHandle>>,
     listbox_find_results: HashMap<(ControlHandle, String), i32>,
     win_exists_results: HashMap<String, bool>,
+    file_exists_call_counts: HashMap<String, u32>,
+    file_exists_appears_after: HashMap<String, u32>,
     clock_ms: u64,
 }
 
@@ -105,6 +109,16 @@ impl FakeGuiAutomation {
         self.win_exists_results
             .insert(title_or_spec.to_string(), result);
     }
+
+    /// Scripts `file_exists`'s result for `path`: the `polls_before`-th
+    /// and every later call returns `true`; every call before that
+    /// returns `false`. An unscripted path always returns `false` — a
+    /// file that never appears, letting a polling loop's timeout path be
+    /// tested deterministically.
+    pub fn script_file_appears_after(&mut self, path: &str, polls_before: u32) {
+        self.file_exists_appears_after
+            .insert(path.to_string(), polls_before);
+    }
 }
 
 impl GuiAutomation for FakeGuiAutomation {
@@ -150,6 +164,11 @@ impl GuiAutomation for FakeGuiAutomation {
 
     fn win_close(&mut self, window: WindowHandle) {
         self.calls.push(Call::WinClose(window));
+    }
+
+    fn win_close_by_title(&mut self, title_or_spec: &str) {
+        self.calls
+            .push(Call::WinCloseByTitle(title_or_spec.to_string()));
     }
 
     fn win_exists(&mut self, title_or_spec: &str) -> bool {
@@ -225,6 +244,19 @@ impl GuiAutomation for FakeGuiAutomation {
 
     fn process_close(&mut self, name: &str) {
         self.calls.push(Call::ProcessClose(name.to_string()));
+    }
+
+    fn file_exists(&mut self, path: &str) -> bool {
+        self.calls.push(Call::FileExists(path.to_string()));
+        let count = self
+            .file_exists_call_counts
+            .entry(path.to_string())
+            .or_insert(0);
+        *count += 1;
+        match self.file_exists_appears_after.get(path) {
+            Some(threshold) => *count >= *threshold,
+            None => false,
+        }
     }
 }
 

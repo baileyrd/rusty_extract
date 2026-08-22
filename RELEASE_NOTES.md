@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C056 — 7z SFX-splitter branch (completes the capability)
+**2026-08-22**
+
+- **Added:** `extract::sevenzip::sfx_splitter_extract`, built on C069's
+  `automation::GuiAutomation` infrastructure: launches `7ZSplit.exe`,
+  clicks its two buttons (`Button8`, `Button1`), then polls for either
+  the expected script file or an error window, closing any warning
+  window along the way, before closing the splitter process.
+- **New trait methods on `GuiAutomation`**: `win_close_by_title` (AutoIt's
+  own `WinClose` accepts a title directly, no handle needed) and
+  `file_exists` — a live filesystem predicate that has to live on the
+  automation seam rather than as a plain pre-computed argument, since
+  this branch's polling loop interleaves a real `FileExists` check with
+  `WinExists` checks on every iteration.
+- Reports whether/where a script file was found as data
+  (`SfxSplitterOutcome`) rather than performing the final rename
+  itself, keeping the same "decide, don't mutate the filesystem" split
+  used everywhere else in this crate.
+- **Preserves the same no-timeout `WinWait` hang-risk quirk already
+  found for C044's PEiD scan**: `WinWait("7z SFX Archives splitter")`
+  passes no timeout, modeled as `u64::MAX`.
+- This was the last unported piece of C056 — capability marked `DONE`.
+  Carries the same honesty caveat as C069: fake-backed tests prove the
+  decision logic against the source, not that the real Win32 backend
+  drives an actual 7ZSplit window.
+- Tests: `extract::sevenzip::tests::sfx_splitter` (5, new submodule).
+
+---
+
 ## C044 — PEiD scan (completes the capability)
 **2026-08-22**
 

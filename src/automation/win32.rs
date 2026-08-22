@@ -263,6 +263,19 @@ impl GuiAutomation for Win32GuiAutomation {
         }
     }
 
+    fn win_close_by_title(&mut self, title_or_spec: &str) {
+        if let Some(hwnd) = find_window(title_or_spec) {
+            unsafe {
+                let _ = PostMessageW(
+                    Some(hwnd),
+                    windows::Win32::UI::WindowsAndMessaging::WM_CLOSE,
+                    WPARAM(0),
+                    LPARAM(0),
+                );
+            }
+        }
+    }
+
     fn win_exists(&mut self, title_or_spec: &str) -> bool {
         find_window(title_or_spec).is_some()
     }
@@ -382,6 +395,10 @@ impl GuiAutomation for Win32GuiAutomation {
         let _ = std::process::Command::new("taskkill")
             .args(["/IM", name, "/F"])
             .output();
+    }
+
+    fn file_exists(&mut self, path: &str) -> bool {
+        std::path::Path::new(path).exists()
     }
 }
 

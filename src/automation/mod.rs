@@ -86,6 +86,11 @@ pub trait GuiAutomation {
     fn win_set_state(&mut self, window: WindowHandle, mode: WindowMode);
     /// `WinClose($window)`.
     fn win_close(&mut self, window: WindowHandle);
+    /// `WinClose($title_or_spec)` — AutoIt's `WinClose` (unlike this
+    /// trait's other window operations) accepts a title directly, no
+    /// handle needed; kept as its own method rather than forcing every
+    /// caller through `win_wait` first for a window it only ever closes.
+    fn win_close_by_title(&mut self, title_or_spec: &str);
     /// `WinExists($title_or_spec)`.
     fn win_exists(&mut self, title_or_spec: &str) -> bool;
 
@@ -118,6 +123,13 @@ pub trait GuiAutomation {
     fn elapsed_ms(&mut self, since: TimerHandle) -> u64;
     /// `ProcessClose($name)`.
     fn process_close(&mut self, name: &str);
+    /// `FileExists($path)` — a live filesystem predicate, not a
+    /// pre-computed decision input: some polling loops (`Case $TYPE_7Z`'s
+    /// SFX-splitter branch, C056) interleave a real `FileExists` check
+    /// with GUI-window checks on every iteration, so it has to live on
+    /// this same seam rather than being hoisted out as a plain function
+    /// argument the way every other filesystem check in this crate is.
+    fn file_exists(&mut self, path: &str) -> bool;
 }
 
 /// The `$aReturn` array `OpenExeInfo` builds (UniExtract.au3:1823-1834):
