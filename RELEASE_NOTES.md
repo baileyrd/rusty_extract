@@ -23,6 +23,56 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C069 — GUI-automation infrastructure + Exeinfo PE resource ripping
+**2026-08-22**
+
+- **Added:** `automation` — new Win32 GUI-automation infrastructure,
+  mirroring the split `extract::runner::ExtractorRunner` already
+  established for plain process spawning:
+  - `automation::GuiAutomation` — a trait covering the Win32 primitives
+    `OpenExeInfo`/`RipExeInfo`/`CloseExeInfo` need: registry
+    read/write/delete, process spawn, window wait/show/close/exists,
+    control click/send/get-text/get-handle, one listbox query,
+    mouse move, sleep/timer, process-close.
+  - `automation::fake::FakeGuiAutomation` — a test double recording
+    every call with a virtual clock, so orchestration logic is testable
+    without a real window to drive.
+  - `automation::win32::Win32GuiAutomation` — a real, Windows-only
+    (`#[cfg(windows)]`) implementation using the new `windows` crate
+    dependency (scoped to `cfg(windows)` only — no effect on
+    non-Windows builds).
+  - `automation::keys`/`automation::control_spec` — small pure parsers
+    for AutoIt's `ControlSend` key-sequence strings and
+    `[CLASS:name; INSTANCE:n]`/`ClassNameNN` control specs.
+  - `automation::open_exeinfo`/`close_exeinfo`/`rip_exeinfo` — the
+    ported orchestration functions themselves (UniExtract.au3:1822-1917,
+    C069), reusing `detector_silence`'s existing (C036) registry
+    backup/restore logic rather than re-deriving it, and preserving two
+    source quirks in the listbox-polling loop: both "End of file"
+    spellings are checked (the second only when the first doesn't
+    match), and the timeout check happens *after* both lookups each
+    iteration.
+- **Honesty note, not glossed over:** the fake-backed tests verify
+  `open_exeinfo`/`close_exeinfo`/`rip_exeinfo`'s decision logic against
+  the source line-by-line, the same confidence every other parity test
+  in this crate has. They do **not** prove `Win32GuiAutomation` actually
+  drives a real Exeinfo PE window correctly — that needs a live
+  interactive Windows desktop with the real, licensed `exeinfope.exe`
+  running, which doesn't exist in this development environment or on
+  CI (headless `windows-latest`). The Win32 backend is type-checked
+  against the `x86_64-pc-windows-gnu` target during development (this
+  environment can't build native Windows binaries) and will compile for
+  real on CI, but a green CI run only proves it compiles and links, not
+  that it works.
+- Capability C069 marked `DONE` on this basis — see the manifest row's
+  own honesty note for the same caveat.
+- Tests: `automation::tests` (8), `automation::fake::tests` (6),
+  `automation::keys::tests` (6), `automation::control_spec::tests` (6),
+  `automation::win32::tests` (1, exercises for real only on the
+  `windows-latest` CI runner).
+
+---
+
 ## C055/C180 — Game-archive BMS-script lookup (SQLite ambiguity resolved)
 **2026-08-22**
 
