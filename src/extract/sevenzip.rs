@@ -62,14 +62,55 @@
 //! AutoIt's own operator documentation before writing this module, given
 //! the `StringInStr` mistake just made in `extract::ctar`.
 //!
-//! **Scope — the SFX-splitter branch is genuinely GUI-blocked.** When
-//! `$sFileType` contains "SFX" but not "CAB", the source drives
-//! `7ZSplit.exe` via real Win32 window/control automation (`WinWait`,
-//! `ControlClick`) — the same blocker already found for C069/C106/C054's
-//! `$TYPE_MSCF`. [`classify_post_extraction`] reports this branch as
-//! [`PostExtractionBranch::SfxSplitter`] without attempting to model
-//! what happens inside it.
+//! **The SFX-splitter branch is now ported too**, PR [#414](https://github.com/baileyrd/rusty_extract/pull/414),
+//! built on C069's `automation::GuiAutomation` infrastructure —
+//! [`sfx_splitter_extract`]. `classify_post_extraction` still reports
+//! this branch as [`PostExtractionBranch::SfxSplitter`]; the caller
+//! drives [`sfx_splitter_extract`] once it sees that variant.
+//!
+//! ```autoit
+//! Run(_MakeCommand($7zsplit & ' "' & $file & '"'), $outdir, @SW_HIDE)
+//! WinWait("7z SFX Archives splitter")
+//! ControlClick("7z SFX Archives splitter", "", "Button8")
+//! ControlClick("7z SFX Archives splitter", "", "Button1")
+//! $TimerStart = TimerInit()
+//!
+//! Do
+//!     Sleep(100)
+//!     If WinExists("7z SFX Archives splitter warning") Then WinClose("7z SFX Archives splitter warning")
+//!     $TimerDiff = TimerDiff($TimerStart)
+//!     If $TimerDiff > $Timeout Then ExitLoop
+//! Until FileExists($filedir & "\" & $filename & ".txt") Or WinExists("7z SFX Archives splitter error")
+//!
+//! ProcessClose("7ZSplit.exe")
+//!
+//! Local $sPath = $filedir & "\" & $filename & ".txt"
+//! If FileExists($sPath) Then _FileMove($sPath, $outdir & "\" & $filename & "_SFX-Script.txt")
+//! ```
+//!
+//! **A genuine, preserved hang-risk quirk**, the same shape already found
+//! for C044's PEiD scan: `WinWait("7z SFX Archives splitter")` here also
+//! passes no timeout argument — modeled as `u64::MAX`, not "fixed" into
+//! a bounded wait.
+//!
+//! **`_MakeCommand`'s own bindir-prefixing isn't modeled** — the same
+//! scope note already made in `extract::iscab`/`extract::expand`.
+//! `sevenzip_split` is `_MakeCommand`'s own result, taken as an opaque,
+//! already-resolved path.
+//!
+//! **Scope — the final `_FileMove` stays out of scope.** [`sfx_splitter_extract`]
+//! does live-poll `FileExists` through the automation seam (the loop's
+//! own exit condition genuinely needs it, unlike every other filesystem
+//! check in this crate, which is a plain pre-computed function argument
+//! — see `automation::GuiAutomation::file_exists`'s own doc comment) but
+//! reports whether/where a script file was found as data
+//! ([`SfxSplitterOutcome`]) rather than performing the final rename
+//! itself, matching this crate's usual split between deciding and
+//! mutating the filesystem. Carries the same honesty caveat as C069:
+//! fake-backed tests prove the decision logic, not that the real Win32
+//! backend drives an actual 7ZSplit window.
 
+use crate::automation::{GuiAutomation, WindowHandle};
 use crate::extract::{Invocation, WindowMode};
 use crate::status::Status;
 
@@ -134,8 +175,8 @@ pub enum PostExtractionBranch {
     /// [`should_extract_gz_family_inner`]'s own probe-then-classify
     /// gate, not just `FileExists`.
     GzFamily { inner_path: String },
-    /// File type mentions "SFX" but not "CAB" — the GUI-automated
-    /// splitter branch, out of scope (see module doc comment).
+    /// File type mentions "SFX" but not "CAB" — drive
+    /// [`sfx_splitter_extract`] (see module doc comment).
     SfxSplitter,
     /// None of the above matched.
     NoAction,
@@ -194,6 +235,76 @@ pub fn inner_extract_invocation(program: &str, inner_path: &str, outdir: &str) -
         args: vec!["x".to_string(), inner_path.to_string()],
         working_dir: outdir.to_string(),
         window: WindowMode::Minimized,
+    }
+}
+
+const SFX_SPLITTER_WINDOW_TITLE: &str = "7z SFX Archives splitter";
+const SFX_SPLITTER_WARNING_TITLE: &str = "7z SFX Archives splitter warning";
+const SFX_SPLITTER_ERROR_TITLE: &str = "7z SFX Archives splitter error";
+const SFX_SPLITTER_PROCESS_NAME: &str = "7ZSplit.exe";
+
+/// What [`sfx_splitter_extract`] found once its polling loop ended
+/// (UniExtract.au3:2338-2339): whether `<filedir>\<filename>.txt` exists,
+/// and if so, where the source moves it (`_FileMove`, real filesystem
+/// I/O left to the caller — see module doc comment).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SfxSplitterOutcome {
+    /// No script file appeared before the polling loop ended.
+    NoScript,
+    /// A script file exists at `from`; the source renames it to `to`.
+    ScriptFound { from: String, to: String },
+}
+
+/// Ports the SFX-splitter branch (UniExtract.au3:2331-2343): launches
+/// `sevenzip_split` against `file`, clicks its two buttons, then polls
+/// for either the expected script file to appear or an error window,
+/// closing any warning window that pops up along the way, before closing
+/// the splitter process. See the module doc comment for the preserved
+/// no-timeout `WinWait` quirk and the `_FileMove` scope note.
+pub fn sfx_splitter_extract<A: GuiAutomation>(
+    automation: &mut A,
+    sevenzip_split: &str,
+    file: &str,
+    outdir: &str,
+    filedir: &str,
+    filename: &str,
+    timeout_ms: u64,
+) -> SfxSplitterOutcome {
+    automation.run(&Invocation {
+        program: sevenzip_split.to_string(),
+        args: vec![file.to_string()],
+        working_dir: outdir.to_string(),
+        window: WindowMode::Hidden,
+    });
+    let window = automation
+        .win_wait(SFX_SPLITTER_WINDOW_TITLE, u64::MAX)
+        .unwrap_or(WindowHandle(0));
+    automation.control_click(window, "Button8");
+    automation.control_click(window, "Button1");
+
+    let script_path = format!("{filedir}\\{filename}.txt");
+    let timer = automation.timer_init();
+    loop {
+        automation.sleep(100);
+        if automation.win_exists(SFX_SPLITTER_WARNING_TITLE) {
+            automation.win_close_by_title(SFX_SPLITTER_WARNING_TITLE);
+        }
+        if automation.file_exists(&script_path)
+            || automation.win_exists(SFX_SPLITTER_ERROR_TITLE)
+            || automation.elapsed_ms(timer) > timeout_ms
+        {
+            break;
+        }
+    }
+    automation.process_close(SFX_SPLITTER_PROCESS_NAME);
+
+    if automation.file_exists(&script_path) {
+        SfxSplitterOutcome::ScriptFound {
+            to: format!("{outdir}\\{filename}_SFX-Script.txt"),
+            from: script_path,
+        }
+    } else {
+        SfxSplitterOutcome::NoScript
     }
 }
 
@@ -369,5 +480,144 @@ mod tests {
         );
         assert_eq!(inv.working_dir, r"C:\out");
         assert_eq!(inv.window, WindowMode::Minimized);
+    }
+
+    mod sfx_splitter {
+        use super::*;
+        use crate::automation::fake::{Call, FakeGuiAutomation};
+
+        #[test]
+        fn launches_splitter_and_clicks_both_buttons() {
+            let mut fake = FakeGuiAutomation::new();
+            fake.script_win_wait(SFX_SPLITTER_WINDOW_TITLE, Some(WindowHandle(1)));
+
+            sfx_splitter_extract(
+                &mut fake,
+                r"C:\bin\7ZSplit.exe",
+                r"C:\downloads\sfx.exe",
+                r"C:\downloads\unpacked",
+                r"C:\downloads",
+                "sfx",
+                1_000,
+            );
+
+            assert!(fake.calls().iter().any(|c| matches!(
+                c,
+                Call::Run(inv) if inv.program == r"C:\bin\7ZSplit.exe"
+                    && inv.args == vec![r"C:\downloads\sfx.exe".to_string()]
+                    && inv.working_dir == r"C:\downloads\unpacked"
+                    && inv.window == WindowMode::Hidden
+            )));
+            assert!(fake
+                .calls()
+                .contains(&Call::ControlClick(WindowHandle(1), "Button8".to_string())));
+            assert!(fake
+                .calls()
+                .contains(&Call::ControlClick(WindowHandle(1), "Button1".to_string())));
+            // No timeout on the initial WinWait -- see module doc comment.
+            assert!(fake.calls().contains(&Call::WinWait(
+                SFX_SPLITTER_WINDOW_TITLE.to_string(),
+                u64::MAX
+            )));
+        }
+
+        #[test]
+        fn reports_the_script_path_when_it_appears() {
+            let mut fake = FakeGuiAutomation::new();
+            fake.script_win_wait(SFX_SPLITTER_WINDOW_TITLE, Some(WindowHandle(1)));
+            fake.script_file_appears_after(r"C:\downloads\sfx.txt", 2);
+
+            let outcome = sfx_splitter_extract(
+                &mut fake,
+                "7ZSplit.exe",
+                r"C:\downloads\sfx.exe",
+                r"C:\downloads\unpacked",
+                r"C:\downloads",
+                "sfx",
+                5_000,
+            );
+
+            assert_eq!(
+                outcome,
+                SfxSplitterOutcome::ScriptFound {
+                    from: r"C:\downloads\sfx.txt".to_string(),
+                    to: r"C:\downloads\unpacked\sfx_SFX-Script.txt".to_string(),
+                }
+            );
+            assert!(fake
+                .calls()
+                .contains(&Call::ProcessClose(SFX_SPLITTER_PROCESS_NAME.to_string())));
+        }
+
+        #[test]
+        fn closes_a_warning_window_that_appears_mid_poll() {
+            let mut fake = FakeGuiAutomation::new();
+            fake.script_win_wait(SFX_SPLITTER_WINDOW_TITLE, Some(WindowHandle(1)));
+            fake.script_win_exists(SFX_SPLITTER_WARNING_TITLE, true);
+            fake.script_file_appears_after(r"C:\downloads\sfx.txt", 1);
+
+            sfx_splitter_extract(
+                &mut fake,
+                "7ZSplit.exe",
+                r"C:\downloads\sfx.exe",
+                r"C:\downloads\unpacked",
+                r"C:\downloads",
+                "sfx",
+                5_000,
+            );
+
+            assert!(fake.calls().contains(&Call::WinCloseByTitle(
+                SFX_SPLITTER_WARNING_TITLE.to_string()
+            )));
+        }
+
+        /// Parity test for capability C056: no script file ever appears
+        /// and no error window shows up -- the loop gives up on timeout
+        /// rather than hanging, and reports `NoScript`.
+        #[test]
+        fn gives_up_on_timeout_when_nothing_ever_appears() {
+            let mut fake = FakeGuiAutomation::new();
+            fake.script_win_wait(SFX_SPLITTER_WINDOW_TITLE, Some(WindowHandle(1)));
+
+            let outcome = sfx_splitter_extract(
+                &mut fake,
+                "7ZSplit.exe",
+                r"C:\downloads\sfx.exe",
+                r"C:\downloads\unpacked",
+                r"C:\downloads",
+                "sfx",
+                500,
+            );
+
+            assert_eq!(outcome, SfxSplitterOutcome::NoScript);
+            let sleeps = fake
+                .calls()
+                .iter()
+                .filter(|c| matches!(c, Call::Sleep(_)))
+                .count();
+            assert!(
+                sleeps >= 5,
+                "expected several polling iterations before timeout, got {sleeps}"
+            );
+        }
+
+        #[test]
+        fn stops_polling_once_an_error_window_appears() {
+            let mut fake = FakeGuiAutomation::new();
+            fake.script_win_wait(SFX_SPLITTER_WINDOW_TITLE, Some(WindowHandle(1)));
+            fake.script_win_exists(SFX_SPLITTER_ERROR_TITLE, true);
+
+            let outcome = sfx_splitter_extract(
+                &mut fake,
+                "7ZSplit.exe",
+                r"C:\downloads\sfx.exe",
+                r"C:\downloads\unpacked",
+                r"C:\downloads",
+                "sfx",
+                5_000,
+            );
+
+            assert_eq!(outcome, SfxSplitterOutcome::NoScript);
+        }
     }
 }
