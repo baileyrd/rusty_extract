@@ -23,6 +23,49 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C055/C180 — Game-archive BMS-script lookup (SQLite ambiguity resolved)
+**2026-08-22**
+
+- **The `_SQLite_GetTable` array-shape question that blocked C055/C077/
+  C180 all session is resolved against AutoIt's own official
+  documentation, not guessed:** `$aResult[0]` holds `(rows+1) *
+  columns` (not the row count itself); `$aResult[1..columns]` are
+  column headers; data follows in row-major order after that. Both
+  queries in this capability select exactly one column, so `columns`
+  is always `1`.
+- **Added:** `bms` module — `sql_lookup_outcome` (`CheckGame`'s
+  row-count gate + `_ArraySort`), `decide_game_choice`
+  (`GUI_MethodSelectList`'s override/silent/prompt branching),
+  `should_attempt_bms_extraction` (`BmsExtract`'s script-test
+  classification), and the two literal SQL-query builders. Added
+  `extract::qbms::gaup_probe_invocation`/`is_gaup_probe_failure` for
+  `CheckGame`'s GAUP probe.
+- **Two genuine quirks, preserved exactly:**
+  - The source's `$aReturn[0] > 1` gate looks like it means "more than
+    one candidate", but `_ArrayDelete($aReturn, 1)` (removing the
+    header) never touches index `0` — the surviving value is still
+    `rows + 1`, so the check is really `rows > 0`, "at least one
+    candidate". `sql_lookup_outcome` applies the equivalent check
+    directly rather than re-deriving it from a re-inflated total.
+  - `GUI_MethodSelectList`'s override indexing is shifted by one
+    relative to C053's `GUI_MethodSelect`: override `1` means "not a
+    game archive" (the list's first position is a standard/cancel
+    entry, not a real candidate), override `2` means the first real
+    candidate, and so on. An out-of-range override degrades gracefully
+    to the same path plain "no override" takes, rather than failing.
+- **C180 resolved by cross-reference, not new mechanism:** the GAUP
+  probe's "hang risk" traces to the already-`DONE` C026 finding (an
+  unset `$Timeout` preference resolves to ~16.7 hours) combined with
+  C150's already-`DONE` finding (this crate's runner has no timeout
+  modeling for any call site) — nothing further to port under this ID.
+- A pre-existing SQL-injection property of the source (`$fileext`/
+  `$sName` spliced into SQL unescaped) is preserved exactly, not
+  hardened into a rewrite that would no longer match the source's own
+  query text.
+- Tests: `bms::tests` (18), `extract::qbms::tests::gaup_probe_*` (3).
+
+---
+
 ## C106 — Wise Installer 4-method fallback (everything but the MSI rip)
 **2026-08-21**
 

@@ -3,6 +3,7 @@
 
 pub mod batch;
 pub mod batch_runner;
+pub mod bms;
 pub mod cleanup;
 pub mod cli;
 pub mod dest_arg;

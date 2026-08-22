@@ -315,6 +315,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (reusing C053's `method_select::WISE_CANDIDATES`), and invocation
   builders for choices 1/2/4 plus the completion-BAT path; choice 3's
   MSI rip stays GUI-blocked (`RipExeInfo`), row stays `REQUIRED`.
+- C055/C180: game-archive BMS-script lookup (`bms` module,
+  `extract::qbms::gaup_probe_invocation`) — resolved `_SQLite_GetTable`'s
+  once-blocking array-shape question against AutoIt's own official
+  documentation; ported `CheckGame`'s row-count gate/candidate sort,
+  `GUI_MethodSelectList`'s override/silent/prompt dispatch, and
+  `BmsExtract`'s script-test classification. C180's "hang risk" resolves
+  to the already-`DONE` C026/C150 findings, not a new mechanism. Both
+  capabilities marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

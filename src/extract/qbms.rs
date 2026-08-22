@@ -114,6 +114,55 @@ pub fn is_ie_probe_failure(output: &str) -> bool {
         || lower.contains("crash occurred")
 }
 
+/// Builds `CheckGame`'s GAUP listing-probe invocation
+/// (UniExtract.au3:2007), capabilities C055/C180: `<quickbms> -l
+/// "<bindir><gaup_plugin>" "<file>"`, run in `filedir` with the window
+/// hidden. This is the exact call site C180 investigated for its "hang
+/// risk": `FetchStdout`'s own polling loop (UniExtract.au3:5075-5098)
+/// already bounds it by `$Timeout`, but an unset/first-run `$Timeout`
+/// preference resolves to ~16.7 hours of busy-polling
+/// (`prefs::tests::missing_preference_key_reproduces_the_sixty_million_millisecond_quirk`,
+/// C026) — this crate's own runner carries no timeout modeling for any
+/// call site regardless (C150, PR #380), so there's nothing further to
+/// port for the "hang" itself.
+pub fn gaup_probe_invocation(
+    quickbms: &str,
+    bindir: &str,
+    gaup_plugin: &str,
+    file: &str,
+    filedir: &str,
+) -> Invocation {
+    Invocation {
+        program: quickbms.to_string(),
+        args: vec![
+            "-l".to_string(),
+            format!("{bindir}{gaup_plugin}"),
+            file.to_string(),
+        ],
+        working_dir: filedir.to_string(),
+        window: WindowMode::Hidden,
+    }
+}
+
+/// Ports `CheckGame`'s GAUP-probe failure classification
+/// (UniExtract.au3:2009-2010): bare `StringInStr`/explicit `0`
+/// (case-insensitive). **`output` must already be the tail this call
+/// site's `FetchStdout(..., -1)` extracts** — everything from the
+/// *second*-to-last `@CRLF` onward, the same `_StringGetLine` idiom
+/// `password_search::nth_line_from_end`'s own doc comment documents in
+/// full — not the probe's entire captured output, unlike
+/// `is_ie_probe_failure`/`is_iso_probe_failure`/
+/// `is_observer_probe_failure` (none of which request a specific line).
+pub fn is_gaup_probe_failure(output: &str) -> bool {
+    let lower = output.to_lowercase();
+    output.is_empty()
+        || lower.contains("target directory:")
+        || lower.contains("0 files found")
+        || lower.contains("error")
+        || lower.contains("exception occured")
+        || lower.contains("not supported")
+}
+
 /// Builds the ISO/CD-DVD-image listing-probe invocation
 /// (UniExtract.au3:2121): `<quickbms> -l "<bindir><iso_plugin>"
 /// "<file>"`, run in `filedir` with the window hidden.
@@ -232,6 +281,47 @@ pub const INSTALLEXPLORER_CLEANUP_TARGETS: &[&str] = &[
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn gaup_probe_invocation_matches_source() {
+        let inv = gaup_probe_invocation(
+            r"C:\bin\quickbms.exe",
+            r"C:\bin\",
+            "gaup.wcx",
+            r"C:\downloads\game.dat",
+            r"C:\downloads",
+        );
+        assert_eq!(
+            inv.args,
+            vec![
+                "-l".to_string(),
+                r"C:\bin\gaup.wcx".to_string(),
+                r"C:\downloads\game.dat".to_string(),
+            ]
+        );
+        assert_eq!(inv.working_dir, r"C:\downloads");
+        assert_eq!(inv.window, WindowMode::Hidden);
+    }
+
+    #[test]
+    fn gaup_probe_failure_detects_every_marker_case_insensitively() {
+        assert!(is_gaup_probe_failure(""));
+        assert!(is_gaup_probe_failure("Target directory: C:\\out"));
+        assert!(is_gaup_probe_failure("0 FILES FOUND"));
+        assert!(is_gaup_probe_failure("ERROR: bad script"));
+        assert!(is_gaup_probe_failure("Exception Occured"));
+        assert!(is_gaup_probe_failure("Not Supported"));
+        assert!(!is_gaup_probe_failure("Offset  Filename\n0  file.dat"));
+    }
+
+    /// Parity test for capabilities C055/C180: unlike the IE/ISO/observer
+    /// probes, GAUP's marker set has no "crash occurred"/"by this WCX
+    /// plugin" phrasing — it's a distinct, shorter list, not a copy of
+    /// any of the other three.
+    #[test]
+    fn gaup_probe_failure_does_not_check_ie_specific_markers() {
+        assert!(!is_gaup_probe_failure("crash occurred while scanning"));
+    }
 
     #[test]
     fn ie_probe_invocation_matches_source() {
