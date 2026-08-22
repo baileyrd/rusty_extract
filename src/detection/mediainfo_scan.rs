@@ -29,12 +29,13 @@
 //! EndFunc
 //! ```
 //!
-//! **Not modeled: the DLL scan itself.** `MediaInfo_New`/`_Open`/
-//! `_Inform`/`_Delete` are `DllCall`s into `MediaInfo.dll` — the same
-//! missing-FFI-infrastructure blocker already found for C038's TrIDLib.
-//! [`format_media_info`] takes `MediaInfo_Inform`'s raw output text as a
-//! caller-supplied string instead; manifest row C045 stays `REQUIRED`
-//! for that reason, the same partial-coverage shape as C042/C044.
+//! **The DLL scan itself is now ported too**, PR [#416](https://github.com/baileyrd/rusty_extract/pull/416):
+//! `dlllib::scan_media_info` (built on `dlllib`'s new DLL-calling
+//! infrastructure, the same trait/fake/real-Win32 split
+//! `automation::GuiAutomation` already established for window
+//! automation) calls `MediaInfo_New`/`_Open`/`_Inform`/`_Delete` and
+//! hands its raw output straight to [`format_media_info`] — not
+//! duplicated here.
 //!
 //! **A genuinely easy-to-miss AutoIt semantic**: `StringSplit($aReturn[0],
 //! @CRLF, 2)` passes only `$STR_NOCOUNT` (2), *not* `$STR_ENTIRESPLIT`
@@ -238,5 +239,20 @@ mod tests {
         .join("\r\n");
         let result = format_media_info(&sample).unwrap();
         assert!(result.contains(&format!("{:<24}some value\r\n", "Odd Key Name")));
+    }
+
+    /// Parity test for capability C045: `dlllib::scan_media_info`'s raw
+    /// output feeds directly into `format_media_info`, end to end.
+    #[test]
+    fn composes_with_dlllib_scan_media_info() {
+        use crate::dlllib::fake::FakeMediaInfoLibrary;
+        use crate::dlllib::scan_media_info;
+
+        let mut lib = FakeMediaInfoLibrary::new();
+        lib.script_inform(&media_info_sample());
+
+        let raw = scan_media_info(&mut lib, r"C:\downloads\movie.mkv").unwrap();
+
+        assert!(format_media_info(&raw).is_some());
     }
 }

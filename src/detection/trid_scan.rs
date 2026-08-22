@@ -43,13 +43,14 @@
 //! EndFunc
 //! ```
 //!
-//! **Not modeled: `TridLib_Analyse`/`TridLib_GetType`** (extract mode)
-//! and **`FetchStdout` itself** (scan-only mode). The former are
-//! `DllCall`s into `TrIDLib.dll` — the same missing-FFI-infrastructure
-//! blocker as C045's MediaInfo calls; the latter is real process
-//! execution, the same external-process boundary documented throughout
-//! this port. Manifest row C038 stays `REQUIRED`; this module covers
-//! the portable decision logic and invocation-building around both.
+//! **`TridLib_Analyse`/`TridLib_GetType`'s `DllCall`s into `TrIDLib.dll`
+//! are now ported too**, PR [#416](https://github.com/baileyrd/rusty_extract/pull/416):
+//! `dlllib::tridlib_load`/`tridlib_analyse`/`TridLibrary::result_type`
+//! (built on `dlllib`'s new DLL-calling infrastructure, the same
+//! trait/fake/real-Win32 split `automation::GuiAutomation` already
+//! established for window automation). `FetchStdout` itself (scan-only
+//! mode's `trid.exe` process spawn) stays out of scope, the same
+//! external-process boundary documented throughout this port.
 //!
 //! **A genuinely surprising reversal from C042's split**: there, extract
 //! mode was the portable command-line path and scan-only mode was
