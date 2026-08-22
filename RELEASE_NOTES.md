@@ -23,6 +23,52 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C038/C045 — DLL-calling infrastructure + TrIDLib/MediaInfo calls
+**2026-08-22**
+
+- **Added:** `dlllib` — new DLL-calling infrastructure, mirroring the
+  split already established for `extract::runner::ExtractorRunner`
+  (plain process spawning) and `automation::GuiAutomation` (Win32 window
+  automation):
+  - `dlllib::TridLibrary`/`dlllib::MediaInfoLibrary` — two small,
+    function-specific traits (`load_defs_pack`/`submit_file`/`analyze`/
+    `result_count`/`result_type`/`result_extension`; `open`/`inform`/
+    `close`) rather than one generic `DllCall` shim — replicating
+    AutoIt's fully dynamic `DllCall` would need something like the
+    `libffi` crate; only 7 specific exports across two DLLs are ever
+    needed, so function-specific methods are simpler and safer.
+  - `dlllib::fake::{FakeTridLibrary, FakeMediaInfoLibrary}` — test
+    doubles recording every call with scriptable results.
+  - `dlllib::win32::{Win32TridLibrary, Win32MediaInfoLibrary}` — real,
+    Windows-only (`#[cfg(windows)]`) implementations using
+    `LoadLibraryW`/`GetProcAddress` plus a hand-written function-pointer
+    type per export.
+  - `dlllib::tridlib_load`/`tridlib_analyse`/`tridlib_analyse_simple`
+    and `dlllib::scan_media_info` — the ported orchestration functions
+    themselves.
+- **Found and preserved a genuine quirk in `TridLib_Load`**: `$hTridDll`
+  is set by `DllOpen` *before* the definitions-pack load result is
+  checked, so a failed load still leaves the cache looking "already
+  loaded" to the next call's reentry guard, silently skipping the retry
+  it exists to provide.
+- **Wired into both capabilities**: `detection::trid_scan` (C038) and
+  `detection::mediainfo_scan` (C045, with a new end-to-end composition
+  test proving `scan_media_info`'s output feeds directly into
+  `format_media_info`). Both capabilities marked `DONE`.
+- **Honesty note, not glossed over**: fake-backed tests prove the
+  orchestration logic against the source line-by-line, the same
+  confidence every other parity test in this crate has. They do **not**
+  prove the real Win32 backend calls the real DLLs correctly — that
+  needs the actual, licensed `TrIDLib.dll` (plus its definitions pack)
+  and `MediaInfo.dll`, neither of which exists in this environment or
+  on CI (headless `windows-latest`). Same caveat as C069's own
+  `automation` module, applied to a different kind of Win32 call.
+- Tests: `dlllib::tests` (9), `dlllib::fake::tests` (3),
+  `dlllib::win32::tests` (2, real only on `windows-latest` CI),
+  `detection::mediainfo_scan::tests::composes_with_dlllib_scan_media_info`.
+
+---
+
 ## C106 — Wise MSI rip (completes the capability)
 **2026-08-22**
 

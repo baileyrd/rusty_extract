@@ -353,6 +353,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
 - C106: completed choice 3's MSI rip (`extract::wise::wise_msi_rip`), a
   thin wrapper over C069's `automation::rip_exeinfo`. Capability marked
   `DONE`.
+- C038/C045: new `dlllib` module — `TridLibrary`/`MediaInfoLibrary`
+  traits, `FakeTridLibrary`/`FakeMediaInfoLibrary` test doubles, real
+  `Win32TridLibrary`/`Win32MediaInfoLibrary` backends
+  (`LoadLibraryW`/`GetProcAddress`), and the ported orchestration
+  functions (`tridlib_load`/`tridlib_analyse`/`tridlib_analyse_simple`,
+  `scan_media_info`) — the DLL-calling equivalent of C069's `automation`
+  module. Found and preserved a reentry-guard quirk in `TridLib_Load`.
+  Both capabilities marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
