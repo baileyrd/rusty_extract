@@ -389,6 +389,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   AutoIt's own docs (right-click-down only, matching `tray-icon`'s own
   default). `Tray_ShowHide`/`Tray_Exit`'s real actions aren't wired to a
   running helper process yet — stays `REQUIRED`.
+- C185 (partial): `gui::tray_status_box` decision logic (fullscreen/
+  no-status-box gates, character-counted truncation, taskbar-relative
+  position resolution incl. the `$pos[0] = $pos[1]` top-dock quirk)
+  plus a real popup via `egui`'s multi-viewport support, wired to real
+  desktop/active-window/taskbar Win32 queries. Fade-in is animated,
+  fade-out is not. Preference persistence not yet wired — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

@@ -15,6 +15,7 @@
 pub mod layout;
 pub mod theme;
 pub mod tray;
+pub mod tray_status_box;
 pub mod window_state;
 
 #[cfg(windows)]

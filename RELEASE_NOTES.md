@@ -23,6 +23,41 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C185 (partial) — Tray status/progress popup
+**2026-08-23**
+
+- **Added:** `gui::tray_status_box` (pure decisions:
+  `should_show_status_box`, `should_suppress_for_fullscreen`,
+  `truncate_with_ellipsis`, `resolve_position`) and a real popup
+  rendered via `egui`'s multi-viewport support (undecorated,
+  transparent, always-on-top, no taskbar entry), wired to real
+  `GetSystemMetrics`/`GetForegroundWindow`+`GetWindowRect`/
+  `FindWindowW("Shell_TrayWnd")`+`GetWindowRect` calls for the
+  desktop/active-window/taskbar geometry the pure functions need.
+  Distinct from C166, which only ported the *text-update* call into an
+  already-existing popup — this row is the popup's own creation,
+  positioning, and lifecycle.
+- **Real quirk preserved**: the source detects a top-docked taskbar via
+  `$pos[0] = $pos[1]` (X equals Y) — which only actually holds at the
+  origin `(0,0)` — ported as the same equality test rather than
+  "clarified" into an explicit Y-is-zero check.
+- Preserves the popup's hardcoded-dark-always background (`$bDark =
+  True`, never light-themed unlike C183's main window) and achieves the
+  same corner-rounding result via `egui`'s native styling rather than
+  replicating `_GuiRoundCorners`'s specific Win32-region mechanism —
+  same class of idiomatic adaptation as C183's DPI-scaling note.
+- **Fade-in is animated** (frame-timed alpha over the same ~230ms the
+  source's 23-step `Sleep`-loop takes); **fade-out is not** (the popup
+  is simply removed) — a documented simplification.
+- **Scope — still `REQUIRED`, not `DONE`.** Preference persistence for
+  `nostatusbox`/`hidestatusboxiffullscreen`/`statusposx`/`statusposy`
+  isn't wired to the real prefs file yet (C184 already wires the
+  tray-menu toggle to in-memory state); fade-out isn't animated.
+- Same honesty caveat as C069/C183/C184.
+- Tests: `gui::tray_status_box::tests` (9).
+
+---
+
 ## C184 (partial) — System tray icon and menu
 **2026-08-23**
 
