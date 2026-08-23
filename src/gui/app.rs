@@ -18,6 +18,7 @@
 
 use crate::automation::win32::Win32GuiAutomation;
 use crate::gui::theme;
+use crate::gui::tray_icon_shell::{TrayCommand, TrayHandle};
 use eframe::egui;
 
 /// Ports the Extract-vs-Scan-only radio pair (UniExtract.au3:5850
@@ -39,7 +40,9 @@ pub struct MainWindow {
     pub extraction_mode: ExtractionMode,
     pub file_path: String,
     pub output_dir: String,
+    pub no_status_box: bool,
     use_white_background: bool,
+    tray: TrayHandle,
 }
 
 impl MainWindow {
@@ -47,21 +50,26 @@ impl MainWindow {
     /// theme/high-contrast detection `CreateGUI`'s own `_GuiSetColor`
     /// call performs (UniExtract.au3:5823-ish, via `_GuiSetColor`) so the
     /// very first frame already reflects the OS theme rather than
-    /// flashing the wrong background before a later detection pass.
+    /// flashing the wrong background before a later detection pass, and
+    /// building the tray icon (C184) the same way `Tray_Create` does at
+    /// startup.
     pub fn new() -> Self {
         let mut automation = Win32GuiAutomation::default();
         let light_theme = theme::apps_use_light_theme(&mut automation);
         let high_contrast = theme::is_high_contrast(query_high_contrast_flags());
         let is_windows10_not_11 = is_windows10_not_11();
+        let no_status_box = false;
         Self {
             extraction_mode: ExtractionMode::Extract,
             file_path: String::new(),
             output_dir: String::new(),
+            no_status_box,
             use_white_background: theme::should_use_white_background(
                 is_windows10_not_11,
                 high_contrast,
                 light_theme,
             ),
+            tray: TrayHandle::new(no_status_box, false),
         }
     }
 }
@@ -74,6 +82,14 @@ impl Default for MainWindow {
 
 impl eframe::App for MainWindow {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        match self.tray.poll_command() {
+            Some(TrayCommand::ToggleHideStatus(checked)) => self.no_status_box = checked,
+            Some(TrayCommand::Exit) => {
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+            None => {}
+        }
+
         if self.use_white_background {
             let mut visuals = egui::Visuals::light();
             visuals.panel_fill = egui::Color32::WHITE;
@@ -140,6 +156,12 @@ impl eframe::App for MainWindow {
                 let _ = ui.button("Batch");
             });
         });
+
+        // Keeps polling the tray-menu event channel promptly even while
+        // the window is idle/unfocused -- egui otherwise only redraws
+        // on input, and a tray click is exactly the kind of event that
+        // arrives with none.
+        ctx.request_repaint_after(std::time::Duration::from_millis(100));
     }
 }
 

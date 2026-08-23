@@ -23,6 +23,36 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C184 (partial) — System tray icon and menu
+**2026-08-23**
+
+- **Added:** `gui::tray` (pure decisions: `hide_status_item_checked`,
+  `should_hide_icon`, `decide_console_visibility_action`,
+  `should_log_tray_exit`) and `gui::tray_icon_shell::TrayHandle` — a
+  real tray icon and two-item menu ("Hide status" checkbox, "Exit")
+  built on a new dependency, the `tray-icon` crate (`eframe`/`egui`
+  itself has no tray-icon primitive; hand-rolling `Shell_NotifyIconW`
+  would have to cooperate with `winit`'s already-owned event loop
+  rather than run its own), polled once per frame from
+  `gui::app::MainWindow::update`.
+- **Verified against AutoIt's own docs, not assumed**: `TraySetClick(8)`
+  is `$TRAY_CLICK_SECONDARYDOWN` — the tray menu opens on right-click-down
+  only, with nothing bound to the left button — which is `tray-icon`'s
+  own default Windows-backend behavior already, so no explicit
+  click-mode configuration was needed.
+- **Scope — still `REQUIRED`, not `DONE`.** `Tray_ShowHide`'s
+  console-visibility toggle isn't wired to a real spawned helper process
+  yet (the GUI doesn't launch extractions at all so far); `Tray_Exit`'s
+  real sequence (`KillHelper` + `GUI_SavePosition` + the conditional
+  status log) isn't wired to the Exit menu item, which currently only
+  closes the window.
+- Same honesty caveat as C069/C183: fake-backed/pure-function tests
+  prove the decision logic; nothing proves the real tray icon renders
+  or responds correctly in this environment.
+- Tests: `gui::tray::tests` (5).
+
+---
+
 ## C183 (partial) — Main window shell: layout/theme decision logic + a real egui window
 **2026-08-23**
 

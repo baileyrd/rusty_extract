@@ -14,7 +14,10 @@
 
 pub mod layout;
 pub mod theme;
+pub mod tray;
 pub mod window_state;
 
 #[cfg(windows)]
 pub mod app;
+#[cfg(windows)]
+pub mod tray_icon_shell;
