@@ -383,6 +383,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   shell, launched from `main()` on zero CLI args. Position/size
   persistence, DPI scaling, and literal widget fidelity remain — stays
   `REQUIRED`.
+- C184 (partial): `gui::tray` decision logic plus a real tray icon and
+  menu (`gui::tray_icon_shell::TrayHandle`, new `tray-icon` dependency)
+  polled from `MainWindow::update`. Verified `TraySetClick(8)` against
+  AutoIt's own docs (right-click-down only, matching `tray-icon`'s own
+  default). `Tray_ShowHide`/`Tray_Exit`'s real actions aren't wired to a
+  running helper process yet — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
