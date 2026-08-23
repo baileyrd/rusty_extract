@@ -23,6 +23,54 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C166 — Teelog dual-output mechanism (completes the capability)
+**2026-08-23**
+
+- **Added:** `teelog::run_with_tee`/`teelog::run_without_tee`, the full
+  spawn-to-exit orchestration for both branches of `_Run()`
+  (UniExtract.au3:4880-5008), built on C069's `automation::GuiAutomation`
+  infrastructure. This capability's own streaming-process needs — the
+  tee branch spawns a process, waits for it to start, waits for its live
+  log file to appear, then polls that file incrementally until exit —
+  required extending the trait with `process_exists`/`win_get_by_pid`/
+  `read_file_incremental`/`read_file_from_start`/`dir_size_bytes`/
+  `win_set_state_by_title`/`win_activate`, plus real Win32 implementations
+  (`OpenProcess`, `EnumWindows`+`GetWindowThreadProcessId`,
+  `ShowWindow`/`SetForegroundWindow`) in `automation::win32`.
+- `teelog::decide_tee_iteration`/`teelog::TeeLoopState` port the tee
+  branch's per-iteration decision exactly, including the permanent `$size
+  = -1` lockout once `_PatternSearch` ever matches (nothing in the source
+  ever resets it) and the same variable used with two different
+  comparisons in one function (`$bPatternSearch And ...`, a truthy check,
+  vs. `$bPatternSearch > -1`, a tri-state threshold check already
+  documented on `decide_size_poll_action`).
+- **Found and preserved a genuine bug, not fixed**: the tee branch's
+  "needs user input" reveal calls `WinSetState($run, "", @SW_SHOW)` —
+  passing `$run`, the spawned process's **PID**, not `$runtitle` (the
+  resolved window handle `WinActivate` uses two lines later). A PID never
+  matches a real window title, so this call is a silent no-op in the
+  source itself; `run_with_tee` reproduces it exactly via
+  `win_set_state_by_title` on the stringified PID.
+- **Also preserved**: the three `Do-Until` wait loops' body-first
+  semantics (a plain `while cond { ... }` would skip the body entirely
+  when the condition is already true on the first check — AutoIt's
+  `Do-Until` never does) and `ContinueLoop`'s skip of the trailing
+  `Sleep(100)` on a needs-input iteration.
+- Capability marked `DONE`. Carries the same honesty caveat as C069:
+  fake-backed tests prove the orchestration logic line-by-line against
+  the source, not that the real Win32 backend drives a real spawned
+  process's window correctly — no such live interactive session exists in
+  this environment or on CI (headless `windows-latest`).
+- **Not modeled** (documented, accepted limitations): `_PatternSearch`'s
+  own 4-pattern regex-based progress-text parsing (taken as a
+  caller-supplied closure — the same call already made for
+  `extract::ffmpeg`'s own regex-backtracking edge case) and
+  `_DirGetSize`'s big-drive-root guard (one shared byte count covers both
+  of the source's slightly different call sites).
+- Tests: `teelog::tests` (21, up from 8).
+
+---
+
 ## C038/C045 — DLL-calling infrastructure + TrIDLib/MediaInfo calls
 **2026-08-22**
 

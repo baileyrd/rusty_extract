@@ -37,6 +37,13 @@ pub enum Call {
     ElapsedMs(TimerHandle),
     ProcessClose(String),
     FileExists(String),
+    ProcessExists(u32),
+    WinGetByPid(u32),
+    WinSetStateByTitle(String, WindowMode),
+    WinActivate(WindowHandle),
+    ReadFileIncremental(String),
+    ReadFileFromStart(String),
+    DirSizeBytes(String),
 }
 
 #[derive(Default)]
@@ -50,7 +57,14 @@ pub struct FakeGuiAutomation {
     win_exists_results: HashMap<String, bool>,
     file_exists_call_counts: HashMap<String, u32>,
     file_exists_appears_after: HashMap<String, u32>,
+    process_exists_countdowns: HashMap<u32, u32>,
+    win_get_by_pid_results: HashMap<u32, Option<WindowHandle>>,
+    incremental_reads: HashMap<String, std::collections::VecDeque<String>>,
+    file_from_start: HashMap<String, String>,
+    dir_sizes: HashMap<String, std::collections::VecDeque<u64>>,
+    last_dir_size: HashMap<String, u64>,
     clock_ms: u64,
+    next_pid: u32,
 }
 
 impl FakeGuiAutomation {
@@ -119,6 +133,44 @@ impl FakeGuiAutomation {
         self.file_exists_appears_after
             .insert(path.to_string(), polls_before);
     }
+
+    /// Scripts `process_exists(pid)` to return `true` for the next
+    /// `iterations` calls, then `false` from then on — lets a
+    /// `while process_exists(pid) { ... }` polling loop run a bounded,
+    /// deterministic number of times in a test.
+    pub fn script_process_exists_for_iterations(&mut self, pid: u32, iterations: u32) {
+        self.process_exists_countdowns.insert(pid, iterations);
+    }
+
+    /// Scripts `win_get_by_pid`'s result for `pid`. Unscripted PIDs
+    /// default to `None`.
+    pub fn script_win_get_by_pid(&mut self, pid: u32, result: Option<WindowHandle>) {
+        self.win_get_by_pid_results.insert(pid, result);
+    }
+
+    /// Scripts `read_file_incremental`'s successive results for `path`:
+    /// each call pops the next chunk off the front; once exhausted,
+    /// every further call returns `""` (matching `FileRead` at EOF).
+    pub fn script_incremental_reads(&mut self, path: &str, chunks: Vec<&str>) {
+        self.incremental_reads.insert(
+            path.to_string(),
+            chunks.into_iter().map(String::from).collect(),
+        );
+    }
+
+    /// Scripts `read_file_from_start`'s result for `path`.
+    pub fn script_file_from_start(&mut self, path: &str, text: &str) {
+        self.file_from_start
+            .insert(path.to_string(), text.to_string());
+    }
+
+    /// Scripts `dir_size_bytes`'s successive results for `path`: each
+    /// call pops the next value off the front; once exhausted, the last
+    /// scripted value repeats (matching a directory that stopped
+    /// growing). An unscripted path always returns `0`.
+    pub fn script_dir_sizes(&mut self, path: &str, sizes: Vec<u64>) {
+        self.dir_sizes.insert(path.to_string(), sizes.into());
+    }
 }
 
 impl GuiAutomation for FakeGuiAutomation {
@@ -145,8 +197,10 @@ impl GuiAutomation for FakeGuiAutomation {
         self.registry.retain(|(k, _), _| k != key);
     }
 
-    fn run(&mut self, invocation: &Invocation) {
+    fn run(&mut self, invocation: &Invocation) -> u32 {
         self.calls.push(Call::Run(invocation.clone()));
+        self.next_pid += 1;
+        self.next_pid
     }
 
     fn win_wait(&mut self, title_or_spec: &str, timeout_ms: u64) -> Option<WindowHandle> {
@@ -257,6 +311,61 @@ impl GuiAutomation for FakeGuiAutomation {
             Some(threshold) => *count >= *threshold,
             None => false,
         }
+    }
+
+    fn process_exists(&mut self, pid: u32) -> bool {
+        self.calls.push(Call::ProcessExists(pid));
+        match self.process_exists_countdowns.get_mut(&pid) {
+            Some(remaining) if *remaining > 0 => {
+                *remaining -= 1;
+                true
+            }
+            _ => false,
+        }
+    }
+
+    fn win_get_by_pid(&mut self, pid: u32) -> Option<WindowHandle> {
+        self.calls.push(Call::WinGetByPid(pid));
+        self.win_get_by_pid_results
+            .get(&pid)
+            .copied()
+            .unwrap_or(None)
+    }
+
+    fn win_set_state_by_title(&mut self, title_or_spec: &str, mode: WindowMode) {
+        self.calls
+            .push(Call::WinSetStateByTitle(title_or_spec.to_string(), mode));
+    }
+
+    fn win_activate(&mut self, window: WindowHandle) {
+        self.calls.push(Call::WinActivate(window));
+    }
+
+    fn read_file_incremental(&mut self, path: &str) -> String {
+        self.calls.push(Call::ReadFileIncremental(path.to_string()));
+        self.incremental_reads
+            .get_mut(path)
+            .and_then(|chunks| chunks.pop_front())
+            .unwrap_or_default()
+    }
+
+    fn read_file_from_start(&mut self, path: &str) -> String {
+        self.calls.push(Call::ReadFileFromStart(path.to_string()));
+        self.file_from_start.get(path).cloned().unwrap_or_default()
+    }
+
+    fn dir_size_bytes(&mut self, path: &str) -> u64 {
+        self.calls.push(Call::DirSizeBytes(path.to_string()));
+        let next = self
+            .dir_sizes
+            .get_mut(path)
+            .and_then(|sizes| sizes.pop_front());
+        let size = match next {
+            Some(size) => size,
+            None => *self.last_dir_size.get(path).unwrap_or(&0),
+        };
+        self.last_dir_size.insert(path.to_string(), size);
+        size
     }
 }
 

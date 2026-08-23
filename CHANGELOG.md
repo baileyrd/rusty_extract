@@ -361,6 +361,16 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `scan_media_info`) — the DLL-calling equivalent of C069's `automation`
   module. Found and preserved a reentry-guard quirk in `TridLib_Load`.
   Both capabilities marked `DONE`.
+- C166: completed the teelog dual-output mechanism
+  (`teelog::run_with_tee`/`teelog::run_without_tee`), built on C069's
+  automation infrastructure, extended with the process-polling/
+  file-reading primitives (`process_exists`/`win_get_by_pid`/
+  `read_file_incremental`/`read_file_from_start`/`dir_size_bytes`/
+  `win_set_state_by_title`/`win_activate`) this capability's own
+  streaming-process needs introduced. Found and preserved a genuine bug:
+  the tee branch's needs-input reveal calls `WinSetState` with the
+  spawned process's PID instead of the resolved window handle, a silent
+  no-op in the source itself. Capability marked `DONE`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
