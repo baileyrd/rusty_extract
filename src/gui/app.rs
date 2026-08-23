@@ -19,7 +19,31 @@
 use crate::automation::win32::Win32GuiAutomation;
 use crate::gui::theme;
 use crate::gui::tray_icon_shell::{TrayCommand, TrayHandle};
+use crate::gui::tray_status_box::{self, ScreenRect};
 use eframe::egui;
+use std::time::Instant;
+
+/// The popup's fixed size (UniExtract.au3:4274, `$iWidth`/`$iHeight`).
+const STATUS_BOX_SIZE: (i32, i32) = (225, 100);
+/// How long the fade-in takes. The source fades in 23 discrete steps at
+/// ~1ms `Sleep` each (UniExtract.au3:4317-4320) -- effectively near-
+/// instant on modern hardware; this reproduces the same "fades in over a
+/// perceptible fraction of a second" visual effect via frame-timed alpha
+/// interpolation instead of a blocking step loop, since `eframe`'s
+/// viewport transparency is continuous rather than stepped. Fade-out
+/// (UniExtract.au3:4335-4338) is not animated in this pass -- the popup
+/// is simply removed -- a documented simplification, not an oversight.
+const FADE_IN_MS: f32 = 230.0;
+
+/// The tray status popup's own state (capability C185), separate from
+/// C166's `teelog`, which only ports the *text-update* call into an
+/// already-existing popup.
+struct StatusBoxState {
+    filename: String,
+    message: String,
+    extended: String,
+    shown_at: Instant,
+}
 
 /// Ports the Extract-vs-Scan-only radio pair (UniExtract.au3:5850
 /// region). The real behavior each mode drives is capability C190
@@ -41,8 +65,10 @@ pub struct MainWindow {
     pub file_path: String,
     pub output_dir: String,
     pub no_status_box: bool,
+    pub hide_status_box_if_fullscreen: bool,
     use_white_background: bool,
     tray: TrayHandle,
+    status_box: Option<StatusBoxState>,
 }
 
 impl MainWindow {
@@ -64,13 +90,99 @@ impl MainWindow {
             file_path: String::new(),
             output_dir: String::new(),
             no_status_box,
+            hide_status_box_if_fullscreen: false,
             use_white_background: theme::should_use_white_background(
                 is_windows10_not_11,
                 high_contrast,
                 light_theme,
             ),
             tray: TrayHandle::new(no_status_box, false),
+            status_box: None,
         }
+    }
+
+    /// Ports `_CreateTrayMessageBox` (UniExtract.au3:4261-4321). Always
+    /// clears any existing popup first (matching the source's own
+    /// unconditional `_DeleteTrayMessageBox()` call), then shows the new
+    /// one only if neither gate suppresses it.
+    pub fn show_status(&mut self, filename: &str, message: &str) {
+        self.status_box = None;
+
+        if !tray_status_box::should_show_status_box(self.no_status_box) {
+            return;
+        }
+        if tray_status_box::should_suppress_for_fullscreen(
+            self.hide_status_box_if_fullscreen,
+            active_window_size(),
+            desktop_size(),
+        ) {
+            return;
+        }
+
+        self.status_box = Some(StatusBoxState {
+            filename: tray_status_box::truncate_with_ellipsis(filename, 28),
+            message: tray_status_box::truncate_with_ellipsis(message, 56),
+            extended: String::new(),
+            shown_at: Instant::now(),
+        });
+    }
+
+    /// Ports `_SetTrayMessageBoxText` (UniExtract.au3:4324-4327),
+    /// already covered decision-logic-wise by C166's `teelog` -- this is
+    /// the real widget-side setter that logic drives, once wired.
+    pub fn set_status_extended(&mut self, text: &str) {
+        if let Some(state) = &mut self.status_box {
+            state.extended = text.to_string();
+        }
+    }
+
+    /// Ports `_DeleteTrayMessageBox` (UniExtract.au3:4331-4342), minus
+    /// the fade-out animation (see [`FADE_IN_MS`]'s doc comment).
+    pub fn clear_status(&mut self) {
+        self.status_box = None;
+    }
+
+    fn render_status_box(&mut self, ctx: &egui::Context) {
+        let Some(state) = &self.status_box else {
+            return;
+        };
+        let alpha = (state.shown_at.elapsed().as_millis() as f32 / FADE_IN_MS).min(1.0);
+        let (x, y) = tray_status_box::resolve_position(
+            None,
+            STATUS_BOX_SIZE,
+            taskbar_rect(),
+            desktop_size(),
+        );
+
+        let filename = state.filename.clone();
+        let message = state.message.clone();
+        let extended = state.extended.clone();
+
+        ctx.show_viewport_immediate(
+            egui::ViewportId::from_hash_of("tray_status_box"),
+            egui::ViewportBuilder::default()
+                .with_title("")
+                .with_decorations(false)
+                .with_transparent(true)
+                .with_always_on_top()
+                .with_taskbar(false)
+                .with_inner_size(egui::vec2(
+                    STATUS_BOX_SIZE.0 as f32,
+                    STATUS_BOX_SIZE.1 as f32,
+                ))
+                .with_position(egui::pos2(x as f32, y as f32)),
+            move |ctx, _class| {
+                let background =
+                    egui::Color32::from_rgba_unmultiplied(0x2D, 0x2D, 0x2D, (alpha * 255.0) as u8);
+                egui::CentralPanel::default()
+                    .frame(egui::Frame::new().fill(background).corner_radius(5))
+                    .show(ctx, |ui| {
+                        ui.colored_label(egui::Color32::WHITE, &filename);
+                        ui.colored_label(egui::Color32::WHITE, &message);
+                        ui.colored_label(egui::Color32::WHITE, &extended);
+                    });
+            },
+        );
     }
 }
 
@@ -82,6 +194,8 @@ impl Default for MainWindow {
 
 impl eframe::App for MainWindow {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.render_status_box(ctx);
+
         match self.tray.poll_command() {
             Some(TrayCommand::ToggleHideStatus(checked)) => self.no_status_box = checked,
             Some(TrayCommand::Exit) => {
@@ -204,4 +318,59 @@ fn is_windows10_not_11() -> bool {
     };
     let status = unsafe { RtlGetVersion(&mut info) };
     status.is_ok() && info.dwMajorVersion == 10 && info.dwBuildNumber < 22000
+}
+
+/// Real `GetSystemMetrics(SM_CXSCREEN/SM_CYSCREEN)` call backing
+/// [`tray_status_box::should_suppress_for_fullscreen`]'s and
+/// [`tray_status_box::resolve_position`]'s desktop-size inputs
+/// (`@DesktopWidth`/`@DesktopHeight`, UniExtract.au3:4269,4309,4311).
+fn desktop_size() -> (i32, i32) {
+    use windows::Win32::UI::WindowsAndMessaging::{GetSystemMetrics, SM_CXSCREEN, SM_CYSCREEN};
+    unsafe { (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)) }
+}
+
+/// Real `WinGetPos("[ACTIVE]")` equivalent backing
+/// [`tray_status_box::should_suppress_for_fullscreen`]'s fullscreen
+/// check (UniExtract.au3:4268). Returns `(0, 0)` on any API failure,
+/// which never equals a real desktop size and so never falsely
+/// suppresses the popup.
+fn active_window_size() -> (i32, i32) {
+    use windows::Win32::Foundation::RECT;
+    use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowRect};
+    unsafe {
+        let hwnd = GetForegroundWindow();
+        if hwnd.0.is_null() {
+            return (0, 0);
+        }
+        let mut rect = RECT::default();
+        if GetWindowRect(hwnd, &mut rect).is_err() {
+            return (0, 0);
+        }
+        (rect.right - rect.left, rect.bottom - rect.top)
+    }
+}
+
+/// Real `WinGetPos("[CLASS:Shell_TrayWnd]")` equivalent backing
+/// [`tray_status_box::resolve_position`]'s taskbar-relative placement
+/// (UniExtract.au3:4305-4306). Returns `None` on any API failure,
+/// matching the source's own `@error` fallback path.
+fn taskbar_rect() -> Option<ScreenRect> {
+    use windows::Win32::Foundation::RECT;
+    use windows::Win32::UI::WindowsAndMessaging::{FindWindowW, GetWindowRect};
+    unsafe {
+        let class_name: Vec<u16> = "Shell_TrayWnd\0".encode_utf16().collect();
+        let hwnd = FindWindowW(
+            windows::core::PCWSTR(class_name.as_ptr()),
+            windows::core::PCWSTR::null(),
+        )
+        .ok()?;
+        let mut rect = RECT::default();
+        GetWindowRect(hwnd, &mut rect).ok()?;
+        Some(ScreenRect {
+            x: rect.left,
+            y: rect.top,
+            width: rect.right - rect.left,
+            height: rect.bottom - rect.top,
+        })
+    }
 }
