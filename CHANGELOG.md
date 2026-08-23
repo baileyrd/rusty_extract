@@ -371,6 +371,18 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   the tee branch's needs-input reveal calls `WinSetState` with the
   spawned process's PID instead of the resolved window handle, a silent
   no-op in the source itself. Capability marked `DONE`.
+- Started migration phase 2 (GUI/tray/updater/telemetry/uninstall):
+  inventoried UniExtract2's own AutoIt GUI shell into 35 new capability
+  rows, C183-C217 (`capability-manifest.md`); D001-D005/D007-D012
+  retired as superseded, D006 (translation catalogs) stays deferred.
+- C183 (partial): new `gui` module (`egui`/`eframe`, new dependency) —
+  `gui::layout`/`gui::theme`/`gui::window_state` port `CreateGUI`'s
+  layout math, theme/high-contrast detection (reusing C069's
+  `automation::GuiAutomation` registry read), and position-save gating;
+  `gui::app::MainWindow` is a real, compiling `eframe::App` window
+  shell, launched from `main()` on zero CLI args. Position/size
+  persistence, DPI scaling, and literal widget fidelity remain — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

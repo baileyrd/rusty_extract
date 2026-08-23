@@ -150,8 +150,31 @@ fn run_extraction(
     Ok((outcome, final_outdir))
 }
 
+/// Ports `ParseCommandLine`'s own zero-args branch (UniExtract.au3:588-
+/// 591): no CLI arguments at all means interactive mode, i.e. launch the
+/// main window (capability C183) rather than treat it as a usage error.
+/// Windows-only, same as the GUI module itself; on any other host this
+/// falls through to the ordinary usage-error path below, since there is
+/// no window to launch.
+#[cfg(windows)]
+fn launch_gui() {
+    let options = eframe::NativeOptions::default();
+    let _ = eframe::run_native(
+        "UniExtract",
+        options,
+        Box::new(|_cc| Ok(Box::new(rusty_extract::gui::app::MainWindow::new()))),
+    );
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+
+    #[cfg(windows)]
+    if args.is_empty() {
+        launch_gui();
+        return;
+    }
+
     let [extractor_type, program, file, rest @ ..] = args.as_slice() else {
         eprintln!("{USAGE}");
         std::process::exit(exit_code(Status::Syntax));
