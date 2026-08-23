@@ -3,10 +3,14 @@
 ## Overview
 `rusty_extract` identifies the type of an input file (archive, installer, disk
 image, game/media container, ...) and drives the correct external helper
-binary to extract its contents, mirroring UniExtract2's core engine. It is not
-a GUI, not a context-menu shell extension, not an auto-updater, and (per the
-source project's own stated non-goal) not a compressor/archiver — extraction
-only.
+binary to extract its contents, mirroring UniExtract2's core engine. As of
+this migration's phase 2 (user decision, 2026-08-23), it also ports
+UniExtract2's own desktop GUI shell — main window, system tray, drag-and-drop,
+preferences, Explorer context-menu integration, auto-updater, and
+feedback/telemetry (`egui` for rendering; see `capability-manifest.md`
+C183-C217) — not a context-menu shell extension in its own right beyond that
+integration, and (per the source project's own stated non-goal) not a
+compressor/archiver — extraction only.
 
 ## Governing standards
 Two capabilities this port centers on already have accepted architectural
@@ -70,8 +74,27 @@ re-litigates.
 ## Non-goals
 - Not a compressor/archiver (matches the source project's own stated
   non-goal).
-- Not (yet, this phase) the AutoIt GUI, Windows context-menu integration,
-  auto-updater, or feedback/telemetry system — staged for a later migration
-  pass; see `capability-manifest.md`.
+- Not full non-English translation catalogs (`lang/*.ini` packs beyond a
+  default English string set) — this remains a deliberately separate,
+  deferred content-authoring task; see `capability-manifest.md` row D006.
 - Not cross-platform in this phase — Windows-only parity target, matching the
   source.
+
+## GUI phase (phase 2)
+Ported as a strict 1:1 behavioral port of UniExtract2's own AutoIt GUI, same
+boundary-contract discipline as the engine phase — see `capability-manifest.md`
+C183-C217 for the itemized capability rows (main window/tray shell, drag-drop,
+batch queue, preferences, first-start wizard, plugin manager, Explorer
+context-menu/file-association registration, auto-updater, feedback/telemetry,
+uninstall). `egui` (a new external dependency) renders the window/dialog
+surface; this dev environment cannot visually render or test a Windows GUI, so
+verification follows the same pattern already established for the
+`automation`/`dlllib` Win32 modules: `cargo check`/`cargo clippy --target
+x86_64-pc-windows-gnu` for compile-time correctness, with real interactive
+verification deferred to CI's `windows-latest` runner and, eventually, a real
+Windows machine — carry that honesty caveat on every GUI capability's own
+tests, not just this note. Explorer context-menu/file-association registration
+(C201-C204) needs `automation::win32`'s registry layer extended first
+(`HKEY_CLASSES_ROOT` root support, `REG_SZ`/`REG_EXPAND_SZ` value writes,
+recursive-delete semantics verified) — scoped as part of C202's own
+implementation, not a separate capability.
