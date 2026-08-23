@@ -23,6 +23,54 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C183 (partial) — Main window shell: layout/theme decision logic + a real egui window
+**2026-08-23**
+
+- **Added:** the `gui` module — this app's *own* GUI (not to be confused
+  with `automation::GuiAutomation`, which drives *other* programs'
+  windows). First capability of migration phase 2 (GUI/tray/updater/
+  telemetry/uninstall, capability-manifest.md C183-C217, PR
+  [#418](https://github.com/baileyrd/rusty_extract/pull/418) inventoried
+  it). New dependency: `eframe`/`egui`, `#[cfg(windows)]`-gated.
+  - `gui::layout`: `GetPos`'s control-chaining math, including the
+    source's own undocumented RTL 0.4 X-offset factor; the `-1`
+    ex-style sentinel resolution; and the "minimum window size is the
+    size measured *after* `GUICreate` returns, not the nominal size
+    passed in" contract, pinned by a test so a future edit can't
+    quietly start enforcing the nominal size instead.
+  - `gui::theme`: `_AppsUseLightTheme` (reusing C069's
+    `automation::GuiAutomation::reg_read_dword` — an ordinary registry
+    read, not a new capability), `_IsHighContrastMode`'s bit test, and
+    `_GuiSetColor`'s three-way white-background gate (Windows 10 only,
+    not high-contrast, light theme).
+  - `gui::window_state`: `GUI_SavePosition`'s exists-and-preference-on
+    save gate.
+  - `gui::app::MainWindow`: a real, compiling `eframe::App` — window
+    shell with File/Edit/Help menus, the Extract/Scan-only selector,
+    file/output-directory fields, and OK/Cancel/Batch buttons — running
+    real theme/high-contrast/Windows-version detection at startup
+    (`SystemParametersInfoW`, `RtlGetVersion`). `main()` now launches it
+    on zero CLI arguments, matching `ParseCommandLine`'s own
+    `$prompt = True` branch (UniExtract.au3:588-591) — a small gap this
+    session's original inventory pass missed, caught and closed while
+    wiring the window up.
+- **Scope — still `REQUIRED`, not `DONE`.** Real position/size
+  persistence (only the save *gate* is ported, not the preference
+  read/write itself), the DPI-scaling engine, corner-rounding, the GDI+
+  logo-image loader, the disabled-control tooltip workaround (likely
+  obsolete under egui's native support — a call for whoever finishes
+  this row), and literal widget-for-widget fidelity to `CreateGUI` all
+  remain. Individual menu items/buttons are inert placeholders wired up
+  as their own capabilities (C184-C217) land.
+- **Honesty note, same as C069/C038/C045/C166**: fake-backed/pure-function
+  tests prove the decision logic; nothing here proves the real window
+  actually renders or responds correctly, since no interactive Windows
+  desktop exists in this environment or on headless `windows-latest` CI.
+- Tests: `gui::layout::tests` (6), `gui::theme::tests` (4),
+  `gui::window_state::tests` (3).
+
+---
+
 ## C166 — Teelog dual-output mechanism (completes the capability)
 **2026-08-23**
 
