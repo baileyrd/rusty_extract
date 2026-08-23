@@ -77,7 +77,10 @@ pub trait GuiAutomation {
     /// (unlike `extract::runner::ExtractorRunner::run`, which blocks for
     /// the extractor's final output): GUI automation needs to interact
     /// with the launched process's window while it's still running.
-    fn run(&mut self, invocation: &Invocation);
+    /// Returns the spawned process's PID, matching `Run()`'s own return
+    /// value — needed by call sites (`teelog`, C166) that look up the
+    /// process's window by PID rather than by a known title.
+    fn run(&mut self, invocation: &Invocation) -> u32;
 
     /// `WinWait($title_or_spec, "", $timeout_ms)` — `None` on timeout
     /// (the source's `0` return).
@@ -130,6 +133,53 @@ pub trait GuiAutomation {
     /// this same seam rather than being hoisted out as a plain function
     /// argument the way every other filesystem check in this crate is.
     fn file_exists(&mut self, path: &str) -> bool;
+
+    /// `ProcessExists($pid)` — the streaming-process half of this trait
+    /// (C166, `teelog::run_with_tee`/`run_without_tee`): unlike
+    /// `extract::runner::ExtractorRunner`, which blocks until a process
+    /// exits and returns its final output all at once,
+    /// `teelog`'s own polling loops need to know the process is *still*
+    /// running on every iteration while incrementally reading its
+    /// output.
+    fn process_exists(&mut self, pid: u32) -> bool;
+    /// `_WinGetByPID($pid)` (UniExtract.au3:6075-6084): the window
+    /// belonging to a process, found by scanning every top-level window
+    /// for one whose owning process matches `pid`. `None` on the
+    /// source's own `SetError(1, 0, 0)`.
+    fn win_get_by_pid(&mut self, pid: u32) -> Option<WindowHandle>;
+    /// `WinSetState($title_or_spec, "", $mode)` — the title-based
+    /// sibling of [`win_set_state`](Self::win_set_state). `teelog`'s
+    /// tee-branch reveal call (UniExtract.au3:4936) is the one place
+    /// this port has found that needs it: `WinSetState($run, "",
+    /// @SW_SHOW)` passes the *PID* variable, not `$runtitle` (the
+    /// resolved handle `WinActivate($runtitle)` uses two lines later) —
+    /// a real bug in the source, preserved here rather than "fixed" by
+    /// silently using the handle instead. A PID string will never match
+    /// a real window title, so this call is effectively a no-op in the
+    /// source too.
+    fn win_set_state_by_title(&mut self, title_or_spec: &str, mode: WindowMode);
+    /// `WinActivate($window)` — every `WinActivate` call this port has
+    /// ported so far passes an already-resolved handle (`$runtitle`,
+    /// from `_WinGetByPID`), never a bare title.
+    fn win_activate(&mut self, window: WindowHandle);
+    /// `FileRead($handle)` inside `teelog`'s tee-branch polling loop
+    /// (UniExtract.au3:4926): the file's read position is never reset
+    /// between polls (only once, at the very end, via `FileSetPos(...,
+    /// $FILE_BEGIN)`), so each call returns only what's been appended
+    /// since the *previous* call on this same `path` — not the whole
+    /// file. Returns `""` once there's nothing new, the same as the
+    /// source's own `FileRead` at EOF.
+    fn read_file_incremental(&mut self, path: &str) -> String;
+    /// `FileSetPos($handle, 0, $FILE_BEGIN)` + `FileRead($handle)`
+    /// (UniExtract.au3:4959-4960): the whole file's content from the
+    /// start, resetting any position [`read_file_incremental`](Self::
+    /// read_file_incremental) had advanced for this `path`.
+    fn read_file_from_start(&mut self, path: &str) -> String;
+    /// `_DirGetSize($path)` — the directory's total size in bytes. The
+    /// `/ 1024 / 1024` MB conversion and the `- $initdirsize` baseline
+    /// subtraction are ordinary arithmetic, done in plain Rust by the
+    /// caller, not part of this primitive.
+    fn dir_size_bytes(&mut self, path: &str) -> u64;
 }
 
 /// The `$aReturn` array `OpenExeInfo` builds (UniExtract.au3:1823-1834):

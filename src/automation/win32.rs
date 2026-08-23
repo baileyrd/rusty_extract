@@ -21,11 +21,13 @@ use windows::Win32::System::Registry::{
     HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, REG_DWORD, REG_OPTION_NON_VOLATILE,
     REG_VALUE_TYPE,
 };
+use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_DOWN, VK_RETURN, VK_RIGHT};
 use windows::Win32::UI::WindowsAndMessaging::{
-    EnumChildWindows, FindWindowW, GetClassNameW, GetWindowTextW, PostMessageW, SendMessageW,
-    SetCursorPos, ShowWindow, BM_CLICK, SHOW_WINDOW_CMD, SW_HIDE, SW_SHOWMINIMIZED, SW_SHOWNORMAL,
-    WM_CHAR, WM_KEYDOWN, WM_KEYUP,
+    EnumChildWindows, EnumWindows, FindWindowW, GetClassNameW, GetWindowTextW,
+    GetWindowThreadProcessId, PostMessageW, SendMessageW, SetCursorPos, SetForegroundWindow,
+    ShowWindow, BM_CLICK, SHOW_WINDOW_CMD, SW_HIDE, SW_SHOWMINIMIZED, SW_SHOWNORMAL, WM_CHAR,
+    WM_KEYDOWN, WM_KEYUP,
 };
 
 use super::control_spec::{parse_control_spec, ControlSpec};
@@ -41,6 +43,7 @@ use crate::extract::{Invocation, WindowMode};
 pub struct Win32GuiAutomation {
     timers: HashMap<u64, Instant>,
     next_timer_id: u64,
+    file_positions: HashMap<String, u64>,
 }
 
 fn to_wide(s: &str) -> Vec<u16> {
@@ -90,6 +93,27 @@ struct EnumState {
     class_name: String,
     remaining_instances: u32,
     found: Option<HWND>,
+}
+
+struct FindByPidState {
+    pid: u32,
+    found: Option<HWND>,
+}
+
+unsafe extern "system" fn enum_window_by_pid_proc(
+    hwnd: HWND,
+    lparam: LPARAM,
+) -> windows::core::BOOL {
+    let state = &mut *(lparam.0 as *mut FindByPidState);
+    let mut owner_pid: u32 = 0;
+    unsafe {
+        GetWindowThreadProcessId(hwnd, Some(&mut owner_pid));
+    }
+    if owner_pid == state.pid {
+        state.found = Some(hwnd);
+        return windows::core::BOOL(0); // stop enumerating
+    }
+    windows::core::BOOL(1) // continue
 }
 
 unsafe extern "system" fn enum_child_proc(hwnd: HWND, lparam: LPARAM) -> windows::core::BOOL {
@@ -217,18 +241,22 @@ impl GuiAutomation for Win32GuiAutomation {
         }
     }
 
-    fn run(&mut self, invocation: &Invocation) {
+    fn run(&mut self, invocation: &Invocation) -> u32 {
         // `_MakeCommand`'s own bindir-prefixing isn't modeled (same scope
         // note as every `Invocation`-consuming module in this crate) --
         // `invocation.program` is spawned directly via `std::process`
         // rather than raw `CreateProcessW`, matching
         // `extract::runner::CommandExtractorRunner`'s own choice for the
         // same reason: no behavioral difference for this port's purposes,
-        // far less unsafe surface.
-        let _ = std::process::Command::new(&invocation.program)
+        // far less unsafe surface. The spawned `Child` is intentionally
+        // dropped without waiting -- matching `Run()`'s own fire-and-
+        // forget semantics, the process keeps running after this returns.
+        std::process::Command::new(&invocation.program)
             .args(&invocation.args)
             .current_dir(&invocation.working_dir)
-            .spawn();
+            .spawn()
+            .map(|child| child.id())
+            .unwrap_or(0)
     }
 
     fn win_wait(&mut self, title_or_spec: &str, timeout_ms: u64) -> Option<WindowHandle> {
@@ -399,6 +427,86 @@ impl GuiAutomation for Win32GuiAutomation {
 
     fn file_exists(&mut self, path: &str) -> bool {
         std::path::Path::new(path).exists()
+    }
+
+    fn process_exists(&mut self, pid: u32) -> bool {
+        unsafe {
+            match OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) {
+                Ok(handle) => {
+                    let _ = windows::Win32::Foundation::CloseHandle(handle);
+                    true
+                }
+                Err(_) => false,
+            }
+        }
+    }
+
+    fn win_get_by_pid(&mut self, pid: u32) -> Option<WindowHandle> {
+        let mut state = FindByPidState { pid, found: None };
+        unsafe {
+            let _ = EnumWindows(
+                Some(enum_window_by_pid_proc),
+                LPARAM(&mut state as *mut FindByPidState as isize),
+            );
+        }
+        state.found.map(|h| WindowHandle(h.0 as isize))
+    }
+
+    fn win_set_state_by_title(&mut self, title_or_spec: &str, mode: WindowMode) {
+        if let Some(hwnd) = find_window(title_or_spec) {
+            unsafe {
+                let _ = ShowWindow(hwnd, window_mode_to_show_cmd(mode));
+            }
+        }
+    }
+
+    fn win_activate(&mut self, window: WindowHandle) {
+        let hwnd = HWND(window.0 as *mut _);
+        unsafe {
+            let _ = SetForegroundWindow(hwnd);
+        }
+    }
+
+    fn read_file_incremental(&mut self, path: &str) -> String {
+        use std::io::{Read, Seek, SeekFrom};
+        let Ok(mut file) = std::fs::File::open(path) else {
+            return String::new();
+        };
+        let pos = *self.file_positions.get(path).unwrap_or(&0);
+        if file.seek(SeekFrom::Start(pos)).is_err() {
+            return String::new();
+        }
+        let mut buf = String::new();
+        let _ = file.read_to_string(&mut buf);
+        let new_pos = file.stream_position().unwrap_or(pos);
+        self.file_positions.insert(path.to_string(), new_pos);
+        buf
+    }
+
+    fn read_file_from_start(&mut self, path: &str) -> String {
+        self.file_positions.remove(path);
+        std::fs::read_to_string(path).unwrap_or_default()
+    }
+
+    fn dir_size_bytes(&mut self, path: &str) -> u64 {
+        fn walk(dir: &std::path::Path) -> u64 {
+            let Ok(entries) = std::fs::read_dir(dir) else {
+                return 0;
+            };
+            let mut total = 0u64;
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if let Ok(metadata) = entry.metadata() {
+                    if metadata.is_dir() {
+                        total += walk(&path);
+                    } else {
+                        total += metadata.len();
+                    }
+                }
+            }
+            total
+        }
+        walk(std::path::Path::new(path))
     }
 }
 
