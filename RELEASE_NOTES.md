@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C194 (partial) — Error dialogs with feedback/scan integration
+**2026-08-24**
+
+- **Added:** `gui::error_dialogs` — `should_show_error_dialog` (the
+  shared silent-mode no-op gate), `resolve_copy_target` (the
+  copy-selection-or-all decision, unified into one function instead of
+  reproducing the source's own inline duplicate of the same logic in
+  two places), `needs_vertical_scrollbar` (the two dialogs' different
+  line-count thresholds — 13 for the standalone file-scan dialog, 7 for
+  the embedded, shorter one), and `resolve_unknown_ext_layout` (dynamic
+  290px/190px sizing based on whether a signature scan found anything).
+- The logo-image-as-Exeinfo-PE-launch-button and the clipboard write
+  itself are real I/O with no decision logic — left as real-wiring
+  concerns for whoever builds the window.
+- **Scope — neither dialog is wired to a real window**, same treatment
+  as C188-C193's own unwired dialogs.
+- Tests: `gui::error_dialogs::tests` (8).
+
+---
+
 ## C193 (partial) — Generic prompt/confirm dialogs
 **2026-08-24**
 
