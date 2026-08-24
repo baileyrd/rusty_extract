@@ -23,6 +23,21 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C203 (partial) — Context-menu registry removal/teardown
+**2026-08-24**
+
+- **Substantially already covered**: `GUI_ContextMenu_remove`'s
+  full-wipe key list was already ported as C202's own
+  `resolve_removal_targets` (same function, same PR #472) — not
+  re-ported here.
+- **Added:** `should_teardown_file_assoc_before_rebuild` — the one
+  remaining gap, the unconditional file-association teardown that
+  runs before any re-registration, regardless of the dialog's new
+  state. Kept deliberately separate from C201's own re-apply gates.
+- Tests: `gui::context_menu_registry::tests` (+1).
+
+---
+
 ## C202 (partial) — Context-menu registry write/apply
 **2026-08-24**
 
