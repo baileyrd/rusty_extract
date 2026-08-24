@@ -404,6 +404,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   as a shared public function. Single-file selection only; the
   "invalid file" dialog and `%VAR%` expansion aren't wired — stays
   `REQUIRED`.
+- C187 (partial): `gui::drag_drop` ports `GUI_Drop`'s per-item dispatch
+  (skip/expand-directory/populate-only/populate-and-queue);
+  `WM_DROPFILES_UNICODE_FUNC` isn't ported since `egui`'s own native
+  drag-drop input already supersedes it. Wired for real via `eframe`'s
+  drop-file input; only the single-file case is handled (multi-file/
+  directory route into the not-yet-built batch queue, C188) — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

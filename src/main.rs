@@ -136,7 +136,14 @@ fn run_extraction(
 /// no window to launch.
 #[cfg(windows)]
 fn launch_gui() {
-    let options = eframe::NativeOptions::default();
+    // Matches the source's own `$WS_EX_ACCEPTFILES` ex-style on the main
+    // window (UniExtract.au3:5823) -- capability C187. `eframe` already
+    // defaults this on for Windows, but set it explicitly rather than
+    // relying on an implicit default that could change.
+    let options = eframe::NativeOptions {
+        viewport: eframe::egui::ViewportBuilder::default().with_drag_and_drop(true),
+        ..Default::default()
+    };
     let _ = eframe::run_native(
         "UniExtract",
         options,

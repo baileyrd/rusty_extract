@@ -23,6 +23,36 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C187 (partial) — Drag-and-drop file/directory handling
+**2026-08-24**
+
+- **Added:** `gui::drag_drop` — `decide_drop_action`/`decide_drop_actions`
+  port `GUI_Drop`'s full per-item dispatch: a nonexistent path is
+  silently skipped; a directory always expands into the batch queue
+  (C188) regardless of batch size; a file is populate-only when it's
+  the *sole* dropped path, or populate-and-queue when it's one of
+  several.
+- **`WM_DROPFILES_UNICODE_FUNC` is not ported as its own piece** — it's
+  a raw `DragQueryFileW` enumeration loop whose entire job (turning an
+  OS drop event into a path list) is already done by `egui`'s own
+  native drag-drop input, which supersedes the Win32 workaround rather
+  than needing a parallel implementation — same class of "old
+  workaround made moot by the new toolkit" as C183's DPI-scaling note
+  and C185's tooltip-workaround note.
+- `gui::app::MainWindow` wires this for real via `eframe`'s native
+  drop-file input, with `NativeOptions`'s `with_drag_and_drop(true)`
+  matching the source's own `$WS_EX_ACCEPTFILES` window ex-style.
+- **Scope — only the single-file case is wired for real.** A multi-file
+  drop or a dropped directory routes into the batch queue (C188), which
+  doesn't exist yet; silently keeping only the last of several dropped
+  files would be a worse outcome than doing nothing, the same call
+  already made for C186's multi-select scope note.
+- Same honesty caveat as C069/C183-C186 for the real drop-handling
+  wiring.
+- Tests: `gui::drag_drop::tests` (6).
+
+---
+
 ## C186 (partial) — File/directory input, validation, output-directory auto-fill
 **2026-08-23**
 
