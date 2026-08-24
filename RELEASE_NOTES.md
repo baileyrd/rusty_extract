@@ -23,6 +23,28 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C195 (partial) — Misc file/log utility actions
+**2026-08-24**
+
+- **Added:** `gui::log_actions` — `should_open_a_log`/
+  `resolve_most_recent_log` (`GUI_OpenLastLog`'s early-return gate and
+  its "most recent" selection, preserved exactly as the
+  alphabetical-not-chronological assumption the source itself relies
+  on), `should_update_log_menu_item`/`format_log_dir_size_mb`
+  (`GUI_UpdateLogItem`'s main-window-exists gate and its `Round(...,2)`
+  MB formatting), and `should_create_password_file` (`GUI_Password`'s
+  touch-if-missing gate).
+- `GUI_OpenLogDir`/`GUI_ProgDir`/`GUI_ConfigFile` are plain
+  `ShellExecute` one-liners with no decision logic — not ported as
+  functions.
+- **Scope — none of this is wired to real I/O.** `logdir` itself
+  depends on settings-directory resolution this port's GUI doesn't have
+  plumbed into its own state yet, the same category of gap as every
+  other still-unresolved preference path.
+- Tests: `gui::log_actions::tests` (6).
+
+---
+
 ## C194 (partial) — Error dialogs with feedback/scan integration
 **2026-08-24**
 

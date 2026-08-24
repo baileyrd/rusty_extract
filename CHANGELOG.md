@@ -466,6 +466,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   different scrollbar line-count thresholds, and the unknown-ext
   dialog's dynamic sizing based on scan results. Neither dialog has a
   real window — stays `REQUIRED`.
+- C195 (partial): `gui::log_actions` ports the open-last-log gate and
+  its alphabetical-not-chronological "most recent" selection, the
+  log-menu-item update gate and MB-size rounding, and the
+  password-file touch-if-missing gate. None of it is wired to real I/O
+  yet (no settings-directory resolution plumbed into the GUI) — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
