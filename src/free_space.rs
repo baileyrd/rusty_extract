@@ -4,26 +4,54 @@
 //! (`FileGetSize`) is real filesystem I/O, and the source's interactive
 //! abort/retry/ignore prompt is a `MsgBox` GUI dialog — deferred under
 //! the same GUI-subsystem boundary (manifest row D001) as every other
-//! interactive prompt in this port. This module ports only: whether the
-//! drive has enough free space, and whether that should terminate the
-//! run outright (silent mode) or hand off to the interactive prompt this
-//! module doesn't implement.
+//! `MsgBox` call in this entire port (`gui::prompt`'s `Prompt`,
+//! `update_process`'s `_UpdateCheckFailed`, and every other MsgBox-backed
+//! capability draw this identical line: the response-handling logic is
+//! ported, the dialog rendering itself is the caller's job). This module
+//! ports: [`nearest_existing_ancestor`] (the preliminary directory-walk
+//! step), whether the drive has enough free space, whether that should
+//! terminate the run outright (silent mode) or hand off to the
+//! interactive prompt, and what happens once a prompt response is in
+//! hand.
 //!
-//! **Scope note:** the source's own preliminary step — walking `$sPath`
-//! up to its nearest existing directory ancestor via a `While Not
-//! _IsDirectory($sPath)` loop before ever calling `DriveSpaceFree` — is
-//! real filesystem I/O entangled with path manipulation and isn't ported
-//! here; the caller is expected to resolve a real, existing directory
-//! path before calling [`measure_free_space`]. The `MsgBox` call itself
-//! (`$iTopmost + $MB_ICONWARNING + $MB_ABORTRETRYIGNORE`) is real GUI,
-//! deferred under manifest row D001 — but [`decide_prompt_action`] now
-//! covers what happens *once a response is obtained*, including a
-//! genuinely easy-to-miss finding: the source's own `Switch` has no
-//! `Case` for Ignore (or any unexpected `MsgBox` return value), so
-//! choosing Ignore silently falls through with no action at all,
-//! letting extraction continue despite the insufficient-space warning.
-//! Because producing the response is still unmodeled, this capability's
-//! manifest row stays `REQUIRED`, not `DONE`.
+//! **Scope note:** the `MsgBox` call itself (`$iTopmost +
+//! $MB_ICONWARNING + $MB_ABORTRETRYIGNORE`) is real GUI, deferred under
+//! manifest row D001 — but [`decide_prompt_action`] covers what happens
+//! *once a response is obtained*, including a genuinely easy-to-miss
+//! finding: the source's own `Switch` has no `Case` for Ignore (or any
+//! unexpected `MsgBox` return value), so choosing Ignore silently falls
+//! through with no action at all, letting extraction continue despite
+//! the insufficient-space warning. Because producing the response is
+//! still unmodeled — consistently with every other MsgBox in this
+//! codebase — this capability's manifest row stays `REQUIRED`, not
+//! `DONE`.
+
+/// Ports `HasFreeSpace()`'s preliminary ancestor-walk loop
+/// (UniExtract.au3:3785-3789): `While Not _IsDirectory($sPath) ...
+/// $sPath = StringLeft($sPath, $iPos - 1)`. `is_directory` is the
+/// caller's real `_IsDirectory` check for one candidate path — this
+/// function only owns the string-trimming/loop-termination decision,
+/// walking up by repeatedly cutting at the last `\` (matching
+/// `StringInStr($sPath, "\", 0, -1)`'s search-from-the-end) until a
+/// directory is found or no `\` remain.
+///
+/// **Verified quirk, preserved rather than "fixed"**: if no ancestor
+/// ever satisfies `is_directory` — every trimmed prefix fails, all the
+/// way down to a bare drive letter or an empty string — the loop simply
+/// stops with whatever fragment is left. There's no fallback to a
+/// known-good default like the current directory or a drive root; the
+/// caller passes whatever this returns straight to `DriveSpaceFree`,
+/// which itself decides what an invalid/nonexistent path means.
+pub fn nearest_existing_ancestor(path: &str, is_directory: impl Fn(&str) -> bool) -> String {
+    let mut current = path.to_string();
+    while !is_directory(&current) {
+        match current.rfind('\\') {
+            Some(pos) => current.truncate(pos),
+            None => break,
+        }
+    }
+    current
+}
 
 /// One free-space measurement, already rounded the way the source
 /// rounds it: `Round(DriveSpaceFree($sPath), 2)` for `free_space_mb`,
@@ -166,8 +194,40 @@ pub fn decide_prompt_action(
 mod tests {
     use super::{
         decide_free_space_outcome, decide_prompt_action, has_enough_free_space, measure_free_space,
-        FreeSpaceOutcome, PromptAction, PromptResponse,
+        nearest_existing_ancestor, FreeSpaceOutcome, PromptAction, PromptResponse,
     };
+
+    /// Parity test for capability C179: if the path itself already
+    /// exists, no trimming happens at all.
+    #[test]
+    fn ancestor_walk_returns_the_path_unchanged_if_it_already_exists() {
+        let result = nearest_existing_ancestor("C:\\foo\\bar", |p| p == "C:\\foo\\bar");
+        assert_eq!(result, "C:\\foo\\bar");
+    }
+
+    /// Parity test for capability C179: walks up one segment at a time
+    /// until an existing directory is found.
+    #[test]
+    fn ancestor_walk_trims_one_segment_at_a_time() {
+        let existing = ["C:\\foo"];
+        let result = nearest_existing_ancestor("C:\\foo\\bar\\baz.txt", |p| existing.contains(&p));
+        assert_eq!(result, "C:\\foo");
+    }
+
+    /// The verified quirk: if nothing ever matches, the loop stops once
+    /// there's no more `\` to trim, rather than falling back to some
+    /// known-good default.
+    #[test]
+    fn ancestor_walk_stops_at_the_last_segment_when_nothing_matches() {
+        let result = nearest_existing_ancestor("C:\\foo\\bar", |_| false);
+        assert_eq!(result, "C:");
+    }
+
+    #[test]
+    fn ancestor_walk_on_a_path_with_no_backslash_returns_it_unchanged() {
+        let result = nearest_existing_ancestor("relative", |_| false);
+        assert_eq!(result, "relative");
+    }
 
     /// Parity test for capability C179: the megabyte conversion rounds
     /// to 2 decimals *before* applying the modifier, matching
