@@ -608,6 +608,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   meaningfully smaller and more guessable ID space than a true GUID —
   pending explicit sign-off either way. Not wired to real I/O — stays
   `REQUIRED`.
+- C216 (partial): new `uninstall` module ports the `/uninstall` CLI
+  dispatch and `Uninstall`'s ordered delete-step sequence. Preserved a
+  real bug, demonstrated by a test: the silent CLI path passes
+  `_ArraySearch`'s raw return value directly as a boolean, so a silent
+  `/uninstall` always wipes user data regardless of `/removeuserdata`.
+  Not wired to real I/O — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

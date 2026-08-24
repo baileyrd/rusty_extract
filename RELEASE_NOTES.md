@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C216 (partial) — Uninstall orchestration and CLI dispatch
+**2026-08-24**
+
+- **Added:** new `uninstall` module porting the `/uninstall` CLI
+  dispatch (silent-vs-GUI branch, covering D009) and `Uninstall`'s
+  ordered delete-step sequence (telemetry, unconditional registry
+  teardown, then conditional logs/user-data steps).
+- **Real bug found and preserved, demonstrated by a test**: the
+  silent CLI path passes `_ArraySearch`'s raw return value directly as
+  a boolean; since both "found" and "not found" (`-1`) are
+  nonzero-truthy in AutoIt, a silent `/uninstall` always wipes user
+  data regardless of whether `/removeuserdata` was actually supplied
+  — diverging from the GUI path's real checkbox-derived boolean
+  (C217).
+- **Verified quirk, preserved rather than "fixed"**: the registry
+  teardown always runs, synchronously, before either file-system step,
+  with no per-step error handling and no confirmation anywhere in the
+  sequence.
+- **Scope — not wired to real I/O.** The actual registry writes
+  (C202-C204), `GUI_DeleteLogs`, `DirRemove`, `SendStats`, and
+  `terminate` are the caller's job.
+
+---
+
 ## C215 (partial) — Per-install GUID generation
 **2026-08-24**
 

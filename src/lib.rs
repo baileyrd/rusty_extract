@@ -33,6 +33,7 @@ pub mod teelog;
 pub mod telemetry;
 pub mod type_override;
 pub mod unicode_relocation;
+pub mod uninstall;
 pub mod update_ffmpeg;
 pub mod update_helpers;
 pub mod update_index;
