@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C213 (partial) — Feedback-prompt gate
+**2026-08-24**
+
+- **Added:** new `gui::feedback_prompt` module porting both the
+  caller-side trigger condition (the four-exit-code, non-`.dll` gate
+  — captured separately since it lives outside the function itself)
+  and `GUI_Feedback_Prompt`'s own never/not-extraction/silent skip,
+  the always-skip-to-form dispatch, the remember-checkbox-gated
+  yes/no preference persistence, and the dialog outcome.
+- Folds in D012's `feedbackprompt` preference as
+  `FeedbackPromptPref::{Never,Ask,Always}`.
+- Documents explicitly that "Always send" still requires the C212
+  feedback form's own privacy checkbox — remembering "yes" here only
+  skips this prompt, never that consent gate.
+- **Scope — not wired to a real window.** The yes/no/remember dialog
+  and the actual `SavePref` call are the caller's job.
+
+---
+
 ## C212 (partial) — Feedback dialog and submission
 **2026-08-24**
 

@@ -19,6 +19,7 @@ pub mod context_menu_registry;
 pub mod drag_drop;
 pub mod error_dialogs;
 pub mod feedback;
+pub mod feedback_prompt;
 pub mod file_assoc;
 pub mod file_input;
 pub mod first_start;
