@@ -498,6 +498,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (preserved exactly), and the hardlink-then-copy-fallback install
   dispatch (documented as a deliberate architectural choice). Not
   wired to a real window or the real network calls — stays `REQUIRED`.
+- C201 (partial): `gui::context_menu` ports the per-verb registration
+  scan (confirming the flagged all-users/per-user toggle quirk), the
+  Simple/Cascading picture swap, the full enable/disable activate
+  cascade, the force-check-all-verbs fallback, the registration-mode
+  dispatch, and the file-association sub-flow's gates. Corrects this
+  row's function list (`GUI_ContextMenu_OK` was omitted). Not wired to
+  a real window or registry I/O — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
