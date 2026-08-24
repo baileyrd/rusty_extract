@@ -23,6 +23,29 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C214 (partial) — Usage-stats telemetry beacon
+**2026-08-24**
+
+- **Added:** new `telemetry` module porting `SendStats`'s gate and URL
+  construction (`should_send_stats`, `build_stats_url`,
+  `DEFAULT_RESULT`).
+- **Second-parameter overload documented with concrete examples** from
+  the source rather than assumed to have one consistent meaning:
+  numeric result codes, a plugin name, an archive-type string, or
+  omitted entirely (`&str`, not a typed result code).
+- **Prefs-dialog ordering quirk verified with a failing-order test**,
+  not just documented: the "DisableStats" ping only fires when sent
+  with the old, still-true value — calling it with the already-flipped
+  value would silently swallow the opt-out ping, and a test proves
+  both halves of that claim.
+- **Verified quirk, preserved rather than "fixed"**: the outgoing URL
+  (including the per-install GUID) is logged to the local debug log
+  verbatim.
+- **Scope — not wired to real network I/O.** `InetRead` and the local
+  debug-log write are the caller's job.
+
+---
+
 ## C213 (partial) — Feedback-prompt gate
 **2026-08-24**
 
