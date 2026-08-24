@@ -556,6 +556,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   directory recursion — one treats a missing subdirectory as proof of
   an update, the other always recurses into it regardless. Not wired
   to real I/O (`InetGet`/`_FileDelete`/`DirCreate`) — stays `REQUIRED`.
+- C209 (partial): new `update_ffmpeg` module ports `_UpdateFFmpeg`/
+  `GetFFmpeg` (local version extraction, WinXP/32-bit URL suffix,
+  version compare, elevation-aware updater choice, post-launch success
+  check), reusing `gui::missing_helper::plugin_exists` (C200) for the
+  `HasPlugin` gate. Preserved a real bug: the version comparison is
+  plain lexicographic string comparison, not numeric/semver — verified
+  with `"9.0" > "10.0"` evaluating `true`. Not wired to real I/O — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C209 (partial) — FFmpeg update check
+**2026-08-24**
+
+- **Added:** new `update_ffmpeg` module porting `_UpdateFFmpeg`/
+  `GetFFmpeg`: local-version marker extraction, the WinXP/32-bit URL
+  suffix selection, the version comparison, the elevation-aware
+  updater-binary choice, and the post-launch success check. Reuses
+  `gui::missing_helper::plugin_exists` (C200) directly for the
+  `HasPlugin` gate.
+- **Real bug found, preserved rather than "fixed"** (per this
+  migration's default convention): the version comparison is a plain
+  lexicographic string comparison, not numeric/semver — verified
+  concretely with `"9.0" > "10.0"` evaluating `true`.
+- **Verified defensive behavior, not a bug**: a failed local version
+  extraction defaults to `"0"`, deliberately forcing any remote
+  version to register as an update.
+- **Verified assumption, preserved rather than "fixed"**: only WinXP
+  and 32-bit get distinct remote URL suffixes; any other OS/arch
+  silently falls through to the default.
+- **Scope — not wired to real I/O.** `FetchStdout`, `_INetGetSource`,
+  the `Prompt` confirmation (C193), and `ShellExecuteWait` are real
+  I/O the caller performs.
+
+---
+
 ## C208 (partial) — Helper-file download/install
 **2026-08-24**
 
