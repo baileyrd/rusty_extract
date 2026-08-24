@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C210 (partial) — Post-update migration
+**2026-08-24**
+
+- **Added:** new `update_migration` module's `post_update_actions`
+  ports `_AfterUpdate` verbatim as an ordered list of actions: 2
+  unconditional file moves, one real branch (a sentinel-gated
+  docs-to-license move), 30 hardcoded binary deletions, dozens more
+  deletions across `defdir`/`docsdir`/`licensedir`/`iconsdir`/
+  `langdir`/the script directory, 10 arch-dir deletions (5 files
+  across both `x86`/`x64`), 6 recursive directory removals, and 3
+  ini-key deletions.
+- Every single entry from the source has its own presence test, plus
+  an exact total-count assertion (82 actions) — this capability's
+  value is completeness, not cleverness, so nothing was sampled or
+  summarized away.
+- **Scope — not wired to real I/O.** `FileMove`/`MoveFiles`/
+  `FileDelete`/`DirRemove`/`IniDelete` are real file operations the
+  caller performs for each returned action.
+
+---
+
 ## C209 (partial) — FFmpeg update check
 **2026-08-24**
 

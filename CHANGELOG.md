@@ -564,6 +564,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   plain lexicographic string comparison, not numeric/semver — verified
   with `"9.0" > "10.0"` evaluating `true`. Not wired to real I/O — stays
   `REQUIRED`.
+- C210 (partial): new `update_migration` module's `post_update_actions`
+  ports `_AfterUpdate` verbatim as an ordered 82-action list (file
+  moves, deletions, recursive directory removals, ini-key deletions),
+  with a presence test for every single entry plus an exact
+  total-count assertion. Not wired to real I/O — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
