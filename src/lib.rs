@@ -32,4 +32,5 @@ pub mod teelog;
 pub mod type_override;
 pub mod unicode_relocation;
 pub mod update_index;
+pub mod update_orchestration;
 pub mod warn_execute;

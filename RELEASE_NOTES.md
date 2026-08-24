@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C207 (partial) — Main update orchestration
+**2026-08-24**
+
+- **Added:** new `update_orchestration` module porting `CheckUpdate`'s
+  end-to-end decision tree: interval debounce, the mode-gated
+  main-executable comparison, the accepted-prompt relaunch parameters,
+  the mode override after declining, the helper-update
+  apply/relaunch-elevated branch, and the final "up to date" gate.
+- The two GUI-decision seams (`GUI_UpdatePrompt`/C199, `Prompt`/C193)
+  are threaded through as plain booleans instead of baked-in calls,
+  giving a clean interface boundary at exactly those two points.
+- **Verified quirks, preserved rather than "fixed"**: `$lastupdate`
+  persistence is silently skipped if preferences haven't loaded yet;
+  declining the main-executable update also silently suppresses the
+  helper-files *and* FFmpeg checks for that run, not just further
+  main-update prompts; the main-executable comparison always checks
+  both size and hash, unlike the helper-file comparison's lazy hash
+  (C206).
+- **Scope — not wired to real I/O.** `Exit`, `ShellExecute`,
+  `SendStats`, and the final de-elevate step are real side effects the
+  caller performs once these functions return a decision.
+
+---
+
 ## C206 (partial) — Update-index fetch/diff logic
 **2026-08-24**
 
