@@ -453,6 +453,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   inventory note: the previously-flagged `.7z` extension-check "bug"
   doesn't exist (`".7z"` is 3 characters, not 4). The plugin manager
   window itself isn't wired — stays `REQUIRED`.
+- C193 (partial): `gui::prompt` ports `Prompt`'s full dispatch
+  (silent-mode auto-affirm, load-bearing for several already-DONE
+  capabilities' `user_confirmed_*` stand-ins) and `CustomPrompt`'s full
+  dispatch (the persisted Always/Never short-circuit and button-to-
+  setting mapping). `_IsChecked`/`_IsAnyChecked`/`_SetState` aren't
+  ported — moot Win32 control-state plumbing once a checkbox is a plain
+  `bool`. Neither dialog has a real window — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

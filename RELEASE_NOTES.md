@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C193 (partial) — Generic prompt/confirm dialogs
+**2026-08-24**
+
+- **Added:** `gui::prompt` — `is_affirmative_msgbox_response`/
+  `decide_prompt_outcome` port `Prompt`'s full dispatch, including the
+  load-bearing silent-mode auto-affirm several already-DONE
+  capabilities' `user_confirmed_*` parameters already stand in for
+  (`cleanup`'s C158, `batch`'s C147). `CustomPromptSetting`/
+  `decide_custom_prompt_short_circuit`/`resolve_custom_prompt_button`
+  port `CustomPrompt`'s full dispatch: the persisted Always/Never
+  short-circuit (checked before silent mode) and the dialog's own
+  button-to-setting-mutation mapping.
+- `_IsChecked`/`_IsAnyChecked`/`_SetState` aren't ported as functions —
+  Win32 control-state bitmask/loop plumbing that's moot once a checkbox
+  is a plain `bool` bound directly by `egui::Checkbox`.
+- **Scope — neither dialog is wired to a real window**, same treatment
+  as C188-C192's own unwired dialogs.
+- Tests: `gui::prompt::tests` (11).
+
+---
+
 ## C192 (partial) — Plugin manager GUI
 **2026-08-24**
 
