@@ -23,6 +23,50 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C186 (partial) — File/directory input, validation, output-directory auto-fill
+**2026-08-23**
+
+- **Added:** `gui::file_input` (pure decisions: `is_blank`/
+  `parse_filename` — `FilenameParse`'s parsing half, reusing
+  `outdir::split_file_path`/`outdir::default_output_subfolder` (C138)
+  for `$initoutdir` rather than re-deriving its multi-extension
+  collision-avoidance quirk — `decide_ok_set`, `should_auto_fill_
+  on_file_input_changed` vs. `should_auto_fill_output_dir`, `parse_
+  file_dialog_result`, `resolve_folder_picker_seed`) and real native
+  file-open/folder-picker dialogs wired into `gui::app::MainWindow` via
+  a new dependency, `rfd` (the closest real-API equivalent of
+  `FileOpenDialog`/`FileSelectFolder` — cross-platform-buildable, so it
+  type-checks on this dev environment's own host target too, not just
+  `x86_64-pc-windows-gnu`).
+- **Real quirk preserved**: `GUI_OnFileInputChanged` (fires on every
+  keystroke in the file field) uses a simpler blank-only auto-fill gate,
+  while `GUI_Drop_Parse` (fires from the file-open dialog and, once
+  C187 lands, drag-and-drop) uses a fuller OR gate — blank *or*
+  unlocked — reusing `prefs::KEEPOUTPUTDIR_DEFAULT` (C027) for the
+  lock preference's default. These are genuinely two different gates
+  for two different trigger events, not one gate applied
+  inconsistently.
+- **Refactor**: moved `main`'s own private `split_file_path` helper
+  into `outdir` as a public function, so `main`'s CLI composition root
+  and this new GUI code share one implementation instead of two
+  independently-derived copies of the same split.
+- **Scope — single-file selection only for now.** The file dialog's
+  multi-select path routes into `GUI_Drop`'s populate-vs-auto-queue
+  dispatch (C187) and potentially the batch queue (C188), neither of
+  which exist yet; wiring multi-select today with nowhere for a 2nd+
+  file to go would silently drop every file but the first.
+- **Scope — still `REQUIRED`, not `DONE`.** The "invalid file" `MsgBox`
+  isn't wired (C194's own row), so an invalid OK click is currently
+  silent rather than explained; `EnvParse`'s `%VAR%` env-variable
+  expansion isn't applied to either field yet.
+- Same honesty caveat as C069/C183/C184/C185 for the real-dialog wiring
+  specifically.
+- Tests: `gui::file_input::tests` (14), plus
+  `outdir::tests::split_file_path_separates_dir_stem_and_extension`
+  (moved from `main.rs`'s own test suite).
+
+---
+
 ## C185 (partial) — Tray status/progress popup
 **2026-08-23**
 

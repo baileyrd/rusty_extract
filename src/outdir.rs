@@ -9,6 +9,29 @@
 
 use crate::status::Status;
 
+/// Splits a file path into `(dir, stem, has_extension)`, mirroring the
+/// inputs [`default_output_subfolder`] expects: `stem` is the filename
+/// with only its *last* `.`-delimited extension trimmed.
+///
+/// Splits on `\` directly rather than going through `std::path::Path`:
+/// this port's paths are always Windows paths (Windows-only parity
+/// target, matching the source), and `Path`'s separator handling is
+/// platform-dependent, which would silently misparse a `\`-separated
+/// path on a non-Windows build host. Shared by `main`'s CLI composition
+/// root and `gui::file_input`'s own `FilenameParse` port (C186) — one
+/// implementation rather than two independently-derived copies of the
+/// same split.
+pub fn split_file_path(file: &str) -> (String, String, bool) {
+    let (dir, filename) = match file.rfind('\\') {
+        Some(idx) => (file[..idx].to_string(), file[idx + 1..].to_string()),
+        None => (String::new(), file.to_string()),
+    };
+    match filename.rsplit_once('.') {
+        Some((stem, _ext)) if !stem.is_empty() => (dir, stem.to_string(), true),
+        _ => (dir, filename, false),
+    }
+}
+
 /// C138: ports `$initoutdir`'s computation inside `FilenameParse()`
 /// (UniExtract.au3:500-518) — the default `/sub` destination (C004).
 ///
@@ -263,10 +286,26 @@ mod tests {
     use super::{
         decide_outdir_outcome, default_output_subfolder, get_last_outdir,
         reappend_trailing_backslash_after_extraction, resolve_output_directory,
-        should_remove_empty_created_outdir, should_remove_temp_outdir,
+        should_remove_empty_created_outdir, should_remove_temp_outdir, split_file_path,
         strip_trailing_backslash_for_extraction, OutdirOutcome,
     };
     use crate::status::Status;
+
+    /// `split_file_path` extracts the same `(filedir, stem, has_extension)`
+    /// shape `default_output_subfolder` expects, for both `main`'s CLI
+    /// composition root and `gui::file_input`'s `FilenameParse` port
+    /// (C186).
+    #[test]
+    fn split_file_path_separates_dir_stem_and_extension() {
+        assert_eq!(
+            split_file_path(r"C:\downloads\archive.zip"),
+            (r"C:\downloads".to_string(), "archive".to_string(), true)
+        );
+        assert_eq!(
+            split_file_path(r"C:\downloads\noext"),
+            (r"C:\downloads".to_string(), "noext".to_string(), false)
+        );
+    }
 
     /// Parity test for capability C005: a present history slot 0 is
     /// returned as the resolved directory; a missing one maps to `None`,

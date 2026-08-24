@@ -396,6 +396,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   desktop/active-window/taskbar Win32 queries. Fade-in is animated,
   fade-out is not. Preference persistence not yet wired — stays
   `REQUIRED`.
+- C186 (partial): `gui::file_input` decision logic (`FilenameParse`
+  parsing reusing C138's `outdir::default_output_subfolder`, `GUI_OK_
+  Set`'s validate-and-resolve path, the two distinct auto-fill gates)
+  plus real native file-open/folder-picker dialogs via a new `rfd`
+  dependency. Moved `main`'s private `split_file_path` into `outdir`
+  as a shared public function. Single-file selection only; the
+  "invalid file" dialog and `%VAR%` expansion aren't wired — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
