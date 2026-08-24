@@ -480,6 +480,10 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   through the source's own classification switch and get miscounted as
   archive types. The pie-chart rendering itself is out of scope — stays
   `REQUIRED`.
+- C197 (partial): `gui::about` ports the high-contrast logo asset swap
+  — the one real decision in `GUI_About`. Everything else in this row
+  is static composition or plain I/O. Not wired to a real window —
+  stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
