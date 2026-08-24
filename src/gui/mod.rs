@@ -14,6 +14,7 @@
 
 pub mod batch_queue;
 pub mod drag_drop;
+pub mod error_dialogs;
 pub mod file_input;
 pub mod first_start;
 pub mod layout;

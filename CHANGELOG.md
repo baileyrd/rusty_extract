@@ -460,6 +460,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   setting mapping). `_IsChecked`/`_IsAnyChecked`/`_SetState` aren't
   ported — moot Win32 control-state plumbing once a checkbox is a plain
   `bool`. Neither dialog has a real window — stays `REQUIRED`.
+- C194 (partial): `gui::error_dialogs` ports the shared silent-mode
+  no-op gate, the copy-selection-or-all decision (unified rather than
+  reproducing the source's own inline duplication), the two dialogs'
+  different scrollbar line-count thresholds, and the unknown-ext
+  dialog's dynamic sizing based on scan results. Neither dialog has a
+  real window — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
