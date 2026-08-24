@@ -492,6 +492,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   dialog-outcome shape. Flagged, not resolved, an open design question
   on blocking-vs-async fetch for whoever wires the real dialog. Not
   wired to a real window — stays `REQUIRED`.
+- C200 (partial): `gui::missing_helper` ports `HasPlugin`'s existence
+  check and dispatch, the FFmpeg dialog's license-acceptance gate and
+  file-picker early-out, the fragile FFmpeg-binary validation heuristic
+  (preserved exactly), and the hardlink-then-copy-fallback install
+  dispatch (documented as a deliberate architectural choice). Not
+  wired to a real window or the real network calls — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

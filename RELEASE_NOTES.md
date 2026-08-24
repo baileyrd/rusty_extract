@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C200 (partial) — Missing-plugin and missing-FFmpeg first-run dialogs
+**2026-08-24**
+
+- **Added:** `gui::missing_helper` — `plugin_exists`/
+  `decide_has_plugin_outcome` (`HasPlugin`'s three-location existence
+  check and its found/return-false/terminate-silently/show-dialog
+  dispatch), `decide_download_click_action` (the license-acceptance
+  gate), `should_validate_selected_ffmpeg` (the file-picker's early-out),
+  `is_valid_ffmpeg_binary` (the fragile size+substring heuristic,
+  preserved exactly), and `resolve_ffmpeg_install_outcome` (the
+  hardlink-then-copy-fallback dispatch, documented as a deliberate
+  architectural choice — survives deleting the original, Windows-XP
+  compatible — not just replicated control flow).
+- **Scope — not wired to a real window or the real network calls**
+  (`SendStats`, `GetFFmpeg`'s actual download — deferred).
+- Tests: `gui::missing_helper::tests` (17).
+
+---
+
 ## C199 (partial) — Update-available/changelog prompt dialog
 **2026-08-24**
 

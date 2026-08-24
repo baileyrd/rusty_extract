@@ -20,6 +20,7 @@ pub mod file_input;
 pub mod first_start;
 pub mod layout;
 pub mod log_actions;
+pub mod missing_helper;
 pub mod plugin_manager;
 pub mod prefs_dialog;
 pub mod prompt;
