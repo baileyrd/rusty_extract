@@ -23,6 +23,38 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C188 (partial) — Batch queue management UI
+**2026-08-24**
+
+- **Added:** `gui::batch_queue` — the GUI-layer decisions on top of the
+  already-DONE C147/C148 queue mechanics (`crate::batch`, reused rather
+  than re-derived): `decide_batch_button_action` (the Batch button's
+  three-way overload: Add/Run/error), `should_clear_output_dir_on_batch_add`,
+  `resolve_batch_recurse` (the `BatchRecurse` clamp-above-1 quirk),
+  `list_directory_files` (real, unsorted, recursive enumeration),
+  `should_disable_batch_mode_on_ok`, `delete_queue_item`, and
+  `should_show_full_text_tooltip`.
+- `gui::app::MainWindow` wires an in-memory `batch_queue: Vec<String>`
+  for real: the Batch button's Add branch, and — completing the gap
+  C187 explicitly left open — drag-and-drop's `AddDirectory`/
+  `PopulateAndQueue` cases (a dropped directory recursively queues every
+  file found; one of several dropped files is populated then
+  immediately queued).
+- **Scope — real batch execution stays out.** The Batch button's "Run"
+  branch is decided correctly but not acted on: it needs
+  `GUI_Batch_OK`'s `terminate`+`crate::batch_runner` relaunch chain,
+  which needs a real extractor invocation the GUI can't build yet (no
+  detection cascade wired in). The queue-edit dialog (`GUI_Batch_Show`)
+  has no real window yet, only its pure decisions are ported. The queue
+  is in-memory only, not persisted to the real `$batchQueue` file. The
+  exact-duplicate confirmation dialog (C193) isn't wired, so a duplicate
+  is always silently skipped rather than prompted.
+- Same honesty caveat as C069/C183-C187.
+- Tests: `gui::batch_queue::tests` (11, including two real-filesystem
+  tests against a temp directory).
+
+---
+
 ## C187 (partial) — Drag-and-drop file/directory handling
 **2026-08-24**
 

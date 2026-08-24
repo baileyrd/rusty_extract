@@ -411,6 +411,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   drop-file input; only the single-file case is handled (multi-file/
   directory route into the not-yet-built batch queue, C188) — stays
   `REQUIRED`.
+- C188 (partial): `gui::batch_queue` ports the Batch button's Add/Run/
+  error overload, the `BatchRecurse` clamp, real recursive directory
+  listing, and the queue-edit dialog's pure decisions, reusing the
+  already-DONE C147/C148 `crate::batch` queue mechanics rather than
+  re-deriving them. Wired an in-memory batch queue for real, completing
+  C187's deferred `AddDirectory`/`PopulateAndQueue` drop cases. Real
+  batch execution, the queue-edit window, and queue persistence aren't
+  wired — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
