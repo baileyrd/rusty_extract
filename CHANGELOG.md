@@ -445,6 +445,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   this row's own note) or a real wizard window (its pages link to
   not-yet-real C190/C192 dialogs and need translation-catalog
   infrastructure, D006) — stays `REQUIRED`.
+- C192 (partial): `gui::plugin_manager` ports the install-mechanism
+  dispatch, the overloaded Select/Finish button's guard, per-selection
+  button display (preserving the `@Compiled`-gated installed-check
+  quirk), the required-file wildcard-skip quirk, and the single-vs-
+  multi-file copy destination resolution. Corrected an earlier
+  inventory note: the previously-flagged `.7z` extension-check "bug"
+  doesn't exist (`".7z"` is 3 characters, not 4). The plugin manager
+  window itself isn't wired — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

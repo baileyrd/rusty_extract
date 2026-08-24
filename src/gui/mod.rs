@@ -17,6 +17,7 @@ pub mod drag_drop;
 pub mod file_input;
 pub mod first_start;
 pub mod layout;
+pub mod plugin_manager;
 pub mod prefs_dialog;
 pub mod theme;
 pub mod tray;
