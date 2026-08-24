@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C199 (partial) — Update-available/changelog prompt dialog
+**2026-08-24**
+
+- **Added:** `gui::update_prompt::resolve_changelog_text` — the one
+  real content decision: the translated `DOWNLOAD_FAILED` fallback on
+  a fetch error. The Yes/No result reuses C193's already-established
+  boolean dialog-outcome shape.
+- **Open design question, not resolved here**: whether to reproduce
+  the source's blocking-fetch-during-dialog-construction shape
+  verbatim, or restructure as a real async fetch-then-populate (more
+  idiomatic for `egui`'s immediate-mode loop) — flagged for whoever
+  wires the real dialog.
+- **Scope — not wired to a real window.**
+- Tests: `gui::update_prompt::tests` (2).
+
+## C198 — Command-line help dialog (verified, no code change)
+**2026-08-24**
+
+- Re-read `GUI_CommandLineHelp` in full: every line is either
+  already-translated static text (blocked on the translation-catalog
+  infrastructure, D006) or a single unconditional `ShellExecute` for
+  the doc link. No quirk, gate, or non-trivial mapping exists to port
+  — manufacturing a function here would be a hollow gesture, not a
+  meaningful port. No source changes; stays `REQUIRED` until D006 and
+  a real window both exist.
+
+---
+
 ## C197 (partial) — About dialog and website menu actions
 **2026-08-24**
 

@@ -484,6 +484,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   — the one real decision in `GUI_About`. Everything else in this row
   is static composition or plain I/O. Not wired to a real window —
   stays `REQUIRED`.
+- C198: verified no pure decision logic exists to port (entirely static
+  text blocked on D006 plus one unconditional `ShellExecute`) — no
+  source changes, stays `REQUIRED`.
+- C199 (partial): `gui::update_prompt` ports the changelog-fetch
+  failure-text fallback; the Yes/No result reuses C193's boolean
+  dialog-outcome shape. Flagged, not resolved, an open design question
+  on blocking-vs-async fetch for whoever wires the real dialog. Not
+  wired to a real window — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
