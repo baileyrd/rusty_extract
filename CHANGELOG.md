@@ -578,6 +578,16 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   today since call sites pass none), and reopening the progress dialog
   while one is open silently orphans the previous one. Not wired to
   real I/O/windows — stays `REQUIRED`.
+- C212 (partial): new `gui::feedback` module ports the feedback
+  dialog's pure formatting/decision logic (attach-a-file side effects,
+  outdated-version check reusing C207 directly, empty-submission
+  guard, exact report layout, gzip-vs-plain decision, byte-exact
+  multipart body builders, bare-string success check, error-message
+  fallback). No PII is transmitted or assembled with real data by this
+  module. Preserved two quirks: the hex-dump side effect fires on
+  dialog open regardless of submission, appended to the persistent
+  session log; success detection has no HTTP status-code check. Not
+  wired to real network I/O — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
