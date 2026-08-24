@@ -548,6 +548,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   silently suppresses the helper-files and FFmpeg checks for that run.
   Not wired to real I/O (`Exit`/`ShellExecute`/`SendStats`) — stays
   `REQUIRED`.
+- C208 (partial): new `update_helpers` module ports `_UpdateHelpers`'s
+  progress math and directory/success decisions, reusing
+  `update_index`'s `decide_file_needs_update`/`is_self_path` (C206)
+  directly. Found a divergence beyond the manifest's DRY-gap note:
+  `CheckUpdateHelpers` and `_UpdateHelpers` don't actually agree on
+  directory recursion — one treats a missing subdirectory as proof of
+  an update, the other always recurses into it regardless. Not wired
+  to real I/O (`InetGet`/`_FileDelete`/`DirCreate`) — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
