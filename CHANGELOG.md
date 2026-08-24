@@ -530,6 +530,15 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   the verified case-sensitivity inconsistency between `/updatehelper`
   and `/updatehelpers`. Not wired to the real updater (D003) — stays
   `REQUIRED`.
+- C206 (partial): new `update_index` module ports `_UpdateGetIndex`'s
+  wire-format parsing, `_UpdateGetSize`'s plugin-binary exclusion
+  logic, `_UpdateFileCompare`'s diff decision, and
+  `CheckUpdateHelpers`'s skip/update-found/recurse branching. Found a
+  quirk beyond the manifest note: AutoIt's `FileGetSize` returns `-1`
+  for a missing file with no existence check before the subtraction,
+  so a missing excluded plugin binary inflates the computed size by
+  one byte. Not wired to real network/file I/O (D003) — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
