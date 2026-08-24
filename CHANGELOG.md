@@ -614,6 +614,13 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   `_ArraySearch`'s raw return value directly as a boolean, so a silent
   `/uninstall` always wipes user data regardless of `/removeuserdata`.
   Not wired to real I/O — stays `REQUIRED`.
+- C217 (partial): new `gui::uninstall_dialog` module ports
+  `GUI_Uninstall`'s default checkbox states and message-loop exit
+  condition. Surfaces the disabled-Close/no-Cancel UX quirk as an
+  explicit `DialogEscapeHatch` typed decision rather than silently
+  replicating or fixing it. Not wired to a real window — stays
+  `REQUIRED`. Closes out the C183-C217 GUI/tray/updater/telemetry/
+  uninstall migration phase.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

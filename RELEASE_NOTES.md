@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C217 (partial) — Uninstall confirmation dialog
+**2026-08-24**
+
+- **Added:** new `gui::uninstall_dialog` module porting `GUI_Uninstall`'s
+  minimal logic: the two checkboxes' differing default states, and
+  the message loop's sole exit condition.
+- **UX quirk surfaced as an explicit typed decision, not silently
+  replicated or silently fixed**: a `DialogEscapeHatch` enum forces
+  whoever wires the real window to consciously choose whether to
+  preserve the source's disabled-Close/no-Cancel behavior (clicking
+  "Uninstall" is the only way out) or deliberately add an escape hatch
+  the original never had — rather than the choice being made by
+  omission.
+- Once the dialog loop exits, the checkbox states feed straight into
+  C216's `uninstall::resolve_uninstall_steps` — no separate outcome
+  function was needed, since the source performs no transformation on
+  them at all.
+- **Scope — not wired to a real window.**
+
+This closes out the C183-C217 GUI/tray/updater/telemetry/uninstall
+migration phase — all 35 capabilities now have partial ports covering
+their pure decision logic, cross-platform tested.
+
+---
+
 ## C216 (partial) — Uninstall orchestration and CLI dispatch
 **2026-08-24**
 
