@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C192 (partial) — Plugin manager GUI
+**2026-08-24**
+
+- **Added:** `gui::plugin_manager` — `resolve_install_mechanism`
+  (unpack-vs-copy dispatch), `decide_select_close_action` (the
+  overloaded Select/Finish button's close-vs-prompt guard),
+  `resolve_plugin_selection_display` (Download/Select-Finish button
+  state per selection, preserving the `@Compiled`-gated installed-check
+  quirk), `missing_required_files` (the wildcard-skip quirk), and
+  `resolve_copy_plan` (single-file-renamed vs. multi-file-kept-named
+  destinations, reusing C186's `parse_file_dialog_result`).
+- **Correction to this capability's own earlier inventory note**: the
+  previously-flagged `StringRight($sPath, 3) == ".7z"` "bug" doesn't
+  exist — `".7z"` is 3 characters, not 4 as originally miscounted, so
+  the comparison works correctly and `.7z` archives route to the
+  7-Zip-extraction branch alongside `rar`/`zip`, same as the source
+  intends.
+- **Scope — the plugin manager window itself has no real UI.** A
+  list-plus-description window around a hardcoded 12-entry plugin
+  table with real network downloads and filesystem installs, none of
+  which this port's GUI drives yet.
+- Tests: `gui::plugin_manager::tests` (16).
+
+---
+
 ## C191 (partial) — First-start wizard
 **2026-08-24**
 
