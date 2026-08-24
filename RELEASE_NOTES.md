@@ -23,6 +23,34 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C208 (partial) — Helper-file download/install
+**2026-08-24**
+
+- **Added:** new `update_helpers` module porting `_UpdateHelpers`'s
+  decision/progress-math logic: the overall progress-bar math (ratio,
+  or a fixed 0.2 nudge when the ratio doesn't advance), the truncating
+  per-file download percentage, the directory-create guard, the
+  fetch-outcome branch, the sticky success-accumulation fold, and the
+  self-file/needs-update entry gate.
+- Reuses `update_index::decide_file_needs_update`/`is_self_path`
+  (C206) directly instead of re-deriving them, so this caller and
+  `CheckUpdateHelpers` can't drift apart on what counts as "needs
+  updating".
+- **New divergence found beyond the manifest's DRY-gap note**: the two
+  functions' directory-recursion decisions don't actually match —
+  `CheckUpdateHelpers` treats a missing subdirectory as proof enough
+  that an update exists and skips recursing, while `_UpdateHelpers`
+  always creates the directory and recurses into it regardless. A
+  probe-vs-apply asymmetry, not just harmless duplicated code.
+- **Verified quirk, preserved rather than "fixed"**: an unconditional
+  "success" telemetry ping is sent at the end regardless of whether
+  any individual file failed to update.
+- **Scope — not wired to real I/O.** `InetGet`, `_FileDelete`,
+  `DirCreate`, and the progress dialog are real side effects the
+  caller performs once these functions return a decision.
+
+---
+
 ## C207 (partial) — Main update orchestration
 **2026-08-24**
 
