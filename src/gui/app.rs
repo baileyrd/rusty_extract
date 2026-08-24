@@ -17,6 +17,7 @@
 //! the field actions below are placeholders those capabilities fill in.
 
 use crate::automation::win32::Win32GuiAutomation;
+use crate::gui::batch_queue;
 use crate::gui::drag_drop;
 use crate::gui::file_input;
 use crate::gui::theme;
@@ -72,6 +73,15 @@ pub struct MainWindow {
     use_white_background: bool,
     tray: TrayHandle,
     status_box: Option<StatusBoxState>,
+    /// The batch queue (capability C188), as re-invocable command lines
+    /// (`crate::batch::build_command_line`'s output) -- in-memory only for
+    /// now, not persisted to the real `$batchQueue` file, the same
+    /// category of gap as C183/C185's own preference-persistence notes.
+    /// "Enabled" is derived from non-emptiness rather than tracked as its
+    /// own separate flag (unlike the source's persisted `$batchEnabled`),
+    /// a documented simplification since nothing here reads or writes
+    /// prefs yet.
+    batch_queue: Vec<String>,
 }
 
 impl MainWindow {
@@ -102,6 +112,7 @@ impl MainWindow {
             ),
             tray: TrayHandle::new(no_status_box, false),
             status_box: None,
+            batch_queue: Vec::new(),
         }
     }
 
@@ -231,18 +242,17 @@ impl MainWindow {
         }
     }
 
-    /// Ports `GUI_Drop` (UniExtract.au3:6710-6732). The file-path
+    /// Ports `GUI_Drop` (UniExtract.au3:6710-6732) in full. The file-path
     /// extraction `WM_DROPFILES_UNICODE_FUNC` did in the source is
     /// superseded entirely by `egui`'s own native drag-drop input (see
     /// `gui::drag_drop`'s module doc comment) -- `ctx.input(...)` here
     /// is the real replacement for that Win32 enumeration, not an
-    /// approximation of it. **Only the well-defined single-file case is
-    /// wired for real** ([`DropAction::PopulateOnly`]) -- a multi-file
-    /// drop or a dropped directory routes into the batch queue (C188),
-    /// which doesn't exist yet; silently only keeping the last of
-    /// several dropped files would be a worse outcome than doing
-    /// nothing, the same call already made for C186's multi-select
-    /// scope note.
+    /// approximation of it. Every [`drag_drop::DropAction`] variant is
+    /// now acted on for real: a lone file only populates the fields;
+    /// a dropped directory expands into the batch queue (C188); one of
+    /// several dropped files is populated then immediately queued,
+    /// matching the source's own per-item populate-then-`GUI_Batch()`
+    /// loop.
     fn handle_dropped_files(&mut self, ctx: &egui::Context) {
         let dropped = ctx.input(|i| i.raw.dropped_files.clone());
         if dropped.is_empty() {
@@ -258,10 +268,117 @@ impl MainWindow {
             })
             .collect();
         for (path, action) in drag_drop::decide_drop_actions(&items) {
-            if action == drag_drop::DropAction::PopulateOnly {
-                self.file_path = path;
-                self.drop_parse();
+            match action {
+                drag_drop::DropAction::Skip => {}
+                drag_drop::DropAction::PopulateOnly => {
+                    self.file_path = path;
+                    self.drop_parse();
+                }
+                drag_drop::DropAction::AddDirectory => {
+                    self.add_directory_to_batch(std::path::Path::new(&path));
+                }
+                drag_drop::DropAction::PopulateAndQueue => {
+                    self.file_path = path;
+                    self.drop_parse();
+                    self.queue_current_file();
+                }
             }
+        }
+    }
+
+    /// Ports `GUI_Batch_AddDirectory`'s per-file loop when the main
+    /// window exists (UniExtract.au3:6621-6628): each file found under
+    /// `dir` is populated into the fields exactly as if it had been
+    /// dropped or picked individually, then queued. The recursion
+    /// preference isn't read from real prefs yet (no prefs-file wiring
+    /// into the GUI exists at all), so this always recurses, matching
+    /// the source's own documented default-on `BatchRecurse` value.
+    fn add_directory_to_batch(&mut self, dir: &std::path::Path) {
+        let recurse = batch_queue::resolve_batch_recurse(1);
+        for file in batch_queue::list_directory_files(dir, recurse) {
+            self.file_path = file.display().to_string();
+            self.drop_parse();
+            self.queue_current_file();
+        }
+    }
+
+    /// Shared by the Batch button's add branch and drag-and-drop's
+    /// queue-routing cases above: ports `GUI_Batch`'s add branch
+    /// (UniExtract.au3:6586-6589) -- adds the current fields to the
+    /// queue if they validate, then clears them, the same
+    /// `AddToBatch()`-plus-field-clear pair `GUI_Batch()` performs.
+    fn queue_current_file(&mut self) {
+        let file_exists = std::path::Path::new(&self.file_path).is_file();
+        if let file_input::OkOutcome::Valid { outdir } = file_input::decide_ok_set(
+            file_input::is_blank(&self.file_path),
+            file_exists,
+            &self.output_dir,
+        ) {
+            self.add_current_file_to_batch(&outdir);
+        }
+    }
+
+    /// Real `AddToBatch()` (UniExtract.au3:4389-4416), via the
+    /// already-ported `crate::batch::should_add_to_batch`/
+    /// `build_command_line` (C147) rather than re-deriving the
+    /// duplicate/multipart decision. No duplicate-confirmation dialog is
+    /// wired yet (`CustomPrompt('BATCH_DUPLICATE', ...)`, capability
+    /// C193), so an exact-duplicate command line is always silently
+    /// skipped rather than prompted -- the safer default absent a real
+    /// prompt, not a data-loss risk since the file simply isn't
+    /// re-queued.
+    fn add_current_file_to_batch(&mut self, outdir: &str) {
+        let filenamefull = file_input::parse_filename(&self.file_path, false).filenamefull;
+        let cmdline = crate::batch::build_command_line(
+            &self.file_path,
+            self.extraction_mode == ExtractionMode::Extract,
+            outdir,
+            false,
+            false,
+        );
+        let queue_content = self.batch_queue.join("\n");
+        if crate::batch::should_add_to_batch(&queue_content, &cmdline, &filenamefull, false) {
+            self.batch_queue.push(cmdline);
+        }
+        self.file_path.clear();
+        if batch_queue::should_clear_output_dir_on_batch_add(self.lock_output_directory) {
+            self.output_dir.clear();
+        }
+    }
+
+    /// Ports the Batch button's own click handler, dispatching through
+    /// [`batch_queue::decide_batch_button_action`]. **The "Run" branch
+    /// stays unwired** -- see this module's own doc comment and
+    /// `gui::batch_queue`'s for why real batch execution needs the
+    /// detection cascade this port's GUI doesn't have yet -- and the
+    /// error branch has no dialog to show yet (C194, same gap
+    /// `handle_ok_clicked` already documents).
+    fn handle_batch_clicked(&mut self) {
+        let file_exists = std::path::Path::new(&self.file_path).is_file();
+        let ok_set = file_input::decide_ok_set(
+            file_input::is_blank(&self.file_path),
+            file_exists,
+            &self.output_dir,
+        );
+        let fields_valid = matches!(ok_set, file_input::OkOutcome::Valid { .. });
+        match batch_queue::decide_batch_button_action(fields_valid, !self.batch_queue.is_empty()) {
+            batch_queue::BatchButtonAction::AddToQueue => {
+                if let file_input::OkOutcome::Valid { outdir } = ok_set {
+                    self.add_current_file_to_batch(&outdir);
+                }
+            }
+            batch_queue::BatchButtonAction::RunQueue => {}
+            batch_queue::BatchButtonAction::ShowInvalidFileError => {}
+        }
+    }
+
+    /// Ports `GetBatchQueue`'s button-text refresh
+    /// (UniExtract.au3:4427: `t('BATCH_BUT') & " (" & $iSize & ")"`).
+    fn batch_button_label(&self) -> String {
+        if self.batch_queue.is_empty() {
+            "Batch".to_string()
+        } else {
+            format!("Batch ({})", self.batch_queue.len())
         }
     }
 
@@ -419,7 +536,9 @@ impl eframe::App for MainWindow {
                     self.handle_ok_clicked(ctx);
                 }
                 let _ = ui.button("Cancel");
-                let _ = ui.button("Batch");
+                if ui.button(self.batch_button_label()).clicked() {
+                    self.handle_batch_clicked();
+                }
             });
         });
 
