@@ -17,9 +17,9 @@ use std::time::Instant;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::Registry::{
-    RegCloseKey, RegCreateKeyExW, RegDeleteKeyW, RegQueryValueExW, RegSetValueExW, HKEY,
+    RegCloseKey, RegCreateKeyExW, RegDeleteTreeW, RegQueryValueExW, RegSetValueExW, HKEY,
     HKEY_CLASSES_ROOT, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, REG_DWORD,
-    REG_OPTION_NON_VOLATILE, REG_SZ, REG_VALUE_TYPE,
+    REG_EXPAND_SZ, REG_OPTION_NON_VOLATILE, REG_SZ, REG_VALUE_TYPE,
 };
 use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_DOWN, VK_RETURN, VK_RIGHT};
@@ -72,6 +72,48 @@ fn parse_reg_key(key: &str) -> (HKEY, String) {
         Some(("HKCR", rest)) => (HKEY_CLASSES_ROOT, rest.to_string()),
         Some((_, rest)) => (HKEY_CURRENT_USER, rest.to_string()),
         None => (HKEY_CURRENT_USER, key.to_string()),
+    }
+}
+
+/// Shared by [`GuiAutomation::reg_write_string`] and
+/// [`GuiAutomation::reg_write_expand_string`] -- identical except for
+/// which `REG_VALUE_TYPE` the value is tagged with.
+fn write_string_value(key: &str, value_name: &str, value: &str, reg_type: REG_VALUE_TYPE) {
+    let (root, subkey) = parse_reg_key(key);
+    let subkey_wide = to_wide(&subkey);
+    let value_name_wide = to_wide(value_name);
+    let mut hkey = HKEY::default();
+    let opened = unsafe {
+        RegCreateKeyExW(
+            root,
+            PCWSTR(subkey_wide.as_ptr()),
+            Some(0),
+            PCWSTR::null(),
+            REG_OPTION_NON_VOLATILE,
+            KEY_ALL_ACCESS,
+            None,
+            &mut hkey,
+            None,
+        )
+    };
+    if opened != windows::Win32::Foundation::WIN32_ERROR(0) {
+        return;
+    }
+    // Includes the trailing NUL `to_wide` already appends -- REG_SZ's
+    // own documented convention, matching AutoIt's `RegWrite`.
+    let value_wide = to_wide(value);
+    let value_bytes = unsafe {
+        std::slice::from_raw_parts(value_wide.as_ptr() as *const u8, value_wide.len() * 2)
+    };
+    unsafe {
+        let _ = RegSetValueExW(
+            hkey,
+            PCWSTR(value_name_wide.as_ptr()),
+            Some(0),
+            reg_type,
+            Some(value_bytes),
+        );
+        let _ = RegCloseKey(hkey);
     }
 }
 
@@ -237,49 +279,92 @@ impl GuiAutomation for Win32GuiAutomation {
     }
 
     fn reg_write_string(&mut self, key: &str, value_name: &str, value: &str) {
+        write_string_value(key, value_name, value, REG_SZ);
+    }
+
+    fn reg_write_expand_string(&mut self, key: &str, value_name: &str, value: &str) {
+        write_string_value(key, value_name, value, REG_EXPAND_SZ);
+    }
+
+    fn reg_read_string(&mut self, key: &str, value_name: &str) -> Option<String> {
         let (root, subkey) = parse_reg_key(key);
         let subkey_wide = to_wide(&subkey);
-        let value_name_wide = to_wide(value_name);
+        let value_wide = to_wide(value_name);
         let mut hkey = HKEY::default();
         let opened = unsafe {
-            RegCreateKeyExW(
+            windows::Win32::System::Registry::RegOpenKeyExW(
                 root,
                 PCWSTR(subkey_wide.as_ptr()),
                 Some(0),
-                PCWSTR::null(),
-                REG_OPTION_NON_VOLATILE,
-                KEY_ALL_ACCESS,
-                None,
+                windows::Win32::System::Registry::KEY_READ,
                 &mut hkey,
-                None,
             )
         };
         if opened != windows::Win32::Foundation::WIN32_ERROR(0) {
-            return;
+            return None;
         }
-        // Includes the trailing NUL `to_wide` already appends -- REG_SZ's
-        // own documented convention, matching AutoIt's `RegWrite`.
-        let value_wide = to_wide(value);
-        let value_bytes = unsafe {
-            std::slice::from_raw_parts(value_wide.as_ptr() as *const u8, value_wide.len() * 2)
+        let mut value_type = REG_VALUE_TYPE(0);
+        let mut data_len: u32 = 0;
+        let sized = unsafe {
+            RegQueryValueExW(
+                hkey,
+                PCWSTR(value_wide.as_ptr()),
+                None,
+                Some(&mut value_type),
+                None,
+                Some(&mut data_len),
+            )
+        };
+        if sized != windows::Win32::Foundation::WIN32_ERROR(0)
+            || (value_type != REG_SZ && value_type != REG_EXPAND_SZ)
+        {
+            unsafe {
+                let _ = RegCloseKey(hkey);
+            }
+            return None;
+        }
+        let mut buffer: Vec<u16> = vec![0; (data_len as usize).div_ceil(2)];
+        let result = unsafe {
+            RegQueryValueExW(
+                hkey,
+                PCWSTR(value_wide.as_ptr()),
+                None,
+                None,
+                Some(buffer.as_mut_ptr() as *mut u8),
+                Some(&mut data_len),
+            )
         };
         unsafe {
-            let _ = RegSetValueExW(
-                hkey,
-                PCWSTR(value_name_wide.as_ptr()),
-                Some(0),
-                REG_SZ,
-                Some(value_bytes),
-            );
             let _ = RegCloseKey(hkey);
         }
+        if result != windows::Win32::Foundation::WIN32_ERROR(0) {
+            return None;
+        }
+        // Trim the trailing NUL terminator(s) REG_SZ/REG_EXPAND_SZ data
+        // includes, matching `RegRead`'s own string return.
+        while buffer.last() == Some(&0) {
+            buffer.pop();
+        }
+        Some(String::from_utf16_lossy(&buffer))
     }
 
     fn reg_delete_key(&mut self, key: &str) {
+        // `RegDeleteKeyW` (the API this used before this fix) refuses to
+        // delete a key that still has subkeys -- it is *not* recursive,
+        // unlike AutoIt's own `RegDelete()`, which deletes a key and
+        // everything under it in one call (verified against AutoIt's
+        // documented behavior while porting C204, which relies on
+        // exactly this to remove a ProgID key's `\DefaultIcon`/
+        // `\shell\open\command`/`\command` subkeys in one `RegDelete`
+        // call). `RegDeleteTreeW` is the real recursive-delete API this
+        // needs -- every prior caller of `reg_delete_key` (C069's
+        // Exeinfo PE registry backup/restore, C201-C203's context-menu
+        // verb keys, which also have their own `\command` subkey) gets
+        // this fix too, not just C204's new call sites.
         let (root, subkey) = parse_reg_key(key);
         let subkey_wide = to_wide(&subkey);
         unsafe {
-            let _ = RegDeleteKeyW(root, PCWSTR(subkey_wide.as_ptr()));
+            let _ = RegDeleteTreeW(root, PCWSTR(subkey_wide.as_ptr()));
         }
     }
 

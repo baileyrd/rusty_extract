@@ -23,6 +23,37 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C204 (partial) — File-association registration
+**2026-08-24**
+
+- **Extended `automation` further**: `GuiAutomation::reg_read_string`
+  (`_ShellFile_Uninstall`'s existing-ProgID lookup) and
+  `GuiAutomation::reg_write_expand_string` (`_ShellFile_Install`'s two
+  `Icon` writes — the one real `REG_EXPAND_SZ` call site in this whole
+  capability group, confirming C202's "not needed for
+  `GUI_ContextMenu_OK`" finding was correctly scoped to that function
+  specifically).
+- **Real bug found and fixed**: `Win32GuiAutomation::reg_delete_key`
+  only called `RegDeleteKeyW`, which — unlike AutoIt's own
+  `RegDelete()` — refuses to delete a key that still has subkeys.
+  `RegDeleteTreeW` is the real recursive-delete API and is what the
+  fix now calls. This wasn't only a C204 concern: every prior
+  `reg_delete_key` caller gets the fix too, including C201-C203's own
+  context-menu verb-key deletions and C069's Exeinfo PE registry
+  restore.
+- **Added:** `gui::file_assoc` — `strip_leading_dot`/
+  `parse_extension_list`/`resolve_registry_scope` (shared parsing/
+  formatting), `should_remove_association` (the existing-lookup gate),
+  `build_install_writes` (the full 8-write sequence, preserving the
+  "two overlapping association styles" verbatim), and
+  `resolve_file_assoc_apply_plan` (the top-level dispatch: every call
+  uninstalls the old tracked extensions regardless of enable/disable;
+  only enabling produces a fresh install plan).
+- **Scope — not wired to a real window or real registry I/O.**
+- Tests: `gui::file_assoc::tests` (8), `automation::fake::tests` (+2).
+
+---
+
 ## C203 (partial) — Context-menu registry removal/teardown
 **2026-08-24**
 

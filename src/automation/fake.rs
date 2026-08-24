@@ -18,8 +18,10 @@ use crate::extract::{Invocation, WindowMode};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Call {
     RegReadDword(String, String),
+    RegReadString(String, String),
     RegWriteDword(String, String, i64),
     RegWriteString(String, String, String),
+    RegWriteExpandString(String, String, String),
     RegDeleteKey(String),
     Run(Invocation),
     WinWait(String, u64),
@@ -52,6 +54,7 @@ pub struct FakeGuiAutomation {
     calls: Vec<Call>,
     registry: HashMap<(String, String), i64>,
     string_registry: HashMap<(String, String), String>,
+    expand_string_registry: HashMap<(String, String), String>,
     win_wait_results: HashMap<String, Option<WindowHandle>>,
     control_get_text_results: HashMap<(WindowHandle, String), String>,
     control_get_handle_results: HashMap<(WindowHandle, String), Option<ControlHandle>>,
@@ -92,6 +95,22 @@ impl FakeGuiAutomation {
     pub fn reg_string(&self, key: &str, value_name: &str) -> Option<&String> {
         self.string_registry
             .get(&(key.to_string(), value_name.to_string()))
+    }
+
+    /// Reads back whatever `reg_write_expand_string` last stored for
+    /// `(key, value_name)`. `None` if never written.
+    pub fn reg_expand_string(&self, key: &str, value_name: &str) -> Option<&String> {
+        self.expand_string_registry
+            .get(&(key.to_string(), value_name.to_string()))
+    }
+
+    /// Pre-seeds a `REG_SZ` value so `reg_read_string` returns
+    /// `Some(value)` for it -- the string-valued counterpart of
+    /// [`Self::set_reg_dword`], used to script `_ShellFile_Uninstall`'s
+    /// (C204) existing-ProgID lookup in tests.
+    pub fn set_reg_string(&mut self, key: &str, value_name: &str, value: &str) {
+        self.string_registry
+            .insert((key.to_string(), value_name.to_string()), value.to_string());
     }
 
     /// Scripts `win_wait`'s result for `title_or_spec`. Unscripted titles
@@ -192,6 +211,16 @@ impl GuiAutomation for FakeGuiAutomation {
             .copied()
     }
 
+    fn reg_read_string(&mut self, key: &str, value_name: &str) -> Option<String> {
+        self.calls
+            .push(Call::RegReadString(key.to_string(), value_name.to_string()));
+        let lookup = (key.to_string(), value_name.to_string());
+        self.string_registry
+            .get(&lookup)
+            .or_else(|| self.expand_string_registry.get(&lookup))
+            .cloned()
+    }
+
     fn reg_write_dword(&mut self, key: &str, value_name: &str, value: i64) {
         self.calls.push(Call::RegWriteDword(
             key.to_string(),
@@ -212,10 +241,21 @@ impl GuiAutomation for FakeGuiAutomation {
             .insert((key.to_string(), value_name.to_string()), value.to_string());
     }
 
+    fn reg_write_expand_string(&mut self, key: &str, value_name: &str, value: &str) {
+        self.calls.push(Call::RegWriteExpandString(
+            key.to_string(),
+            value_name.to_string(),
+            value.to_string(),
+        ));
+        self.expand_string_registry
+            .insert((key.to_string(), value_name.to_string()), value.to_string());
+    }
+
     fn reg_delete_key(&mut self, key: &str) {
         self.calls.push(Call::RegDeleteKey(key.to_string()));
         self.registry.retain(|(k, _), _| k != key);
         self.string_registry.retain(|(k, _), _| k != key);
+        self.expand_string_registry.retain(|(k, _), _| k != key);
     }
 
     fn run(&mut self, invocation: &Invocation) -> u32 {
@@ -437,6 +477,35 @@ mod tests {
                 "Extract with UniExtract".to_string()
             )]
         );
+    }
+
+    #[test]
+    fn reg_write_expand_string_reads_back_and_records_the_call() {
+        let mut fake = FakeGuiAutomation::new();
+        fake.reg_write_expand_string(r"HKCU\Software\Classes\UniExtract", "Icon", "%1,0");
+        assert_eq!(
+            fake.reg_expand_string(r"HKCU\Software\Classes\UniExtract", "Icon"),
+            Some(&"%1,0".to_string())
+        );
+        assert_eq!(
+            fake.calls(),
+            vec![Call::RegWriteExpandString(
+                r"HKCU\Software\Classes\UniExtract".to_string(),
+                "Icon".to_string(),
+                "%1,0".to_string()
+            )]
+        );
+    }
+
+    #[test]
+    fn reg_read_string_finds_seeded_values_of_either_string_type() {
+        let mut fake = FakeGuiAutomation::new();
+        fake.set_reg_string(r"HKCU\Foo", "", "UniExtract.zip");
+        assert_eq!(
+            fake.reg_read_string(r"HKCU\Foo", ""),
+            Some("UniExtract.zip".to_string())
+        );
+        assert_eq!(fake.reg_read_string(r"HKCU\Bar", ""), None);
     }
 
     #[test]
