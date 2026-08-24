@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C201 (partial) — Explorer context-menu registration dialog
+**2026-08-24**
+
+- **Added:** `gui::context_menu` — `resolve_shell_registration_scan`
+  (the per-verb + aggregate scan shared by the simple- and
+  cascading-mode registry probes, confirming the flagged quirk: the
+  "all users" toggle reflects whichever scope the *last* matching verb
+  happened to be in, all-users probed first then per-user, so
+  simultaneous stale registrations in both scopes let the per-user
+  check silently win), `resolve_context_menu_picture_filename` (the
+  Simple/Cascading asset swap), `resolve_context_menu_activate` (the
+  full enable/disable cascade — `None` fields mark controls the
+  source's own admin/Win7 guards leave untouched, matching that no
+  self-elevation/UAC prompt exists), `should_force_check_all_verbs`
+  (the "enable with nothing checked" fallback, reused by both
+  `activate` and `OK`), `resolve_registration_mode` (the
+  Simple-vs-Cascading dispatch), and `resolve_add_checkbox_state`/
+  `should_apply_file_assoc_after_confirmation`/
+  `should_remove_file_assoc` (the file-association sub-flow's gates).
+- **Corrects this row's own function list**: it omitted
+  `GUI_ContextMenu_OK`, whose registration-mode dispatch and
+  file-association handling this PR also ports.
+- **Scope — not wired to a real window or real registry I/O.**
+- Tests: `gui::context_menu::tests` (24).
+
+---
+
 ## C200 (partial) — Missing-plugin and missing-FFmpeg first-run dialogs
 **2026-08-24**
 
