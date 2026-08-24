@@ -419,6 +419,15 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   C187's deferred `AddDirectory`/`PopulateAndQueue` drop cases. Real
   batch execution, the queue-edit window, and queue persistence aren't
   wired — stays `REQUIRED`.
+- C189 (partial): `warn_execute` ports `Warn_Execute`'s dispatch
+  (warning-disabled always proceeds; a shown-and-declined dialog aborts
+  and cleans up only a `$createdir`-created output directory, mirroring
+  C179's `free_space::decide_prompt_action` shape) and the "don't ask
+  again" persistence decision. Verified a real `Opt("GUIOnEventMode")`
+  restore bug in the source, moot under `egui`'s architecture. The real
+  confirm/cancel dialog isn't wired — its ~13 call sites are all inside
+  the extraction dispatch table, which the GUI doesn't drive yet — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
