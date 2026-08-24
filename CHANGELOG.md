@@ -539,6 +539,15 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   so a missing excluded plugin binary inflates the computed size by
   one byte. Not wired to real network/file I/O (D003) — stays
   `REQUIRED`.
+- C207 (partial): new `update_orchestration` module ports `CheckUpdate`'s
+  decision tree (interval debounce, mode-gated main-executable compare,
+  relaunch parameters, the mode-override-after-decline quirk, the
+  helper-update apply/relaunch-elevated branch, the "up to date" gate),
+  threading the `GUI_UpdatePrompt`/`Prompt` seams through as plain
+  booleans. Verified that declining the main-executable update also
+  silently suppresses the helper-files and FFmpeg checks for that run.
+  Not wired to real I/O (`Exit`/`ShellExecute`/`SendStats`) — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
