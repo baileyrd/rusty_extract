@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C189 (partial) — Pre-execution warning gate
+**2026-08-24**
+
+- **Added:** `warn_execute::decide_warn_execute_outcome` ports
+  `Warn_Execute`'s dispatch — warning disabled skips the dialog and
+  always proceeds; a shown-and-declined dialog aborts, cleaning up only
+  a temp output directory this run itself created. Mirrors
+  `free_space::decide_prompt_action`'s (C179) same `$createdir`-gated
+  cleanup shape. `should_disable_warn_execute_permanently` ports the
+  "don't ask again" checkbox's persistence.
+- **Verified, not fixed:** `GUI_Warn_Execute` never restores
+  `Opt("GUIOnEventMode")` back to 1 after its dialog closes (a real
+  copy-paste-looking bug in the source), but this is moot for the port
+  since `egui`'s immediate-mode loop has no equivalent toggle to get
+  wrong.
+- **Scope — the real confirm/cancel dialog stays unwired.** Every one of
+  `Warn_Execute`'s ~13 call sites sits inside the extraction dispatch
+  table, which this port's GUI doesn't drive at all yet (same gap
+  blocking C188's Batch "Run" branch and the OK button's real
+  extraction in C183/C186); a dialog with nothing that could trigger it
+  would be dead code, not a meaningful port.
+- Tests: `warn_execute::tests` (4).
+
+---
+
 ## C188 (partial) — Batch queue management UI
 **2026-08-24**
 
