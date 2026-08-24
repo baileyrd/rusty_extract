@@ -19,6 +19,7 @@ use crate::extract::{Invocation, WindowMode};
 pub enum Call {
     RegReadDword(String, String),
     RegWriteDword(String, String, i64),
+    RegWriteString(String, String, String),
     RegDeleteKey(String),
     Run(Invocation),
     WinWait(String, u64),
@@ -50,6 +51,7 @@ pub enum Call {
 pub struct FakeGuiAutomation {
     calls: Vec<Call>,
     registry: HashMap<(String, String), i64>,
+    string_registry: HashMap<(String, String), String>,
     win_wait_results: HashMap<String, Option<WindowHandle>>,
     control_get_text_results: HashMap<(WindowHandle, String), String>,
     control_get_handle_results: HashMap<(WindowHandle, String), Option<ControlHandle>>,
@@ -82,6 +84,14 @@ impl FakeGuiAutomation {
     pub fn set_reg_dword(&mut self, key: &str, value_name: &str, value: i64) {
         self.registry
             .insert((key.to_string(), value_name.to_string()), value);
+    }
+
+    /// Reads back whatever `reg_write_string` last stored for `(key,
+    /// value_name)`, for asserting a write actually took effect rather
+    /// than only that the call happened. `None` if never written.
+    pub fn reg_string(&self, key: &str, value_name: &str) -> Option<&String> {
+        self.string_registry
+            .get(&(key.to_string(), value_name.to_string()))
     }
 
     /// Scripts `win_wait`'s result for `title_or_spec`. Unscripted titles
@@ -192,9 +202,20 @@ impl GuiAutomation for FakeGuiAutomation {
             .insert((key.to_string(), value_name.to_string()), value);
     }
 
+    fn reg_write_string(&mut self, key: &str, value_name: &str, value: &str) {
+        self.calls.push(Call::RegWriteString(
+            key.to_string(),
+            value_name.to_string(),
+            value.to_string(),
+        ));
+        self.string_registry
+            .insert((key.to_string(), value_name.to_string()), value.to_string());
+    }
+
     fn reg_delete_key(&mut self, key: &str) {
         self.calls.push(Call::RegDeleteKey(key.to_string()));
         self.registry.retain(|(k, _), _| k != key);
+        self.string_registry.retain(|(k, _), _| k != key);
     }
 
     fn run(&mut self, invocation: &Invocation) -> u32 {
@@ -394,6 +415,36 @@ mod tests {
         fake.reg_delete_key(r"HKCU\Foo");
         assert_eq!(fake.reg_read_dword(r"HKCU\Foo", "A"), None);
         assert_eq!(fake.reg_read_dword(r"HKCU\Foo", "B"), None);
+    }
+
+    #[test]
+    fn reg_write_string_reads_back_and_records_the_call() {
+        let mut fake = FakeGuiAutomation::new();
+        fake.reg_write_string(
+            r"HKCR\*\shell\UniExtract.Verb",
+            "",
+            "Extract with UniExtract",
+        );
+        assert_eq!(
+            fake.reg_string(r"HKCR\*\shell\UniExtract.Verb", ""),
+            Some(&"Extract with UniExtract".to_string())
+        );
+        assert_eq!(
+            fake.calls(),
+            vec![Call::RegWriteString(
+                r"HKCR\*\shell\UniExtract.Verb".to_string(),
+                String::new(),
+                "Extract with UniExtract".to_string()
+            )]
+        );
+    }
+
+    #[test]
+    fn reg_delete_also_clears_string_values_under_the_key() {
+        let mut fake = FakeGuiAutomation::new();
+        fake.reg_write_string(r"HKCR\Foo", "", "bar");
+        fake.reg_delete_key(r"HKCR\Foo");
+        assert_eq!(fake.reg_string(r"HKCR\Foo", ""), None);
     }
 
     #[test]
