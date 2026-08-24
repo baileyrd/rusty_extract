@@ -31,4 +31,5 @@ pub mod status;
 pub mod teelog;
 pub mod type_override;
 pub mod unicode_relocation;
+pub mod update_index;
 pub mod warn_execute;

@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C206 (partial) — Update-index fetch/diff logic
+**2026-08-24**
+
+- **Added:** new `update_index` module porting `_UpdateGetIndex`'s
+  wire-format parsing (LF-separated rows, comma-separated
+  `path,size,md5` columns), `_UpdateGetSize`'s plugin-binary exclusion
+  logic, `_UpdateFileCompare`'s size/hash diff decision, and
+  `CheckUpdateHelpers`'s skip/update-found/recurse branching.
+- **Verified quirks, preserved rather than "fixed"**: directories are
+  compared by size only, never hash; a file's hash is only computed
+  once its size already matches; the plugin-binary exclusion list is a
+  hardcoded 17 entries that must be kept in sync by hand; the
+  progress-bar denominator floors at 200, so it never visually reaches
+  100% with fewer entries.
+- **New quirk found beyond the manifest note**: AutoIt's `FileGetSize`
+  returns `-1` for a missing file, and the exclusion subtraction has no
+  existence check — so a missing excluded plugin binary *inflates* the
+  computed size by one byte instead of leaving it unchanged. Preserved
+  via signed sizes and a caller-supplied lookup with the same
+  `-1`-for-missing contract.
+- **Scope — not wired to real network/file I/O.** The index fetch
+  itself (`_INetGetSource`) and the download loop (`_UpdateHelpers`)
+  are the deferred network-updater capability (D003); this row covers
+  only the parsing and decision logic.
+
+---
+
 ## C205 (partial) — CLI update-verb dispatch
 **2026-08-24**
 
