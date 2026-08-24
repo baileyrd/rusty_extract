@@ -119,7 +119,7 @@ pub fn should_show_stats(distinct_key_count: usize) -> bool {
 /// cosmetic slice ordering, not filtering, since that array only ever
 /// has 4 entries).
 pub fn top_n_by_count(mut entries: Vec<(String, i64)>, limit: usize) -> Vec<(String, i64)> {
-    entries.sort_by(|a, b| b.1.cmp(&a.1));
+    entries.sort_by_key(|entry| std::cmp::Reverse(entry.1));
     entries.truncate(limit);
     entries
 }
