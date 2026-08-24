@@ -23,6 +23,38 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C190 (partial) — Preferences dialog and instant-apply tray toggles
+**2026-08-24**
+
+- **Added:** `gui::prefs_dialog` — the real quirks inside `GUI_Prefs_OK`
+  and the four standalone toggles: `decide_history_toggle_outcome`
+  (unchecking "remember history" deletes the two history INI keys
+  outright, not just zeroes a flag), `resolve_update_interval_display_index`/
+  `resolve_update_interval_value` (the fixed preset table, folding in
+  D003's `iOptUpdateInterval`, including the "Custom" selection keeping
+  the previously-stored value), `decide_send_stats_command`/
+  `should_check_update_after_nightly_toggle` (both only fire their
+  network side effect on an actual change), `resolve_checked_delete_source_file_radio`
+  (reusing C024's `parse_delete_source_file_option`),
+  `should_persist_scan_only_pref` (the startup-vs-user-click save-skip
+  parameter), and `resolve_topmost_ex_style`.
+- `gui::app::MainWindow` wires two pieces for real: a "Lock output
+  directory" checkbox (mirroring the already-consumed
+  `lock_output_directory` field from C186) and "Always on top" via
+  `egui`'s `ViewportCommand::WindowLevel` — applied live rather than
+  replicating the source's destroy-and-recreate-the-window workaround
+  (`WS_EX_TOPMOST` can't be changed on a live Win32 window handle;
+  `egui` has no such limitation).
+- **Scope — the Preferences dialog window itself has no real UI yet**
+  (~20 controls, no real prefs-file read/write pathway to back it —
+  same category of gap as C188/C189's own unwired dialogs).
+  `GUI_Silent`/`GUI_KeepOpen` aren't wired either, since their real
+  consumers (silent-mode extraction, batch-queue-empty self-relaunch)
+  don't exist in this port's GUI yet.
+- Tests: `gui::prefs_dialog::tests` (15).
+
+---
+
 ## C189 (partial) — Pre-execution warning gate
 **2026-08-24**
 

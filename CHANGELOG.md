@@ -428,6 +428,15 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   confirm/cancel dialog isn't wired — its ~13 call sites are all inside
   the extraction dispatch table, which the GUI doesn't drive yet — stays
   `REQUIRED`.
+- C190 (partial): `gui::prefs_dialog` ports `GUI_Prefs_OK`'s real
+  quirks (history-delete-on-uncheck, update-interval preset table
+  folding in D003, send-stats/nightly-update change-only network
+  gates, delete-source-file radio resolution, scan-only save-skip
+  parameter, topmost ex-style). Wired a "Lock output directory"
+  checkbox and "Always on top" (via `ViewportCommand::WindowLevel`,
+  superseding the source's window-recreate workaround) for real. The
+  Preferences dialog window itself, plus `GUI_Silent`/`GUI_KeepOpen`,
+  aren't wired — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

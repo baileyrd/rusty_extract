@@ -20,6 +20,7 @@ use crate::automation::win32::Win32GuiAutomation;
 use crate::gui::batch_queue;
 use crate::gui::drag_drop;
 use crate::gui::file_input;
+use crate::gui::prefs_dialog;
 use crate::gui::theme;
 use crate::gui::tray_icon_shell::{TrayCommand, TrayHandle};
 use crate::gui::tray_status_box::{self, ScreenRect};
@@ -82,6 +83,12 @@ pub struct MainWindow {
     /// a documented simplification since nothing here reads or writes
     /// prefs yet.
     batch_queue: Vec<String>,
+    /// `GUI_Topmost`'s toggle (capability C190). Applied for real via
+    /// `egui::ViewportCommand::WindowLevel` -- see
+    /// `gui::prefs_dialog::resolve_topmost_ex_style`'s doc comment for
+    /// why that supersedes the source's own recreate-the-window
+    /// workaround rather than needing to replicate it.
+    topmost: bool,
 }
 
 impl MainWindow {
@@ -113,6 +120,7 @@ impl MainWindow {
             tray: TrayHandle::new(no_status_box, false),
             status_box: None,
             batch_queue: Vec::new(),
+            topmost: false,
         }
     }
 
@@ -382,6 +390,19 @@ impl MainWindow {
         }
     }
 
+    /// Ports `GUI_Topmost` (UniExtract.au3:6356-6369) for real, via
+    /// `ViewportCommand::WindowLevel` rather than the source's own
+    /// destroy-and-recreate-the-window workaround -- see
+    /// `gui::prefs_dialog::resolve_topmost_ex_style`'s doc comment.
+    fn apply_topmost(&self, ctx: &egui::Context) {
+        let level = if prefs_dialog::resolve_topmost_ex_style(self.topmost) != 0 {
+            egui::WindowLevel::AlwaysOnTop
+        } else {
+            egui::WindowLevel::Normal
+        };
+        ctx.send_viewport_cmd(egui::ViewportCommand::WindowLevel(level));
+    }
+
     /// Ports `GUI_Directory` (UniExtract.au3:6285-6300).
     fn browse_for_output_dir(&mut self) {
         let seed = file_input::resolve_folder_picker_seed(
@@ -473,7 +494,9 @@ impl eframe::App for MainWindow {
                 ui.menu_button("File", |ui| {
                     let _ = ui.button("Open...");
                     let _ = ui.button("Keep window open");
-                    let _ = ui.button("Always on top");
+                    if ui.checkbox(&mut self.topmost, "Always on top").changed() {
+                        self.apply_topmost(ctx);
+                    }
                     ui.separator();
                     let _ = ui.button("Show");
                     let _ = ui.button("Clear");
@@ -530,6 +553,15 @@ impl eframe::App for MainWindow {
                     self.browse_for_output_dir();
                 }
             });
+
+            // `GUI_KeepOutdir` (UniExtract.au3:6303-6306) -- real
+            // read-checkbox-then-mirror-into-state wiring; persistence to
+            // the real prefs file isn't wired yet, the same documented
+            // gap as C183/C185's own position/preference notes.
+            ui.add_enabled(
+                output_dir_enabled,
+                egui::Checkbox::new(&mut self.lock_output_directory, "Lock output directory"),
+            );
 
             ui.horizontal(|ui| {
                 if ui.button("OK").clicked() {
