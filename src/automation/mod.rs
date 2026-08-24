@@ -70,6 +70,13 @@ pub trait GuiAutomation {
     fn reg_read_dword(&mut self, key: &str, value_name: &str) -> Option<i64>;
     /// `RegWrite($key, $value_name, "REG_DWORD", $value)`.
     fn reg_write_dword(&mut self, key: &str, value_name: &str, value: i64);
+    /// `RegWrite($key, $value_name, "REG_SZ", $value)` — added for C202
+    /// (`GUI_ContextMenu_OK`'s registry writes, UniExtract.au3:7174-7198),
+    /// the first call site needing a string-valued write rather than a
+    /// `REG_DWORD` one. `value_name` of `""` writes the key's default
+    /// (unnamed) value, matching every `_RegWrite($sKey, "", "REG_SZ",
+    /// ...)` call at that site.
+    fn reg_write_string(&mut self, key: &str, value_name: &str, value: &str);
     /// `RegDelete($key)`.
     fn reg_delete_key(&mut self, key: &str);
 

@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C202 (partial) — Context-menu registry write/apply
+**2026-08-24**
+
+- **Extended `automation` first**, as this row's own note called for:
+  `GuiAutomation::reg_write_string` (`REG_SZ` writes, implemented for
+  both `Win32GuiAutomation` — real `RegSetValueExW`, cross-compiled —
+  and `FakeGuiAutomation`) and `HKEY_CLASSES_ROOT` support in
+  `parse_reg_key`.
+- **Verified correction**: only `REG_SZ` writes actually appear at the
+  cited call sites — no `REG_EXPAND_SZ` write exists, so that half of
+  the originally-scoped extension wasn't needed.
+- **Added:** `gui::context_menu_registry` — `build_simple_mode_writes`/
+  `build_cascading_mode_writes` (the per-verb write plan for each mode,
+  including the icon-write asymmetry — Windows-7-gated in simple mode,
+  unconditional in cascading mode, actually equivalent in practice
+  since cascading only runs when Windows 7+ is already confirmed) and
+  `resolve_removal_targets` (the full-wipe key list). The
+  self-corrects-to-all-verbs-on quirk reuses C201's
+  `should_force_check_all_verbs`, not re-ported.
+- **Scope — not wired to a real window.** This module produces the
+  write/removal plan for a caller to execute, not the execution
+  itself.
+- Tests: `gui::context_menu_registry::tests` (8),
+  `automation::fake::tests` (+2 for `reg_write_string`).
+
+---
+
 ## C201 (partial) — Explorer context-menu registration dialog
 **2026-08-24**
 

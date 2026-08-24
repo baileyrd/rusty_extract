@@ -505,6 +505,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   dispatch, and the file-association sub-flow's gates. Corrects this
   row's function list (`GUI_ContextMenu_OK` was omitted). Not wired to
   a real window or registry I/O — stays `REQUIRED`.
+- C202 (partial): extended `automation` with `GuiAutomation::reg_write_string`
+  (`REG_SZ` writes) and `HKEY_CLASSES_ROOT` root support, as this row's
+  own note required. Verified only `REG_SZ` writes are actually needed
+  (no `REG_EXPAND_SZ` call site exists). `gui::context_menu_registry`
+  ports the simple/cascading write plans and the full-wipe removal
+  list. Not wired to a real window — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

@@ -18,8 +18,8 @@ use windows::core::PCWSTR;
 use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::Registry::{
     RegCloseKey, RegCreateKeyExW, RegDeleteKeyW, RegQueryValueExW, RegSetValueExW, HKEY,
-    HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, REG_DWORD, REG_OPTION_NON_VOLATILE,
-    REG_VALUE_TYPE,
+    HKEY_CLASSES_ROOT, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, REG_DWORD,
+    REG_OPTION_NON_VOLATILE, REG_SZ, REG_VALUE_TYPE,
 };
 use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
 use windows::Win32::UI::Input::KeyboardAndMouse::{VK_DOWN, VK_RETURN, VK_RIGHT};
@@ -59,14 +59,17 @@ fn window_mode_to_show_cmd(mode: WindowMode) -> SHOW_WINDOW_CMD {
 }
 
 /// Splits `"HKCU\Software\ExEi-pe"` into its root [`HKEY`] and subkey path.
-/// Only `HKCU`/`HKLM` appear in this port's cited call sites; any other
-/// root falls back to `HKEY_CURRENT_USER` rather than panicking, since a
-/// malformed key string here would otherwise crash automation entirely
-/// over a value this crate doesn't control the shape of.
+/// `HKCU`/`HKLM` cover this port's original call sites; `HKCR` was added
+/// for C202 (`GUI_ContextMenu_OK`'s context-menu registration, which
+/// writes under `HKEY_CLASSES_ROOT`). Any other root falls back to
+/// `HKEY_CURRENT_USER` rather than panicking, since a malformed key
+/// string here would otherwise crash automation entirely over a value
+/// this crate doesn't control the shape of.
 fn parse_reg_key(key: &str) -> (HKEY, String) {
     match key.split_once('\\') {
         Some(("HKCU", rest)) => (HKEY_CURRENT_USER, rest.to_string()),
         Some(("HKLM", rest)) => (HKEY_LOCAL_MACHINE, rest.to_string()),
+        Some(("HKCR", rest)) => (HKEY_CLASSES_ROOT, rest.to_string()),
         Some((_, rest)) => (HKEY_CURRENT_USER, rest.to_string()),
         None => (HKEY_CURRENT_USER, key.to_string()),
     }
@@ -228,6 +231,45 @@ impl GuiAutomation for Win32GuiAutomation {
                     &data as *const u32 as *const u8,
                     4,
                 )),
+            );
+            let _ = RegCloseKey(hkey);
+        }
+    }
+
+    fn reg_write_string(&mut self, key: &str, value_name: &str, value: &str) {
+        let (root, subkey) = parse_reg_key(key);
+        let subkey_wide = to_wide(&subkey);
+        let value_name_wide = to_wide(value_name);
+        let mut hkey = HKEY::default();
+        let opened = unsafe {
+            RegCreateKeyExW(
+                root,
+                PCWSTR(subkey_wide.as_ptr()),
+                Some(0),
+                PCWSTR::null(),
+                REG_OPTION_NON_VOLATILE,
+                KEY_ALL_ACCESS,
+                None,
+                &mut hkey,
+                None,
+            )
+        };
+        if opened != windows::Win32::Foundation::WIN32_ERROR(0) {
+            return;
+        }
+        // Includes the trailing NUL `to_wide` already appends -- REG_SZ's
+        // own documented convention, matching AutoIt's `RegWrite`.
+        let value_wide = to_wide(value);
+        let value_bytes = unsafe {
+            std::slice::from_raw_parts(value_wide.as_ptr() as *const u8, value_wide.len() * 2)
+        };
+        unsafe {
+            let _ = RegSetValueExW(
+                hkey,
+                PCWSTR(value_name_wide.as_ptr()),
+                Some(0),
+                REG_SZ,
+                Some(value_bytes),
             );
             let _ = RegCloseKey(hkey);
         }
