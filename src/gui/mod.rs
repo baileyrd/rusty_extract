@@ -19,6 +19,7 @@ pub mod first_start;
 pub mod layout;
 pub mod plugin_manager;
 pub mod prefs_dialog;
+pub mod prompt;
 pub mod theme;
 pub mod tray;
 pub mod tray_status_box;
