@@ -525,6 +525,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   extension-list parsing, the install write plan (preserving the
   "two overlapping association styles" verbatim), and the top-level
   enable/disable dispatch. Stays `REQUIRED`.
+- C205 (partial): `cli::match_update_verb` ports the `/update`/
+  `/updatehelper`/`/updatehelpers`/`/afterupdate` dispatch, preserving
+  the verified case-sensitivity inconsistency between `/updatehelper`
+  and `/updatehelpers`. Not wired to the real updater (D003) — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

@@ -68,11 +68,55 @@ pub fn has_batch_flag(args: &[String]) -> bool {
     args.iter().any(|a| a.eq_ignore_ascii_case("/batch"))
 }
 
+/// C205: `/update`, `/updatehelper`, `/updatehelpers`, `/afterupdate` —
+/// ports the update-related `ElseIf` branches of `ParseCommandLine`'s
+/// dispatch chain (UniExtract.au3:608-617), covering D007. `first_arg`
+/// is `$cmdline[1]`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UpdateVerb {
+    /// `_AfterUpdate()` — post-update cleanup/relaunch.
+    AfterUpdate,
+    /// `CheckUpdate()` then `terminate($STATUS_SILENT)` — a plain,
+    /// interactive-capable update check.
+    Update,
+    /// `CheckUpdate($UPDATEMSG_SILENT, False, $UPDATE_HELPER)` then
+    /// `$prompt = True` — a silent helper-only update check, followed by
+    /// the main GUI (matching the source's own zero-args prompt branch).
+    UpdateHelper,
+    /// None of the above matched.
+    None,
+}
+
+/// Ports UniExtract.au3:608-617's dispatch.
+///
+/// **Verified quirk, preserved rather than "fixed"**: `/updatehelper`
+/// is matched case-insensitively (`$cmdline[1] = "/updatehelper"`, a
+/// bare `=`), but `/updatehelpers` is matched case-*sensitively*
+/// (`$cmdline[1] == "/updatehelpers"`, AutoIt's explicit `==` operator
+/// overriding the script's default case-insensitive comparison mode) —
+/// a real inconsistency between the two spellings, not obviously
+/// intentional. One concrete consequence: `/UpdateHelpers` (any casing
+/// other than the exact lowercase spelling) matches *neither* branch and
+/// falls all the way through to the `Else` case, silently attempting to
+/// treat it as a file to extract, rather than being recognized as an
+/// update verb at all.
+pub fn match_update_verb(first_arg: &str) -> UpdateVerb {
+    if first_arg.eq_ignore_ascii_case("/afterupdate") {
+        UpdateVerb::AfterUpdate
+    } else if first_arg.eq_ignore_ascii_case("/update") {
+        UpdateVerb::Update
+    } else if first_arg.eq_ignore_ascii_case("/updatehelper") || first_arg == "/updatehelpers" {
+        UpdateVerb::UpdateHelper
+    } else {
+        UpdateVerb::None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
         has_batch_flag, has_close_flag, has_nolog_flag, has_nostats_flag, has_silent_flag,
-        is_batchclear_flag, is_help_flag,
+        is_batchclear_flag, is_help_flag, match_update_verb, UpdateVerb,
     };
 
     fn args(items: &[&str]) -> Vec<String> {
@@ -149,5 +193,43 @@ mod tests {
         assert!(!has_batch_flag(&args(&["/batchclear"])));
         assert!(!has_batch_flag(&args(&["file.zip"])));
         assert!(!has_batch_flag(&args(&[])));
+    }
+
+    /// Parity test for capability C205: `/afterupdate` and `/update`
+    /// match case-insensitively, same as every other verb here.
+    #[test]
+    fn afterupdate_and_update_match_case_insensitively() {
+        assert_eq!(match_update_verb("/afterupdate"), UpdateVerb::AfterUpdate);
+        assert_eq!(match_update_verb("/AfterUpdate"), UpdateVerb::AfterUpdate);
+        assert_eq!(match_update_verb("/update"), UpdateVerb::Update);
+        assert_eq!(match_update_verb("/UPDATE"), UpdateVerb::Update);
+    }
+
+    /// Parity test: `/updatehelper` (no trailing "s") matches
+    /// case-insensitively.
+    #[test]
+    fn updatehelper_matches_case_insensitively() {
+        assert_eq!(match_update_verb("/updatehelper"), UpdateVerb::UpdateHelper);
+        assert_eq!(match_update_verb("/UpdateHelper"), UpdateVerb::UpdateHelper);
+    }
+
+    /// Parity test for the verified case-sensitivity inconsistency:
+    /// `/updatehelpers` only matches in its exact lowercase spelling —
+    /// any other casing matches neither branch and falls through to
+    /// `None`, unlike every other verb in this dispatch.
+    #[test]
+    fn updatehelpers_matches_only_the_exact_lowercase_spelling() {
+        assert_eq!(
+            match_update_verb("/updatehelpers"),
+            UpdateVerb::UpdateHelper
+        );
+        assert_eq!(match_update_verb("/UpdateHelpers"), UpdateVerb::None);
+        assert_eq!(match_update_verb("/UPDATEHELPERS"), UpdateVerb::None);
+    }
+
+    #[test]
+    fn unrelated_argument_matches_none() {
+        assert_eq!(match_update_verb("file.zip"), UpdateVerb::None);
+        assert_eq!(match_update_verb(""), UpdateVerb::None);
     }
 }
