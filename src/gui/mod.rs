@@ -12,6 +12,7 @@
 //! comment for the honesty caveat this carries, same as
 //! `automation::win32`/`dlllib::win32`).
 
+pub mod about;
 pub mod batch_queue;
 pub mod drag_drop;
 pub mod error_dialogs;

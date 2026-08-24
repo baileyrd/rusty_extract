@@ -23,6 +23,23 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C197 (partial) — About dialog and website menu actions
+**2026-08-24**
+
+- **Added:** `gui::about::resolve_about_logo_filename` — the one real
+  decision in this row: the high-contrast logo asset swap.
+- Everything else (version/timestamp/credits display, the per-install
+  GUID display, the three fixed-URL website menu actions) is static
+  composition or plain I/O with no decision logic to port.
+  `GUI_Close`'s multi-window active-detection trick is moot under
+  `egui`'s per-viewport model.
+- **Scope — not wired to a real window**, same treatment as every
+  other dialog this phase has ported, doubly so since the per-install
+  ID (C215) doesn't exist as GUI state yet either.
+- Tests: `gui::about::tests` (1).
+
+---
+
 ## C196 (partial) — Local usage statistics
 **2026-08-24**
 
