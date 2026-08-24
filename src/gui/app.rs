@@ -17,6 +17,7 @@
 //! the field actions below are placeholders those capabilities fill in.
 
 use crate::automation::win32::Win32GuiAutomation;
+use crate::gui::drag_drop;
 use crate::gui::file_input;
 use crate::gui::theme;
 use crate::gui::tray_icon_shell::{TrayCommand, TrayHandle};
@@ -230,6 +231,40 @@ impl MainWindow {
         }
     }
 
+    /// Ports `GUI_Drop` (UniExtract.au3:6710-6732). The file-path
+    /// extraction `WM_DROPFILES_UNICODE_FUNC` did in the source is
+    /// superseded entirely by `egui`'s own native drag-drop input (see
+    /// `gui::drag_drop`'s module doc comment) -- `ctx.input(...)` here
+    /// is the real replacement for that Win32 enumeration, not an
+    /// approximation of it. **Only the well-defined single-file case is
+    /// wired for real** ([`DropAction::PopulateOnly`]) -- a multi-file
+    /// drop or a dropped directory routes into the batch queue (C188),
+    /// which doesn't exist yet; silently only keeping the last of
+    /// several dropped files would be a worse outcome than doing
+    /// nothing, the same call already made for C186's multi-select
+    /// scope note.
+    fn handle_dropped_files(&mut self, ctx: &egui::Context) {
+        let dropped = ctx.input(|i| i.raw.dropped_files.clone());
+        if dropped.is_empty() {
+            return;
+        }
+        let items: Vec<drag_drop::DroppedPath> = dropped
+            .iter()
+            .filter_map(|f| f.path.as_ref())
+            .map(|p| drag_drop::DroppedPath {
+                path: p.display().to_string(),
+                exists: p.exists(),
+                is_directory: p.is_dir(),
+            })
+            .collect();
+        for (path, action) in drag_drop::decide_drop_actions(&items) {
+            if action == drag_drop::DropAction::PopulateOnly {
+                self.file_path = path;
+                self.drop_parse();
+            }
+        }
+    }
+
     /// Ports `GUI_Directory` (UniExtract.au3:6285-6300).
     fn browse_for_output_dir(&mut self) {
         let seed = file_input::resolve_folder_picker_seed(
@@ -300,6 +335,7 @@ impl Default for MainWindow {
 impl eframe::App for MainWindow {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.render_status_box(ctx);
+        self.handle_dropped_files(ctx);
 
         match self.tray.poll_command() {
             Some(TrayCommand::ToggleHideStatus(checked)) => self.no_status_box = checked,
