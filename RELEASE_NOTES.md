@@ -23,6 +23,25 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C205 (partial) — CLI update-verb dispatch
+**2026-08-24**
+
+- **Added:** `cli::match_update_verb` — the four-way dispatch for
+  `/update`, `/updatehelper`, `/updatehelpers`, `/afterupdate`,
+  alongside the module's existing C007-C013 flag detectors.
+- **Verified quirk, preserved rather than "fixed"**: `/updatehelper`
+  matches case-insensitively while `/updatehelpers` matches
+  case-*sensitively* — a real inconsistency. Concrete consequence: any
+  casing of `/updatehelpers` other than the exact lowercase spelling
+  matches neither branch and silently falls through to the
+  extraction-attempt path.
+- **Scope — not wired to the real updater.** `_AfterUpdate()`/
+  `CheckUpdate()` are the deferred network updater capability (D003);
+  this row covers only which verb an argument resolves to.
+- Tests: `cli::tests` (+4).
+
+---
+
 ## C204 (partial) — File-association registration
 **2026-08-24**
 
