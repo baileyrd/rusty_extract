@@ -27,6 +27,7 @@ pub mod stats;
 pub mod theme;
 pub mod tray;
 pub mod tray_status_box;
+pub mod update_prompt;
 pub mod window_state;
 
 #[cfg(windows)]
