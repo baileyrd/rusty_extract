@@ -516,6 +516,15 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   remaining gap: `should_teardown_file_assoc_before_rebuild`, the
   unconditional file-association teardown before any re-registration.
   Stays `REQUIRED`.
+- C204 (partial): extended `automation` with `reg_read_string`/
+  `reg_write_expand_string`. **Fixed a real bug**: `reg_delete_key`
+  used `RegDeleteKeyW`, which refuses to delete a key with subkeys
+  (unlike AutoIt's own recursive `RegDelete()`); switched to
+  `RegDeleteTreeW`, fixing every prior caller (C069, C201-C203) too,
+  not just this row's own new ones. `gui::file_assoc` ports the
+  extension-list parsing, the install write plan (preserving the
+  "two overlapping association styles" verbatim), and the top-level
+  enable/disable dispatch. Stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

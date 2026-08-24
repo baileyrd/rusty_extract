@@ -68,6 +68,14 @@ pub trait GuiAutomation {
     /// crate's callers always use it (every silenced value here is a
     /// `REG_DWORD`) — `None` on `@error` (the key/value didn't exist).
     fn reg_read_dword(&mut self, key: &str, value_name: &str) -> Option<i64>;
+    /// `RegRead($key, $value_name)` read back as a string rather than
+    /// coerced to a number — added for C204 (`_ShellFile_Uninstall`'s
+    /// `RegRead($sRegistryKey & "." & $sFileType, "")` lookup,
+    /// UniExtract.au3:7301), which needs the associated ProgID name
+    /// itself, not a numeric value. `None` on `@error` (missing
+    /// key/value), matching [`GuiAutomation::reg_read_dword`]'s own
+    /// convention.
+    fn reg_read_string(&mut self, key: &str, value_name: &str) -> Option<String>;
     /// `RegWrite($key, $value_name, "REG_DWORD", $value)`.
     fn reg_write_dword(&mut self, key: &str, value_name: &str, value: i64);
     /// `RegWrite($key, $value_name, "REG_SZ", $value)` — added for C202
@@ -77,6 +85,12 @@ pub trait GuiAutomation {
     /// (unnamed) value, matching every `_RegWrite($sKey, "", "REG_SZ",
     /// ...)` call at that site.
     fn reg_write_string(&mut self, key: &str, value_name: &str, value: &str);
+    /// `RegWrite($key, $value_name, "REG_EXPAND_SZ", $value)` — added for
+    /// C204 (`_ShellFile_Install`'s `Icon` value writes,
+    /// UniExtract.au3:7285,7288), which use `REG_EXPAND_SZ` specifically
+    /// (rather than `REG_SZ`) so Explorer expands any environment
+    /// variables the icon path might contain.
+    fn reg_write_expand_string(&mut self, key: &str, value_name: &str, value: &str);
     /// `RegDelete($key)`.
     fn reg_delete_key(&mut self, key: &str);
 
