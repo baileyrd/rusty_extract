@@ -23,6 +23,31 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C191 (partial) — First-start wizard
+**2026-08-24**
+
+- **Added:** `gui::first_start` — the page-navigation state machine
+  (`prev_button_visible`, `next_button_mode`, `resolve_action_button`)
+  ported as a pure function of the *current* page, reformulating
+  `GUI_FirstStart_Prev`/`_Next`/`_ShowPage`'s own delta-toggling side
+  effects into one declarative function per widget — verified
+  equivalent by tracing both the forward and backward traversal the
+  wizard's fixed 3-page structure actually produces. Also
+  `decide_missing_translation_outcome`, documenting the missing-
+  translation branch's real "always exits either way, only
+  conditionally restarts into an update first" shape.
+- **Deliberately not wired to any real `SavePref("ID", "")`/exit call.**
+  That branch is a hard-to-reverse, unusually severe response to a
+  missing string — the capability manifest itself flags it as needing
+  explicit sign-off before real implementation, not just porting.
+- **Scope — the wizard window itself stays unwired.** Its own pages
+  link out to `GUI_Prefs`/`GUI_ContextMenu` (C190/C192), neither a real
+  window yet, and its text needs translation-catalog infrastructure
+  (D006) this port doesn't have.
+- Tests: `gui::first_start::tests` (6).
+
+---
+
 ## C190 (partial) — Preferences dialog and instant-apply tray toggles
 **2026-08-24**
 
