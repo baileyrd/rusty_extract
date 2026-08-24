@@ -23,6 +23,30 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C215 (partial) — Per-install GUID generation
+**2026-08-24**
+
+- **Added:** new `guid` module porting the persistent pseudonymous
+  identifier's shaping logic: the empty-or-whitespace regeneration
+  trigger, the unconditional brace-strip, the fallback's
+  last-25-characters truncation, the primary-then-lazy-fallback
+  dispatch (the fallback closure only runs when actually needed), and
+  the hardcoded version-tag prefix.
+- **Real quirk flagged, not silently fixed, pending explicit
+  sign-off**: the fallback path's entropy comes entirely from two
+  calls to AutoIt's non-cryptographic `Random()`, each well under 20
+  bits — encrypting one weak-random value with another adds no real
+  entropy, producing a meaningfully smaller and more guessable ID
+  space than a true GUID. This PR only ports the existing shape.
+- **Verified quirk, preserved rather than "fixed"**: the hardcoded
+  `2R4` version-family tag prefix is permanent and never updates on a
+  later upgrade.
+- **Scope — not wired to real I/O.** `_WinAPI_CreateGUID()`,
+  `Random()`/`_Crypt_EncryptData`, and `SavePref`/`LoadPref` are the
+  caller's job.
+
+---
+
 ## C214 (partial) — Usage-stats telemetry beacon
 **2026-08-24**
 

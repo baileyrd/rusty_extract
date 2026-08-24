@@ -600,6 +600,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   enable/disable ordering quirk with a test that reproduces the
   failure mode (flip-then-send silently swallows the opt-out ping).
   Not wired to real network I/O — stays `REQUIRED`.
+- C215 (partial): new `guid` module ports the per-install GUID's
+  shaping logic (regeneration trigger, brace-strip, fallback
+  truncation, primary-then-lazy-fallback dispatch, version-tag
+  prefix). Flagged, not silently fixed: the fallback's entropy comes
+  entirely from two non-cryptographic `Random()` calls, producing a
+  meaningfully smaller and more guessable ID space than a true GUID —
+  pending explicit sign-off either way. Not wired to real I/O — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

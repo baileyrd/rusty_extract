@@ -19,6 +19,7 @@ pub mod file_arg;
 pub mod filetype_report;
 pub mod free_space;
 pub mod gui;
+pub mod guid;
 pub mod ini;
 pub mod log_eval;
 pub mod method_select;
