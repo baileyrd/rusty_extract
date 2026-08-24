@@ -17,6 +17,7 @@
 //! the field actions below are placeholders those capabilities fill in.
 
 use crate::automation::win32::Win32GuiAutomation;
+use crate::gui::file_input;
 use crate::gui::theme;
 use crate::gui::tray_icon_shell::{TrayCommand, TrayHandle};
 use crate::gui::tray_status_box::{self, ScreenRect};
@@ -66,6 +67,7 @@ pub struct MainWindow {
     pub output_dir: String,
     pub no_status_box: bool,
     pub hide_status_box_if_fullscreen: bool,
+    pub lock_output_directory: bool,
     use_white_background: bool,
     tray: TrayHandle,
     status_box: Option<StatusBoxState>,
@@ -91,6 +93,7 @@ impl MainWindow {
             output_dir: String::new(),
             no_status_box,
             hide_status_box_if_fullscreen: false,
+            lock_output_directory: crate::prefs::KEEPOUTPUTDIR_DEFAULT,
             use_white_background: theme::should_use_white_background(
                 is_windows10_not_11,
                 high_contrast,
@@ -140,6 +143,108 @@ impl MainWindow {
     /// the fade-out animation (see [`FADE_IN_MS`]'s doc comment).
     pub fn clear_status(&mut self) {
         self.status_box = None;
+    }
+
+    /// Ports `GUI_File`'s file-picker half (UniExtract.au3:6264-6282),
+    /// which hands off to `GUI_Drop` -> `GUI_Drop_Parse` for a single
+    /// selection (UniExtract.au3:6279,6710-6753) -- so this uses
+    /// `file_input::should_auto_fill_output_dir`'s fuller lock-aware
+    /// gate via [`Self::drop_parse`], not `GUI_OnFileInputChanged`'s
+    /// simpler one (that gate is only for manual typing in the field,
+    /// wired separately below). **Single-select only for now** -- the source's
+    /// own multi-select path (`$FD_MULTISELECT`) routes into `GUI_Drop`'s
+    /// populate-vs-auto-queue dispatch (C187) and from there potentially
+    /// into the batch queue (C188), neither of which exist yet; wiring
+    /// multi-select today with nowhere for a 2nd+ file to go would
+    /// silently drop every file but the first, which is worse than not
+    /// offering it. Revisit once C187/C188 land.
+    fn browse_for_file(&mut self) {
+        let Some(path) = rfd::FileDialog::new()
+            .add_filter("Installer", &["exe"])
+            .add_filter("Compressed", &["7z", "rar", "zip"])
+            .add_filter("All Files", &["*"])
+            .pick_file()
+        else {
+            return;
+        };
+        self.file_path = path.display().to_string();
+        self.drop_parse();
+    }
+
+    /// Ports `GUI_Drop_Parse`'s own auto-fill half (UniExtract.au3:6735-
+    /// 6753): the fuller OR gate (blank-or-unlocked), used by both the
+    /// file-picker dialog above and (once C187 lands) drag-and-drop.
+    fn drop_parse(&mut self) {
+        if !file_input::should_auto_fill_output_dir(
+            self.output_dir.is_empty(),
+            self.lock_output_directory,
+        ) {
+            return;
+        }
+        self.output_dir = self.derive_initoutdir();
+    }
+
+    /// Ports `GUI_OnFileInputChanged` (UniExtract.au3:6555-6560): fires
+    /// only on manual typing in the file field, with its own simpler
+    /// blank-only gate (no lock-option check at all) -- distinct from
+    /// [`Self::drop_parse`]'s fuller gate above.
+    fn auto_fill_output_dir_on_file_changed(&mut self) {
+        if !file_input::should_auto_fill_on_file_input_changed(self.output_dir.is_empty()) {
+            return;
+        }
+        self.output_dir = self.derive_initoutdir();
+    }
+
+    /// Ports `FilenameParse`'s `$initoutdir` computation
+    /// (UniExtract.au3:500-518) for the currently-selected file,
+    /// including the real multi-extension collision check against the
+    /// filesystem (`FileExists($initoutdir) And Not _IsDirectory(...)`).
+    fn derive_initoutdir(&self) -> String {
+        let naive = file_input::parse_filename(&self.file_path, false);
+        let collision = std::path::Path::new(&naive.initoutdir).is_file();
+        if collision {
+            file_input::parse_filename(&self.file_path, true).initoutdir
+        } else {
+            naive.initoutdir
+        }
+    }
+
+    /// Ports `GUI_OK`/`GUI_OK_Set` (UniExtract.au3:6563-6582): invalid
+    /// input never closes the window (no `MsgBox` wired yet -- that's a
+    /// separate error-dialog capability, C194 -- so an invalid click is
+    /// currently silent rather than explained, a real gap to close when
+    /// that row lands). `GUI_SavePosition`'s call here is C183's own
+    /// still-open persistence gap, not repeated as a new one here.
+    fn handle_ok_clicked(&mut self, ctx: &egui::Context) {
+        let file_exists = std::path::Path::new(&self.file_path).is_file();
+        match file_input::decide_ok_set(
+            file_input::is_blank(&self.file_path),
+            file_exists,
+            &self.output_dir,
+        ) {
+            file_input::OkOutcome::Invalid => {}
+            file_input::OkOutcome::Valid { outdir } => {
+                self.output_dir = outdir;
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+        }
+    }
+
+    /// Ports `GUI_Directory` (UniExtract.au3:6285-6300).
+    fn browse_for_output_dir(&mut self) {
+        let seed = file_input::resolve_folder_picker_seed(
+            &self.output_dir,
+            std::path::Path::new(&self.output_dir).exists(),
+            &self.file_path,
+            std::path::Path::new(&self.file_path).exists(),
+        );
+        let mut dialog = rfd::FileDialog::new();
+        if !seed.is_empty() {
+            dialog = dialog.set_directory(&seed);
+        }
+        if let Some(path) = dialog.pick_folder() {
+            self.output_dir = path.display().to_string();
+        }
     }
 
     fn render_status_box(&mut self, ctx: &egui::Context) {
@@ -250,8 +355,12 @@ impl eframe::App for MainWindow {
 
             ui.horizontal(|ui| {
                 ui.label("File:");
-                ui.text_edit_singleline(&mut self.file_path);
-                let _ = ui.button("...");
+                if ui.text_edit_singleline(&mut self.file_path).changed() {
+                    self.auto_fill_output_dir_on_file_changed();
+                }
+                if ui.button("...").clicked() {
+                    self.browse_for_file();
+                }
             });
 
             let output_dir_enabled = self.extraction_mode == ExtractionMode::Extract;
@@ -261,11 +370,18 @@ impl eframe::App for MainWindow {
                     output_dir_enabled,
                     egui::TextEdit::singleline(&mut self.output_dir),
                 );
-                let _ = ui.add_enabled(output_dir_enabled, egui::Button::new("..."));
+                if ui
+                    .add_enabled(output_dir_enabled, egui::Button::new("..."))
+                    .clicked()
+                {
+                    self.browse_for_output_dir();
+                }
             });
 
             ui.horizontal(|ui| {
-                let _ = ui.button("OK");
+                if ui.button("OK").clicked() {
+                    self.handle_ok_clicked(ctx);
+                }
                 let _ = ui.button("Cancel");
                 let _ = ui.button("Batch");
             });

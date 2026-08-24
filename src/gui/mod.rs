@@ -12,6 +12,7 @@
 //! comment for the honesty caveat this carries, same as
 //! `automation::win32`/`dlllib::win32`).
 
+pub mod file_input;
 pub mod layout;
 pub mod theme;
 pub mod tray;

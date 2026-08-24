@@ -22,3 +22,4 @@ path = "src/lib.rs"
 windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_System_Registry", "Win32_System_Threading", "Win32_UI_Input_KeyboardAndMouse", "Win32_Security", "Win32_System_LibraryLoader", "Win32_UI_Accessibility", "Win32_System_SystemInformation", "Wdk_System_SystemServices"] }
 eframe = { version = "0.32", default-features = false, features = ["default_fonts", "glow"] }
 tray-icon = "0.20"
+rfd = "0.15"

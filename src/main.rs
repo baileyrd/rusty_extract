@@ -25,7 +25,8 @@ use rusty_extract::extract::table::{self, Ctx};
 use rusty_extract::log_eval::is_overwrite_success_message;
 use rusty_extract::outdir::{
     decide_outdir_outcome, default_output_subfolder, reappend_trailing_backslash_after_extraction,
-    resolve_output_directory, strip_trailing_backslash_for_extraction, OutdirOutcome,
+    resolve_output_directory, split_file_path, strip_trailing_backslash_for_extraction,
+    OutdirOutcome,
 };
 use rusty_extract::status::{exit_code, Status};
 
@@ -36,29 +37,6 @@ const USAGE: &str = "usage: rusty_extract <extractor-type> <program> <file> [out
     [outdir]         output directory, or the token /sub (default: a\n\
                      subfolder named after <file>) — /last is not yet\n\
                      supported (no output-directory history in this phase)";
-
-/// Splits a file path into `(dir, stem, has_extension)`, mirroring the
-/// inputs `outdir::default_output_subfolder` (C138) expects: `stem` is the
-/// filename with only its *last* `.`-delimited extension trimmed.
-///
-/// Splits on `\` directly rather than going through `std::path::Path`:
-/// this port's paths are always Windows paths (this binary is Windows-only,
-/// same as the rest of the port — see `RELEASE_NOTES.md`, "CI: target
-/// windows-latest"), and `Path`'s separator handling is platform-dependent,
-/// which would silently misparse a `\`-separated path on a non-Windows
-/// build host. The rest of this codebase (e.g. `outdir::
-/// resolve_output_directory`) already treats paths as plain `\`-delimited
-/// strings for the same reason.
-fn split_file_path(file: &str) -> (String, String, bool) {
-    let (dir, filename) = match file.rfind('\\') {
-        Some(idx) => (file[..idx].to_string(), file[idx + 1..].to_string()),
-        None => (String::new(), file.to_string()),
-    };
-    match filename.rsplit_once('.') {
-        Some((stem, _ext)) if !stem.is_empty() => (dir, stem.to_string(), true),
-        _ => (dir, filename, false),
-    }
-}
 
 /// Resolves and prepares the output directory for `file`: computes the
 /// `/sub` default (C138), resolves the `outdir` argument against it (C004,
@@ -291,19 +269,5 @@ mod tests {
         let err = run_extraction("rpa", "prog", "file", r"C:\out\", &fake).unwrap_err();
         assert!(err.contains("rpa"));
         assert!(fake.calls().is_empty());
-    }
-
-    /// `split_file_path` extracts the same `(filedir, stem, has_extension)`
-    /// shape `default_output_subfolder`'s own parity tests exercise.
-    #[test]
-    fn split_file_path_separates_dir_stem_and_extension() {
-        assert_eq!(
-            split_file_path(r"C:\downloads\archive.zip"),
-            (r"C:\downloads".to_string(), "archive".to_string(), true)
-        );
-        assert_eq!(
-            split_file_path(r"C:\downloads\noext"),
-            (r"C:\downloads".to_string(), "noext".to_string(), false)
-        );
     }
 }
