@@ -23,6 +23,35 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C211 (partial) — Update-failure/restart/relaunch mechanics
+**2026-08-24**
+
+- **Added:** new `update_process` module porting `KillHelper`'s
+  graceful-then-forceful shutdown sequence, the exact `runas` command
+  construction for `RestartWithoutAdminRights`, the
+  `_UpdateCheckFailed`/`RepairProgramFiles` confirmation gates, and a
+  minimal `ProgressState` state machine over the single global
+  progress-dialog slot `_ProgressOn`/`_ProgressOff` share.
+- `_DeleteFromArchDir` is already ported (as a private helper) by
+  C210's `post_update_actions` and wasn't re-derived here.
+- **Real bug found, preserved rather than "fixed"**: the `runas`
+  command construction splices its parameters string in unescaped and
+  unseparated — a `"` breaks out of the quoted path segment, and there's
+  no automatic space between path and parameters. Both real call sites
+  pass an empty parameters string today, so this is latent rather than
+  triggered.
+- **Verified architectural constraint, preserved rather than
+  "fixed"**: reopening the progress dialog while one is already open
+  silently orphans the previous one rather than erroring or
+  auto-closing it — modeled as an explicit
+  `ReplacedWithoutClosingPrevious` outcome rather than hidden away.
+- **Scope — not wired to real I/O/windows.** `StdioClose`,
+  `WinActivate`/`Send`/`WinClose`, `ProcessClose`, `Run`, `terminate`,
+  `MsgBox`, and actual GUI dialog creation are real actions the caller
+  performs.
+
+---
+
 ## C210 (partial) — Post-update migration
 **2026-08-24**
 

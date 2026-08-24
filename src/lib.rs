@@ -36,4 +36,5 @@ pub mod update_helpers;
 pub mod update_index;
 pub mod update_migration;
 pub mod update_orchestration;
+pub mod update_process;
 pub mod warn_execute;

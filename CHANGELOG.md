@@ -569,6 +569,15 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   moves, deletions, recursive directory removals, ini-key deletions),
   with a presence test for every single entry plus an exact
   total-count assertion. Not wired to real I/O — stays `REQUIRED`.
+- C211 (partial): new `update_process` module ports `KillHelper`'s
+  shutdown sequence, `RestartWithoutAdminRights`'s `runas` command
+  construction, the `_UpdateCheckFailed`/`RepairProgramFiles`
+  confirmation gates, and a `ProgressState` state machine over the
+  single global progress-dialog slot. Preserved two real issues: the
+  `runas` command splices parameters unescaped/unseparated (latent
+  today since call sites pass none), and reopening the progress dialog
+  while one is open silently orphans the previous one. Not wired to
+  real I/O/windows — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
