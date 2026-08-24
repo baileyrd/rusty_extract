@@ -34,5 +34,6 @@ pub mod unicode_relocation;
 pub mod update_ffmpeg;
 pub mod update_helpers;
 pub mod update_index;
+pub mod update_migration;
 pub mod update_orchestration;
 pub mod warn_execute;
