@@ -594,6 +594,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   remember-checkbox-gated preference persistence, and the dialog
   outcome. Documents that "Always send" still requires C212's own
   privacy checkbox. Not wired to a real window — stays `REQUIRED`.
+- C214 (partial): new `telemetry` module ports `SendStats`'s gate and
+  URL construction, documenting the overloaded second parameter with
+  concrete source examples and verifying the Prefs-dialog
+  enable/disable ordering quirk with a test that reproduces the
+  failure mode (flip-then-send silently swallows the opt-out ping).
+  Not wired to real network I/O — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

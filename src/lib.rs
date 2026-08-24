@@ -29,6 +29,7 @@ pub mod result_heuristic;
 pub mod run_log;
 pub mod status;
 pub mod teelog;
+pub mod telemetry;
 pub mod type_override;
 pub mod unicode_relocation;
 pub mod update_ffmpeg;
