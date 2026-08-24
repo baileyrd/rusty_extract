@@ -511,6 +511,11 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   (no `REG_EXPAND_SZ` call site exists). `gui::context_menu_registry`
   ports the simple/cascading write plans and the full-wipe removal
   list. Not wired to a real window — stays `REQUIRED`.
+- C203 (partial): substantially already covered by C202's
+  `resolve_removal_targets` (same function, same PR). Adds the one
+  remaining gap: `should_teardown_file_assoc_before_rebuild`, the
+  unconditional file-association teardown before any re-registration.
+  Stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

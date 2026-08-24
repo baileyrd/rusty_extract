@@ -196,6 +196,20 @@ pub fn resolve_removal_targets(
     targets
 }
 
+/// Capability C203's own remaining piece of `GUI_ContextMenu_remove`
+/// (UniExtract.au3:7323): `If $addassocenabled Then
+/// GUI_ContextMenu_fileassoc(0)` -- the file association is torn down
+/// as part of the unconditional wipe-before-rebuild, regardless of
+/// what the dialog's *new* checkbox state will turn out to be. This is
+/// deliberately a separate, simpler question from C201's
+/// `should_apply_file_assoc_after_confirmation`/`should_remove_file_assoc`,
+/// which decide the *re-apply* step afterward, once the new state is
+/// known -- conflating the two would lose the "always wipe first"
+/// property this row's own description calls out.
+pub fn should_teardown_file_assoc_before_rebuild(was_previously_enabled: bool) -> bool {
+    was_previously_enabled
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -374,5 +388,11 @@ mod tests {
 
         let targets_pre_win7 = resolve_removal_targets(REG_ALL, REG_CURRENT, &[], false);
         assert!(targets_pre_win7.is_empty());
+    }
+
+    #[test]
+    fn teardown_file_assoc_only_when_previously_enabled() {
+        assert!(should_teardown_file_assoc_before_rebuild(true));
+        assert!(!should_teardown_file_assoc_before_rebuild(false));
     }
 }
