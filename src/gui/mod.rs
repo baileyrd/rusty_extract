@@ -15,6 +15,7 @@
 pub mod batch_queue;
 pub mod drag_drop;
 pub mod file_input;
+pub mod first_start;
 pub mod layout;
 pub mod prefs_dialog;
 pub mod theme;

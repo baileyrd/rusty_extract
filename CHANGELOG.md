@@ -437,6 +437,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   superseding the source's window-recreate workaround) for real. The
   Preferences dialog window itself, plus `GUI_Silent`/`GUI_KeepOpen`,
   aren't wired — stays `REQUIRED`.
+- C191 (partial): `gui::first_start` ports the wizard's page-navigation
+  state machine as a pure function of the current page
+  (Prev-visibility, Next/Finish relabeling, per-page action button) and
+  the missing-translation branch's decision shape. Deliberately not
+  wired to any real ID-clear/exit call (needs explicit sign-off per
+  this row's own note) or a real wizard window (its pages link to
+  not-yet-real C190/C192 dialogs and need translation-catalog
+  infrastructure, D006) — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
