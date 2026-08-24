@@ -23,6 +23,33 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C212 (partial) — Feedback dialog and submission
+**2026-08-24**
+
+- **Added:** new `gui::feedback` module porting the pure
+  formatting/decision logic behind the feedback dialog: the
+  attach-a-file side effects, the outdated-version check (reusing
+  C207's main-executable comparison directly), the empty-submission
+  guard, the exact human-readable report layout, the gzip-vs-plain
+  encoding decision, the hand-rolled multipart body builders
+  (byte-exact against the source), the bare-string success check, and
+  the error-message fallback.
+- **No PII is transmitted or even assembled with real data by this
+  module** — every function is pure formatting over caller-supplied
+  values; this is the heaviest PII surface in the phase, scoped
+  carefully to keep it that way.
+- **Verified quirks, preserved rather than "fixed"**: the hex-dump/
+  metadata-logging side effect fires the instant the dialog opens with
+  a file attached, appended to the persistent session log rather than
+  scoped to this attempt, so it can outlive a cancelled submission;
+  success detection is a bare string-equality check against the
+  literal `"1"`, with no HTTP status-code check at all.
+- **Scope — not wired to real network I/O.** The real HTTP request,
+  actual zlib compression, and the privacy-policy-checkbox gate on the
+  real dialog are the caller's job.
+
+---
+
 ## C211 (partial) — Update-failure/restart/relaunch mechanics
 **2026-08-24**
 
