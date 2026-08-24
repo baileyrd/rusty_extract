@@ -23,6 +23,26 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C179 (partial, additional coverage) — Free-space check ancestor walk
+**2026-08-24**
+
+- **Added:** `free_space::nearest_existing_ancestor` ports the
+  previously-unmodeled preliminary directory-walk step from
+  `HasFreeSpace()` — trims a path to its last `\` repeatedly (via a
+  caller-injected `is_directory` check for the one real filesystem
+  call it needs) until an existing ancestor is found or no `\` remain.
+- This closes the one gap in C179's scope that wasn't already the
+  universal MsgBox boundary every other capability in this port draws
+  too — the interactive abort/retry/ignore dialog itself stays
+  deferred, consistently with `gui::prompt`'s `Prompt`,
+  `update_process`'s `_UpdateCheckFailed`, and every other MsgBox call
+  in the codebase, not as a gap unique to this row.
+- **Verified quirk, preserved rather than "fixed"**: if no ancestor
+  ever satisfies `is_directory`, the walk stops with whatever fragment
+  is left rather than falling back to a known-good default.
+
+---
+
 ## C217 (partial) — Uninstall confirmation dialog
 **2026-08-24**
 

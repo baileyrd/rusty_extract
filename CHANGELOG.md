@@ -621,6 +621,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   replicating or fixing it. Not wired to a real window — stays
   `REQUIRED`. Closes out the C183-C217 GUI/tray/updater/telemetry/
   uninstall migration phase.
+- C179 (additional coverage): `free_space::nearest_existing_ancestor`
+  ports the previously-unmodeled preliminary directory-walk step from
+  `HasFreeSpace()`, closing the one gap in this row's scope that
+  wasn't already the universal MsgBox boundary every other capability
+  draws too. Still `REQUIRED` — the interactive dialog itself stays
+  deferred like every other MsgBox in the codebase.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
