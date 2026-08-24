@@ -22,6 +22,7 @@ pub mod log_actions;
 pub mod plugin_manager;
 pub mod prefs_dialog;
 pub mod prompt;
+pub mod stats;
 pub mod theme;
 pub mod tray;
 pub mod tray_status_box;

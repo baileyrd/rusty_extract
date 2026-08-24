@@ -472,6 +472,14 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   password-file touch-if-missing gate. None of it is wired to real I/O
   yet (no settings-directory resolution plumbed into the GUI) — stays
   `REQUIRED`.
+- C196 (partial): `gui::stats` ports the status-to-INI-key mapping, the
+  archive-type counter's success-only gate, the four-bucket status
+  categorization, the confirmed ≥10-distinct-keys display gate, and the
+  top-9-by-count filter. Found and preserved a new quirk: four status
+  keys (`movefailed`/`nofreespace`/`missingpart`/`trayexit`) fall
+  through the source's own classification switch and get miscounted as
+  archive types. The pie-chart rendering itself is out of scope — stays
+  `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,

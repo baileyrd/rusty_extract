@@ -23,6 +23,27 @@ reverse chronological (no version tags yet — pre-1.0, nothing published).
 
 ---
 
+## C196 (partial) — Local usage statistics
+**2026-08-24**
+
+- **Added:** `gui::stats` — `status_ini_key` (the `Status`-to-INI-key
+  string mapping), `should_increment_arctype_counter` (the archive-type
+  counter's success-only gate), `classify_stats_key` (the four-bucket
+  categorization), `should_show_stats` (confirmed: the ≥10 gate counts
+  distinct keys, not total extraction volume), and `top_n_by_count`
+  (the descending-sort-then-cap-at-9 filter).
+- **New verified quirk**: the source's classification `Switch` has no
+  case at all for `movefailed`/`nofreespace`/`missingpart`/`trayexit` —
+  four real status keys that fall through to `Case Else` and get
+  miscounted as archive types rather than landing in `Failed` or being
+  excluded. Preserved exactly, not "corrected."
+- **Scope — the GDI+ pie-chart rendering itself is out of scope
+  entirely**, a rendering dependency this port replaces rather than a
+  behavior to reproduce, so nothing here is wired to a real window.
+- Tests: `gui::stats::tests` (8).
+
+---
+
 ## C195 (partial) — Misc file/log utility actions
 **2026-08-24**
 
