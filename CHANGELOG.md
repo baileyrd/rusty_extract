@@ -588,6 +588,12 @@ Format: Added / Changed / Deprecated / Removed / Fixed / Security, newest first.
   dialog open regardless of submission, appended to the persistent
   session log; success detection has no HTTP status-code check. Not
   wired to real network I/O — stays `REQUIRED`.
+- C213 (partial): new `gui::feedback_prompt` module ports both the
+  caller-side trigger condition (four exit codes, excluding `.dll`
+  files) and `GUI_Feedback_Prompt`'s never/always/ask dispatch, the
+  remember-checkbox-gated preference persistence, and the dialog
+  outcome. Documents that "Always send" still requires C212's own
+  privacy checkbox. Not wired to a real window — stays `REQUIRED`.
 ### Changed
 - Collapsed 43 single-invocation extractor modules (`extract::ace`,
   `extract::kgb`, `extract::rar`, etc.) into one data-driven table,
